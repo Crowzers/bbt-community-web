@@ -331,13 +331,16 @@ const Config: SettingsConfiguration<{ server: Server }> = {
               hidden: true, // BBT: noutățile lor, nu ale noastre
             },
             {
-              // BBT: AGPL — sursa modificată (fork-ul BBT) trebuie să fie la un click distanță.
+              // BBT: ascuns din Setări la cererea userului (5 oct). ⚠️ AGPL cere ca sursa modificată să
+              // fie oferită utilizatorilor — linkul spre fork trebuie să existe ÎN ALTĂ PARTE (site).
               href: "https://github.com/Crowzers/bbt-community-web",
+              hidden: true,
               icon: <MdMemory {...iconSize(20)} />,
               title: <Trans>Source Code</Trans>,
             },
             {
               id: "advanced",
+              hidden: true, // BBT: nimic de reglat aici pentru un membru
               icon: <MdScience {...iconSize(20)} />,
               title: <Trans>Advanced</Trans>,
             },
