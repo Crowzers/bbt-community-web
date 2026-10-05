@@ -28,6 +28,7 @@ import MdVerifiedUser from "@material-design-icons/svg/outlined/verified_user.sv
 import MdWorkspacePremium from "@material-design-icons/svg/outlined/workspace_premium.svg?component-solid";
 
 import pkg from "../../../../../../package.json";
+import { ProfilBBT } from "../../../../src/bbt/ProfilBBT";
 
 import { SettingsConfiguration } from ".";
 import { AccountCard, BackCard } from "./user/_AccountCard";
@@ -39,7 +40,6 @@ import { Feedback } from "./user/Feedback";
 import { LanguageSettings } from "./user/Language";
 import Native from "./user/Native";
 import Notifications from "./user/notifications/Notifications";
-import { EditProfile } from "./user/profile";
 import { Sessions } from "./user/Sessions";
 import { EditSubscription } from "./user/subscriptions";
 import { VoiceSettings } from "./user/voice/VoiceSettings";
@@ -83,7 +83,8 @@ const Config: SettingsConfiguration<{ server: Server }> = {
       case "advanced":
         return <AdvancedSettings />;
       case "profile":
-        return <EditProfile />;
+        // BBT: profilul BBT (sursa), nu editorul Stoat — vezi src/bbt/ProfilBBT.tsx.
+        return <ProfilBBT />;
       case "sessions":
         return <Sessions />;
       case "bots":

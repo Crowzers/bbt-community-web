@@ -51,6 +51,18 @@ export function ProfileActions(props: {
    * Open edit menu
    */
   function openEdit() {
+    // BBT: propriul profil = mereu profilul BBT, și din server. Identitatea pe server (alt nume/altă
+    // poză doar aici) ar fi acoperit numele și poza din contul BBT — un server, o identitate.
+    // ⚠️ Pe ALTCINEVA rămâne ca la ei: moderatorii resetează de aici porecla/poza unui membru.
+    if (props.user.self) {
+      openModal({
+        type: "settings",
+        config: "user",
+        context: { page: "profile" },
+      });
+      props.onClose();
+      return;
+    }
     openModal(
       props.member
         ? { type: "server_identity", member: props.member }
@@ -95,14 +107,13 @@ export function ProfileActions(props: {
 
       <Show
         when={
-          props.member
-            ? props.user.self
-              ? props.member.server!.havePermission("ChangeNickname") ||
-                props.member.server!.havePermission("ChangeAvatar")
-              : (props.member.server!.havePermission("ManageNicknames") ||
-                  props.member.server!.havePermission("RemoveAvatars")) &&
-                props.member.inferiorTo(props.member!.server!.member!)
-            : props.user.self
+          // BBT: propriul profil se editează mereu (în BBT), fără permisiunile de identitate pe server.
+          props.user.self ||
+          (props.member
+            ? (props.member.server!.havePermission("ManageNicknames") ||
+                props.member.server!.havePermission("RemoveAvatars")) &&
+              props.member.inferiorTo(props.member!.server!.member!)
+            : false)
         }
       >
         <IconButton onPress={openEdit}>

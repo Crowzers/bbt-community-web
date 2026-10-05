@@ -1,7 +1,7 @@
 import { JSX, splitProps } from "solid-js";
 
-import HARTA from "./iconite-harta.json";
 import { SVG_LUCIDE } from "./iconite";
+import HARTA from "./iconite-harta.json";
 
 /**
  * Iconițele BBT Community = Lucide, ca pe site (lucide-react). Stoat folosește Material, din DOUĂ
@@ -26,7 +26,10 @@ export function lucidePentru(numeMaterial: string): string | null {
   const nume = HARTA_LUCIDE[numeMaterial];
   const brut = nume ? SVG_LUCIDE[nume] : undefined;
   if (!brut) return null;
-  return brut.replace(/<!--[\s\S]*?-->/g, "").replace(/^[\s\S]*?<svg[^>]*>/, "").replace(/<\/svg>\s*$/, "");
+  return brut
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/^[\s\S]*?<svg[^>]*>/, "")
+    .replace(/<\/svg>\s*$/, "");
 }
 
 type PropsSvg = JSX.SvgSVGAttributes<SVGSVGElement>;
@@ -36,19 +39,30 @@ type PropsSvg = JSX.SvgSVGAttributes<SVGSVGElement>;
  *
  * ⚠️ Material umple forma (`fill`), Lucide o desenează din contur (`stroke`). Un `fill` primit de la
  * apelant (o culoare) se mută pe `stroke`; altfel iconița ar ieși un bloc plin de culoare.
+ *
+ * ⚠️ Mărimea implicită e 24px, ca a SVG-urilor Material înlocuite (`width="24"` în fișierele lor), NU
+ * 1em: cu 1em, rotița și membrii din antetul canalului ieșeau cât textul, lângă pin și căutare de 24px.
+ * O mărime dată de CSS-ul apelantului câștigă oricum în fața atributelor.
  */
 export function componentaLucide(numeMaterial: string) {
   const interior = lucidePentru(numeMaterial) ?? "";
   return function IconitaLucide(props: PropsSvg) {
-    const [local, rest] = splitProps(props, ["fill", "viewBox", "width", "height"]);
+    const [local, rest] = splitProps(props, [
+      "fill",
+      "viewBox",
+      "width",
+      "height",
+    ]);
     const culoare = () =>
-      local.fill && local.fill !== "none" ? (local.fill as string) : "currentColor";
+      local.fill && local.fill !== "none"
+        ? (local.fill as string)
+        : "currentColor";
     return (
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
-        width={local.width ?? "1em"}
-        height={local.height ?? "1em"}
+        width={local.width ?? 24}
+        height={local.height ?? 24}
         fill="none"
         stroke={culoare()}
         stroke-width="2"

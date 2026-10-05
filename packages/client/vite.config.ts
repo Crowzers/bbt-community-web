@@ -23,8 +23,10 @@ function iconiteLucide() {
     readFileSync(resolve(__dirname, "src/bbt/iconite-harta.json"), "utf8"),
   ) as Record<string, string>;
   // Fără backslash-uri, dinadins: `[.]` și `[?]` în loc de escape — mai ușor de citit și de copiat.
+  // ⚠️ DOUĂ pachete Material: `@material-design-icons/svg/<stil>/` și `@material-symbols/svg-400/<stil>/`
+  // (rotița din bara canalelor, meniurile de notificări). Varianta `-fill` primește aceeași iconiță Lucide.
   const MATERIAL = new RegExp(
-    "^@material-design-icons/svg/[a-z]+/([a-z_0-9]+)[.]svg[?]component-solid$",
+    "^@material-(?:design-icons/svg|symbols/svg-[0-9]+)/[a-z]+/([a-z_0-9]+)(?:-fill)?[.]svg[?]component-solid$",
   );
   // Prefixul NUL e convenția Rollup pentru module virtuale: niciun alt plugin nu încearcă să le citească.
   const PREFIX = String.fromCharCode(0) + "bbt-iconita:";
@@ -38,7 +40,9 @@ function iconiteLucide() {
     load(id: string) {
       if (!id.startsWith(PREFIX)) return;
       const nume = id.slice(PREFIX.length);
-      const componenta = JSON.stringify(resolve(__dirname, "src/bbt/IconitaLucide.tsx"));
+      const componenta = JSON.stringify(
+        resolve(__dirname, "src/bbt/IconitaLucide.tsx"),
+      );
       return [
         `import { componentaLucide } from ${componenta};`,
         `export default componentaLucide(${JSON.stringify(nume)});`,

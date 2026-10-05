@@ -27,7 +27,6 @@ import MdGroup from "@material-design-icons/svg/outlined/group.svg?component-sol
 import MdPersonAdd from "@material-design-icons/svg/outlined/person_add.svg?component-solid";
 import MdSettings from "@material-design-icons/svg/outlined/settings.svg?component-solid";
 
-import MdKeep from "../../svg/keep.svg?component-solid";
 import { HeaderIcon } from "../common/CommonHeader";
 
 import { canIHasSidebar, SidebarState } from "./text/TextChannel";
@@ -220,7 +219,8 @@ export function ChannelHeader(props: Props) {
                 })
           }
         >
-          <MdKeep />
+          {/* BBT: glifa `keep` (→ pin Lucide), nu SVG-ul local Material, care ocolea harta iconițelor. */}
+          <Symbol>keep</Symbol>
         </IconButton>
       </Show>
 

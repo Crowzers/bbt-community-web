@@ -13,6 +13,7 @@ import i_award from "lucide-static/icons/award.svg?raw";
 import i_badge_check from "lucide-static/icons/badge-check.svg?raw";
 import i_ban from "lucide-static/icons/ban.svg?raw";
 import i_bell from "lucide-static/icons/bell.svg?raw";
+import i_bell_dot from "lucide-static/icons/bell-dot.svg?raw";
 import i_bell_off from "lucide-static/icons/bell-off.svg?raw";
 import i_bell_ring from "lucide-static/icons/bell-ring.svg?raw";
 import i_bot from "lucide-static/icons/bot.svg?raw";
@@ -29,9 +30,12 @@ import i_chevron_right from "lucide-static/icons/chevron-right.svg?raw";
 import i_chevron_up from "lucide-static/icons/chevron-up.svg?raw";
 import i_chevrons_down_up from "lucide-static/icons/chevrons-down-up.svg?raw";
 import i_chevrons_up_down from "lucide-static/icons/chevrons-up-down.svg?raw";
+import i_circle from "lucide-static/icons/circle.svg?raw";
 import i_circle_alert from "lucide-static/icons/circle-alert.svg?raw";
 import i_circle_check from "lucide-static/icons/circle-check.svg?raw";
+import i_circle_dot from "lucide-static/icons/circle-dot.svg?raw";
 import i_circle_minus from "lucide-static/icons/circle-minus.svg?raw";
+import i_circle_off from "lucide-static/icons/circle-off.svg?raw";
 import i_circle_plus from "lucide-static/icons/circle-plus.svg?raw";
 import i_circle_user_round from "lucide-static/icons/circle-user-round.svg?raw";
 import i_circle_x from "lucide-static/icons/circle-x.svg?raw";
@@ -45,6 +49,7 @@ import i_cpu from "lucide-static/icons/cpu.svg?raw";
 import i_credit_card from "lucide-static/icons/credit-card.svg?raw";
 import i_download from "lucide-static/icons/download.svg?raw";
 import i_ellipsis_vertical from "lucide-static/icons/ellipsis-vertical.svg?raw";
+import i_expand from "lucide-static/icons/expand.svg?raw";
 import i_external_link from "lucide-static/icons/external-link.svg?raw";
 import i_eye from "lucide-static/icons/eye.svg?raw";
 import i_eye_off from "lucide-static/icons/eye-off.svg?raw";
@@ -112,6 +117,7 @@ import i_share_2 from "lucide-static/icons/share-2.svg?raw";
 import i_shield from "lucide-static/icons/shield.svg?raw";
 import i_shield_check from "lucide-static/icons/shield-check.svg?raw";
 import i_shield_user from "lucide-static/icons/shield-user.svg?raw";
+import i_shrink from "lucide-static/icons/shrink.svg?raw";
 import i_sliders_horizontal from "lucide-static/icons/sliders-horizontal.svg?raw";
 import i_smile from "lucide-static/icons/smile.svg?raw";
 import i_speaker from "lucide-static/icons/speaker.svg?raw";
@@ -130,6 +136,7 @@ import i_users_round from "lucide-static/icons/users-round.svg?raw";
 import i_video from "lucide-static/icons/video.svg?raw";
 import i_volume_2 from "lucide-static/icons/volume-2.svg?raw";
 import i_webhook from "lucide-static/icons/webhook.svg?raw";
+import i_wrench from "lucide-static/icons/wrench.svg?raw";
 import i_x from "lucide-static/icons/x.svg?raw";
 import i_zoom_in from "lucide-static/icons/zoom-in.svg?raw";
 import i_zoom_out from "lucide-static/icons/zoom-out.svg?raw";
@@ -147,6 +154,7 @@ export const SVG_LUCIDE: Record<string, string> = {
   "badge-check": i_badge_check,
   "ban": i_ban,
   "bell": i_bell,
+  "bell-dot": i_bell_dot,
   "bell-off": i_bell_off,
   "bell-ring": i_bell_ring,
   "bot": i_bot,
@@ -163,9 +171,12 @@ export const SVG_LUCIDE: Record<string, string> = {
   "chevron-up": i_chevron_up,
   "chevrons-down-up": i_chevrons_down_up,
   "chevrons-up-down": i_chevrons_up_down,
+  "circle": i_circle,
   "circle-alert": i_circle_alert,
   "circle-check": i_circle_check,
+  "circle-dot": i_circle_dot,
   "circle-minus": i_circle_minus,
+  "circle-off": i_circle_off,
   "circle-plus": i_circle_plus,
   "circle-user-round": i_circle_user_round,
   "circle-x": i_circle_x,
@@ -179,6 +190,7 @@ export const SVG_LUCIDE: Record<string, string> = {
   "credit-card": i_credit_card,
   "download": i_download,
   "ellipsis-vertical": i_ellipsis_vertical,
+  "expand": i_expand,
   "external-link": i_external_link,
   "eye": i_eye,
   "eye-off": i_eye_off,
@@ -246,6 +258,7 @@ export const SVG_LUCIDE: Record<string, string> = {
   "shield": i_shield,
   "shield-check": i_shield_check,
   "shield-user": i_shield_user,
+  "shrink": i_shrink,
   "sliders-horizontal": i_sliders_horizontal,
   "smile": i_smile,
   "speaker": i_speaker,
@@ -264,6 +277,7 @@ export const SVG_LUCIDE: Record<string, string> = {
   "video": i_video,
   "volume-2": i_volume_2,
   "webhook": i_webhook,
+  "wrench": i_wrench,
   "x": i_x,
   "zoom-in": i_zoom_in,
   "zoom-out": i_zoom_out,
