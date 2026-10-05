@@ -8,8 +8,10 @@
 # și — cum scria fiecare job aceleași etichete — ultima arhitectură terminată o suprascria pe cealaltă.
 #
 # Imaginea e publică (pachetul moștenește vizibilitatea repo-ului public), deci Coolify o trage
-# fără credențiale. Eticheta folosită în `hub/compose.yml` din repo-ul BBT e SHA-ul scurt, nu
-# `bbt`: o etichetă mobilă ar fi schimbat interfața la orice repornire, fără niciun commit în BBT.
+# fără credențiale. Din 5 oct 2026 interfața e o aplicație Coolify separată (rolling update, zero
+# cădere) care rulează eticheta `bbt` = ultimul build de pe ramura asta; deploy-ul îl declanșează
+# pasul de la final. Ce versiune rulează se vede în Coolify (deployments) și în eticheta SHA scurt,
+# pusă pe aceeași imagine — un rollback = deploy cu eticheta SHA a versiunii bune.
 
 name: BBT imagine
 
@@ -55,3 +57,21 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # Deploy-ul aplicației Coolify „BBT Community Web" (rolling update: zero cădere).
+      # Secretele se pun din Settings → Secrets and variables → Actions al acestui repo:
+      #   COOLIFY_URL (adresa panoului, fără / la final), COOLIFY_TOKEN (token API cu drept de deploy),
+      #   COOLIFY_WEB_UUID (uuid-ul aplicației, din adresa ei în Coolify).
+      # Fără ele pasul se sare — imaginea rămâne construită, deploy-ul se dă de mână.
+      - name: Deploy în Coolify
+        env:
+          COOLIFY_URL: ${{ secrets.COOLIFY_URL }}
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          COOLIFY_WEB_UUID: ${{ secrets.COOLIFY_WEB_UUID }}
+        run: |
+          if [ -z "$COOLIFY_URL" ] || [ -z "$COOLIFY_TOKEN" ] || [ -z "$COOLIFY_WEB_UUID" ]; then
+            echo "Secretele Coolify lipsesc — deploy sărit."
+            exit 0
+          fi
+          curl --fail-with-body -sS -H "Authorization: Bearer $COOLIFY_TOKEN" \
+            "$COOLIFY_URL/api/v1/deploy?uuid=$COOLIFY_WEB_UUID&force=false"
