@@ -28,31 +28,64 @@ self.addEventListener("notificationclick", (event) => {
   }
 });
 
+/**
+ * BBT: numele și textele notificărilor. Serverul Stoat (`pushd`, neatins — decizia 2) trimite la
+ * apeluri și cereri de prietenie DOAR un `body`, în engleză, fără titlu; aici titlul cădea pe
+ * „Stoat" (5 oct 2026: „am primit notificare de la Chrome cu numele Stoat"). Textele fixe ale lor
+ * se traduc după forma exactă din `crates/daemons/pushd/src/consumers/outbound/vapid.rs`.
+ */
+const NUME_APLICATIE = "BBT Community";
+const ICONITA_BBT = "/assets/web/android-chrome-192x192.png";
+
+const TRADUCERI: [RegExp, (m: RegExpMatchArray) => string][] = [
+  [/^(.+) is calling your group, (.+)$/, (m) => `${m[1]} sună grupul ${m[2]}`],
+  [/^(.+) is calling you$/, (m) => `${m[1]} te sună`],
+  [
+    /^(.+) sent you a friend request$/,
+    (m) => `${m[1]} ți-a trimis o cerere de prietenie`,
+  ],
+  [
+    /^(.+) accepted your friend request$/,
+    (m) => `${m[1]} ți-a acceptat cererea de prietenie`,
+  ],
+];
+
+function traduce(text: string): { text: string; apel: boolean } {
+  for (const [forma, inlocuire] of TRADUCERI) {
+    const m = text.match(forma);
+    if (m) return { text: inlocuire(m), apel: /is calling/.test(text) };
+  }
+  return { text, apel: false };
+}
+
 self.addEventListener("push", (event) => {
   if (!event.data) return;
   const payload = event.data.text();
 
   const notification: StoatPushNotification = JSON.parse(payload);
+  const { text, apel } = traduce(notification.body ?? "");
 
   if (!notification.title) {
     if (notification.channel) {
       if (notification.channel.channel_type === "DirectMessage") {
-        notification.title = notification.author || "Stoat";
+        notification.title = notification.author || NUME_APLICATIE;
       } else {
-        notification.title = `${notification.author} in ${notification.channel.name}`;
+        notification.title = `${notification.author} în #${notification.channel.name}`;
       }
     } else {
-      notification.title = "Stoat";
+      notification.title = apel ? "Apel BBT Community" : NUME_APLICATIE;
     }
   }
 
   notification.url ||= self.registration.scope;
 
   event.waitUntil(
-    self.registration.showNotification(notification.title || "Stoat", {
-      icon: notification.icon,
-      body: notification.body,
+    self.registration.showNotification(notification.title || NUME_APLICATIE, {
+      icon: notification.icon || ICONITA_BBT,
+      body: text,
       data: notification.url,
+      // Un apel rămâne pe ecran până îl atingi sau îl închizi — nu dispare în 5 secunde.
+      ...(apel ? { requireInteraction: true, tag: "bbt-apel" } : {}),
     }),
   );
 });

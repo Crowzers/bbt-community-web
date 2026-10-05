@@ -132,8 +132,13 @@ function Floating(props: FloatingElement & { mouseX: number; mouseY: number }) {
   const position = useFloating(element, floating, {
     placement: placement(),
     middleware: [offset(5), flip(), shift()],
+    // BBT: și pentru cardul de profil — cel BBT (src/bbt/MiniProfil.tsx) crește după ce vin datele
+    // („Se încarcă…" → cardul întreg), iar poziția calculată o singură dată îl lăsa sub marginea
+    // ecranului. `autoUpdate` repoziționează la orice schimbare de mărime.
     whileElementsMounted:
-      props.show()?.tooltip || props.show()?.autoComplete
+      props.show()?.tooltip ||
+      props.show()?.autoComplete ||
+      props.show()?.userCard
         ? autoUpdate
         : undefined,
   });

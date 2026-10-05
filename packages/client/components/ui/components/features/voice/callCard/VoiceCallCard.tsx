@@ -141,7 +141,10 @@ export function VoiceCallCardContext(props: { children: JSX.Element }) {
   function setFloat(float: FloatType) {
     const sty = ref!.style,
       x = float[1] === "l" ? PAD_X : `calc(100vw - var(--flt-w) - ${PAD_X})`,
-      y = float[0] === "t" ? PAD_Y : `calc(100vh - var(--flt-h) - ${PAD_Y})`;
+      y =
+        float[0] === "t"
+          ? PAD_Y
+          : `calc(var(--bbt-ecran-h, 100dvh) - var(--flt-h) - ${PAD_Y})`;
     sty.transform = `translate(${x}, ${y})`;
     sty.width = "";
     sty.height = "";
@@ -224,8 +227,12 @@ const Float = styled("div", {
     fullscreen: {
       true: {
         zIndex: 100,
-        height: "100vh",
-        top: 0,
+        // BBT: ecranul VIZIBIL, nu `100vh`. Pe iPhone, Safari n-are Fullscreen API pentru un `div`,
+        // deci „ecran complet" e doar stratul ăsta — iar `100vh` e mai înalt decât ce se vede, cu
+        // bara Safari de jos peste controalele apelului („nu văd controalele", 5 oct 2026).
+        // `--bbt-ecran-*` vin din src/bbt/ecran.ts.
+        height: "var(--bbt-ecran-h, 100dvh)",
+        top: "var(--bbt-ecran-sus, 0px)",
         // Width is set by floating logic in effect above
       },
     },

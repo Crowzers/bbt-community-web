@@ -60,8 +60,11 @@ export function Dialog(props: Props) {
             >
               <Container
                 style={{
+                  // BBT: niciodată mai lat decât ecranul. Profilul cere 560px; pe un telefon de
+                  // 375px foaia ieșea din ecran, cu butoanele tăiate în dreapta (5 oct 2026).
+                  // 60px = cei 30px de margine pe fiecare parte ai stratului din jur.
                   "min-width": props.minWidth
-                    ? `${props.minWidth}px`
+                    ? `min(${props.minWidth}px, calc(100vw - 60px))`
                     : undefined,
                   padding: props.padding ? `${props.padding}px` : undefined,
                 }}

@@ -68,7 +68,10 @@ export class Device {
       // Load a long press event library to replace context menus on IOS touch
       //@ts-expect-error There are no types for this library.
       import("long-press-event");
-      document.getElementsByTagName("body")[0].dataset.longPressDelay = "1000";
+      // BBT: 500ms, nu 1000 — pragul din iOS/Android și din Community-ul vechi (`useApasareLunga`).
+      // La o secundă, degetul se ridica înainte și meniul mesajului (Răspunde, Reacționează) nu
+      // apărea deloc: „nu pot da reacții și nu pot răspunde pe telefon" (5 oct 2026).
+      document.getElementsByTagName("body")[0].dataset.longPressDelay = "500";
     }
 
     const [lo, setLo] = createSignal<Layout>("desktop");

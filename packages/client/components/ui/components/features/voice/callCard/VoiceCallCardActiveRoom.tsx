@@ -81,6 +81,26 @@ function LayoutButtons() {
           </Show>
         </IconButton>
       </Show>
+      {/* BBT: pe telefon, un singur buton „Chat" în locul celor două de mai sus (care nu încap):
+          restrânge apelul într-o bandă, ca să se vadă chatul canalului de dedesubt; încă o apăsare
+          îl readuce. Fără el, pe telefon apelul acoperea chatul fără nicio ieșire („nu văd chatul
+          într-un apel video", 5 oct 2026). */}
+      <Show when={device.layout() !== "desktop"}>
+        <IconButton
+          size="sm"
+          variant={voice.layout() === "collapsed" ? "tonal" : "standard"}
+          onPress={() => voice.toggleLayout("collapsed")}
+          use:floating={{
+            tooltip: {
+              placement: "top",
+              content:
+                voice.layout() === "collapsed" ? t`Arată apelul` : t`Chat`,
+            },
+          }}
+        >
+          <Symbol>chat</Symbol>
+        </IconButton>
+      </Show>
       <IconButton
         size="sm"
         variant={"standard"}

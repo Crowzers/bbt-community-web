@@ -320,7 +320,18 @@ class Voice {
     );
 
     if (!auth) {
-      auth = await channel.joinCall(selected);
+      // BBT: la un apel în mesaje directe / grup, cine PORNEȘTE apelul îi „sună" pe ceilalți. Fără
+      // lista asta, serverul nu sună pe nimeni: nici push („X te sună"), nici apel primit în
+      // aplicație — „când te sună cineva nu-ți apare nimic, trebuie să intri tu la el în mesaje"
+      // (5 oct 2026). Serverul folosește lista doar dacă apelul e gol (`voice_join.rs`).
+      const deSunat =
+        (channel.type === "DirectMessage" || channel.type === "Group") &&
+        channel.voiceParticipants.size === 0
+          ? (channel.recipients ?? [])
+              .filter((user) => !user.self)
+              .map((user) => user.id)
+          : undefined;
+      auth = await channel.joinCall(selected, true, deSunat);
     }
 
     await room.connect(auth.url, auth.token, {

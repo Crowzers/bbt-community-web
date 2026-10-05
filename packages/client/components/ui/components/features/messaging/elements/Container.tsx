@@ -348,7 +348,9 @@ export function MessageContainer(props: Props) {
           highlight: props.highlight,
           sendStatus: props.sendStatus,
           isLink: props.isLink,
-          iOSTouch: isIOSTouch,
+          // BBT: și pe Android — apăsarea lungă pornea selecția de text în același gest cu
+          // meniul mesajului. Textul se copiază din meniu („Copy text").
+          iOSTouch: isIOSTouch || isMobile,
         })
       }
       use:floating={{ contextMenu: props.contextMenu }}

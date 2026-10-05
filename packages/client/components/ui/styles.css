@@ -10,19 +10,81 @@
   box-sizing: border-box;
 }
 
+/* BBT: negru pur, ca tema (src/bbt/tema.ts). `#191919` era exact ecranul GRI pe care îl vede omul
+   până pornește aplicația — și pentru totdeauna, când pornirea cade (iOS 17, 5 oct 2026).
+   Pagina NU se derulează și nu are elastic: se derulează doar listele din aplicație. Vezi
+   src/bbt/ecran.ts pentru `--bbt-ecran-h` / `--bbt-ecran-sus`. */
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* BBT: densitatea — „Stoat pare voluminos, totul puțin mai mic, ca la o rezoluție mai mare; era
+   perfect în Community-ul vechi" (5 oct 2026). Acolo: text 13–14px, iconițe 14–17px.
+   ⚠️ NU `zoom` pe pagină: testat, meniurile plutitoare (floating-ui) se poziționau decalat
+   proporțional cu distanța de colț — ei calculează din coordonatele mouse-ului, nescalate.
+   Fontul de bază scalează tot ce e în `rem` (tipografia Material, mdui); restul e în px.
+   Iconițele: 20px implicit (src/bbt/IconitaLucide.tsx + `.material-symbols-*` mai jos). */
+html {
+  font-size: 90%;
+}
+
+.material-symbols-outlined,
+.material-symbols-rounded,
+.material-symbols-sharp {
+  font-size: 20px;
+}
+
 body {
   margin: 0;
-  background: #191919;
+  background: #000;
   font-family: var(--fonts-primary);
 }
 
 #root {
   position: fixed;
-  top: env(safe-area-inset-top);
+  top: calc(var(--bbt-ecran-sus, 0px) + env(safe-area-inset-top));
   left: env(safe-area-inset-left);
   right: env(safe-area-inset-right);
-  bottom: env(safe-area-inset-bottom);
-  background: #191919;
+  /* Înălțimea = ecranul VIZIBIL (fără tastatură), nu `bottom: 0` — altfel câmpul de scris rămâne
+     sub tastatură pe iOS. Rezerva `100dvh` e pentru prima randare și browserele fără visualViewport. */
+  height: calc(
+    var(--bbt-ecran-h, 100dvh) - env(safe-area-inset-top) -
+      env(safe-area-inset-bottom)
+  );
+  background: #000;
+}
+
+html.bbt-tastatura #root {
+  height: calc(var(--bbt-ecran-h, 100dvh) - env(safe-area-inset-top));
+}
+
+/* BBT: câmpurile de text (mdui) în stilul BBT — rotunjite, cu chenar subțire, roz la focus — nu
+   „filled" Material, cu colțurile de jos drepte și o linie dedesubt („pătrate și urâte", 5 oct).
+   Prin `::part`: componenta are shadow DOM, iar stilul din afară câștigă în fața celui din `:host`.
+   Culorile = tema (src/bbt/tema.ts): alb 6% fundal, alb 12% chenar, `--color-bbt-pink` la focus. */
+mdui-text-field::part(container) {
+  border-radius: 12px;
+  background-color: rgb(255 255 255 / 6%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 12%);
+}
+
+mdui-text-field[focused]::part(container) {
+  box-shadow: inset 0 0 0 1.5px #ffa8cd;
+}
+
+mdui-text-field[invalid]::part(container) {
+  box-shadow: inset 0 0 0 1.5px #ff8a80;
+}
+
+mdui-text-field::part(label) {
+  color: rgb(255 255 255 / 60%);
+}
+
+mdui-text-field[focused]::part(label) {
+  color: #ffa8cd;
 }
 
 /* HighlightJs */

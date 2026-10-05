@@ -4,6 +4,7 @@ import {
   JSX,
   Match,
   onCleanup,
+  Show,
   Switch,
 } from "solid-js";
 
@@ -23,6 +24,7 @@ import { LAYOUT_SECTIONS } from "@revolt/state/stores/Layout";
 import { LoadingScreen } from "@revolt/ui";
 
 import { SlideDrawer } from "../components/ui/components/navigation/SlideDrawer";
+import { ApelPrimit } from "./bbt/ApelPrimit";
 import { Sidebar } from "./interface/Sidebar";
 
 /**
@@ -134,6 +136,10 @@ const Interface = (props: { children: JSX.Element }) => {
         </Switch>
 
         <NotificationsWorker />
+        {/* BBT: „X te sună" — src/bbt/ApelPrimit.tsx */}
+        <Show when={lifecycle.loadedOnce()}>
+          <ApelPrimit />
+        </Show>
       </AppRoot>
     </MessageCache>
   );

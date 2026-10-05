@@ -40,8 +40,10 @@ type PropsSvg = JSX.SvgSVGAttributes<SVGSVGElement>;
  * ⚠️ Material umple forma (`fill`), Lucide o desenează din contur (`stroke`). Un `fill` primit de la
  * apelant (o culoare) se mută pe `stroke`; altfel iconița ar ieși un bloc plin de culoare.
  *
- * ⚠️ Mărimea implicită e 24px, ca a SVG-urilor Material înlocuite (`width="24"` în fișierele lor), NU
- * 1em: cu 1em, rotița și membrii din antetul canalului ieșeau cât textul, lângă pin și căutare de 24px.
+ * ⚠️ Mărimea implicită e FIXĂ (20px), NU 1em: cu 1em, rotița și membrii din antetul canalului
+ * ieșeau cât textul, lângă pin și căutare desenate ca glife. Era 24, ca SVG-urile Material
+ * înlocuite; e 20 de la trecerea pe densitatea Community-ului vechi — aceeași mărime ca glifele
+ * `.material-symbols-*` din `components/ui/styles.css`, ca să rămână egale între ele.
  * O mărime dată de CSS-ul apelantului câștigă oricum în fața atributelor.
  */
 export function componentaLucide(numeMaterial: string) {
@@ -61,8 +63,8 @@ export function componentaLucide(numeMaterial: string) {
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
-        width={local.width ?? 24}
-        height={local.height ?? 24}
+        width={local.width ?? 20}
+        height={local.height ?? 20}
         fill="none"
         stroke={culoare()}
         stroke-width="2"

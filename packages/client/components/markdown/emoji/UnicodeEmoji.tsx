@@ -3,7 +3,7 @@ import { ComponentProps, splitProps } from "solid-js";
 import emojiRegex from "emoji-regex";
 
 import { useState } from "@revolt/state";
-import { EmojiBase, toCodepoint } from ".";
+import { EmojiBase } from ".";
 
 // openmoji is off due to incomplete implementation
 
@@ -75,11 +75,30 @@ export const isRegionalIndicator = (emoji: string): boolean => {
   return !!emoji.match(RE_UNICODE_EMOJI_REGIONAL_INDICATOR);
 };
 
+/**
+ * BBT: emoji-urile TELEFONULUI (fontul de emoji al sistemului), nu pachetele lor de imagini.
+ *
+ * Cererea userului (5 oct 2026): „emoji-urile clasice de la telefon; acum se încarcă prea greu și
+ * când apeși pe ele nici nu vezi dacă le-ai scris". Fiecare emoji era un SVG de pe CDN-ul Stoat
+ * (`static.stoat.chat/emoji/<pachet>/<cod>.svg`), cerut separat — și în EDITOR, unde emoji-ul
+ * scris devine un widget-imagine: până venea fișierul, nu se vedea nimic.
+ *
+ * Acum adresa e un SVG generat pe loc, cu emoji-ul ca TEXT: browserul îl desenează cu fontul
+ * sistemului (Apple Color Emoji pe iPhone, Noto pe Android, Segoe pe Windows) și fără rețea.
+ * Un singur punct de schimbare: toate locurile care afișează emoji (mesaje, editor, selector,
+ * reacții, sugestii) iau adresa de aici. `pack` rămâne în semnătură doar pentru apelanți.
+ */
 export function unicodeEmojiUrl(
-  pack: UnicodeEmojiPacks = "fluent-3d",
+  _pack: UnicodeEmojiPacks = "fluent-3d",
   text: string,
 ) {
-  return `https://static.stoat.chat/emoji/${pack}/${toCodepoint(text)}.svg?v=1`;
+  // Fără caracterele de pachet (PUA) și ZWNJ: nu sunt emoji, iar fontul le-ar desena ca pătrățele.
+  const emoji = text.replace(/[-‌]/g, "");
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">` +
+    `<text x="50" y="50" font-size="84" text-anchor="middle" dominant-baseline="central">${emoji}</text>` +
+    `</svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
 /**

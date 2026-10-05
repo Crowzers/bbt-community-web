@@ -70,7 +70,10 @@ function Ecran(props: { eroare: string | null; text: string }) {
         "text-align": "center",
       }}
     >
-      <Show when={props.eroare} fallback={<p style={{ opacity: 0.8 }}>{props.text}</p>}>
+      <Show
+        when={props.eroare}
+        fallback={<p style={{ opacity: 0.8 }}>{props.text}</p>}
+      >
         <p style={{ "max-width": "420px" }}>{props.eroare}</p>
         <a
           href={BBT_INTRARE}
@@ -127,7 +130,10 @@ export default function Sso() {
     if (s !== State.Ready) return;
     setDeIntrat(null);
     state.auth.setSession(sesiune);
-    lifecycle.transition({ type: TransitionType.LoginUncached, session: sesiune });
+    lifecycle.transition({
+      type: TransitionType.LoginUncached,
+      session: sesiune,
+    });
     setAstept(true);
   });
 
@@ -139,7 +145,9 @@ export default function Sso() {
       navigate("/", { replace: true });
     } else if (lifecycle.state() === State.Error) {
       setAstept(false);
-      setEroare("Community nu s-a putut conecta. Încearcă din nou peste un minut.");
+      setEroare(
+        "Community nu s-a putut conecta. Încearcă din nou peste un minut.",
+      );
     }
   });
 
@@ -169,12 +177,23 @@ export default function Sso() {
         return;
       }
       if (!raspuns.ok) {
-        setEroare("Community nu răspunde acum. Încearcă din nou peste un minut.");
+        setEroare(
+          "Community nu răspunde acum. Încearcă din nou peste un minut.",
+        );
         return;
       }
 
-      const s = (await raspuns.json()) as { token: string; userId: string; sessionId: string };
-      const sesiune = { _id: s.sessionId, token: s.token, userId: s.userId, valid: false };
+      const s = (await raspuns.json()) as {
+        token: string;
+        userId: string;
+        sessionId: string;
+      };
+      const sesiune = {
+        _id: s.sessionId,
+        token: s.token,
+        userId: s.userId,
+        valid: false,
+      };
       const curenta = state.auth.getSession();
 
       if (curenta && isLoggedIn()) {
@@ -188,7 +207,9 @@ export default function Sso() {
       }
       setDeIntrat(sesiune);
     } catch {
-      setEroare("Nu ne-am putut conecta. Verifică internetul și încearcă din nou.");
+      setEroare(
+        "Nu ne-am putut conecta. Verifică internetul și încearcă din nou.",
+      );
     }
   });
 

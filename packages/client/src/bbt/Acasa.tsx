@@ -42,9 +42,13 @@ export function Acasa() {
         }}
       >
         <p style={{ opacity: 0.8, "max-width": "420px" }}>
-          Comunitatea BBT se pregătește pentru tine. Revino peste câteva momente.
+          Comunitatea BBT se pregătește pentru tine. Revino peste câteva
+          momente.
         </p>
-        <a href={BBT_SITE_URL} style={{ color: "inherit", "text-decoration": "underline" }}>
+        <a
+          href={BBT_SITE_URL}
+          style={{ color: "inherit", "text-decoration": "underline" }}
+        >
           Înapoi la BBT
         </a>
       </div>

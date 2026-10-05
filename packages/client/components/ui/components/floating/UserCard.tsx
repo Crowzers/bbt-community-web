@@ -6,6 +6,7 @@ import { styled } from "styled-system/jsx";
 import { useDevice } from "@revolt/common";
 import { useModals } from "@revolt/modal";
 
+import { MiniProfilBBT } from "../../../../src/bbt/MiniProfil";
 import { Profile } from "../features";
 
 /**
@@ -49,38 +50,49 @@ export function UserCard(
     if (isMobile) openFull();
   });
 
+  const cardStoat = () => (
+    <div
+      use:invisibleScrollable={{ class: base() }}
+      on:pointerdown={(e) => {
+        e.preventDefault();
+      }}
+    >
+      <Grid>
+        <Profile.Banner
+          width={2}
+          user={props.user}
+          member={props.member}
+          bannerUrl={query.data?.animatedBannerURL}
+          onClick={openFull}
+        />
+        <Profile.Actions
+          user={props.user}
+          member={props.member}
+          onClose={props.onClose}
+          width={2}
+        />
+        <Profile.Roles member={props.member} />
+        <Profile.Badges user={props.user} />
+        <Profile.Status user={props.user} />
+        <Profile.Joined user={props.user} member={props.member} />{" "}
+        <Show when={props.bot}>
+          <Profile.Owner bot={props.bot!} />
+        </Show>
+        <Profile.Bio content={query.data?.content} onClick={openFull} />
+      </Grid>
+    </div>
+  );
+
   return (
     <Show when={!isMobile}>
-      <div
-        use:invisibleScrollable={{ class: base() }}
-        on:pointerdown={(e) => {
-          e.preventDefault();
-        }}
-      >
-        <Grid>
-          <Profile.Banner
-            width={2}
-            user={props.user}
-            member={props.member}
-            bannerUrl={query.data?.animatedBannerURL}
-            onClick={openFull}
-          />
-          <Profile.Actions
-            user={props.user}
-            member={props.member}
-            onClose={props.onClose}
-            width={2}
-          />
-          <Profile.Roles member={props.member} />
-          <Profile.Badges user={props.user} />
-          <Profile.Status user={props.user} />
-          <Profile.Joined user={props.user} member={props.member} />{" "}
-          <Show when={props.bot}>
-            <Profile.Owner bot={props.bot!} />
-          </Show>
-          <Profile.Bio content={query.data?.content} onClick={openFull} />
-        </Grid>
-      </div>
+      {/* BBT: cardul de profil BBT, ca în Community-ul vechi (src/bbt/MiniProfil.tsx). Cel Stoat
+          rămâne doar rezervă, pentru conturile fără profil BBT (bot, proprietar). */}
+      <MiniProfilBBT
+        user={props.user}
+        member={props.member}
+        onClose={props.onClose}
+        fallback={cardStoat()}
+      />
     </Show>
   );
 }

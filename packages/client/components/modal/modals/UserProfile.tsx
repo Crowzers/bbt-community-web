@@ -4,6 +4,7 @@ import { styled } from "styled-system/jsx";
 import { Dialog, DialogProps, Profile } from "@revolt/ui";
 
 import { useModals } from "..";
+import { MiniProfilBBT } from "../../../src/bbt/MiniProfil";
 import { Modals } from "../types";
 
 export function UserProfileModal(
@@ -23,40 +24,52 @@ export function UserProfileModal(
       minWidth={560}
       padding={8}
     >
-      <Grid>
-        <Profile.Banner
-          width={3}
-          user={props.user}
-          member={props.member}
-          bannerUrl={query.data?.animatedBannerURL}
-          onClick={
-            query.data?.banner
-              ? () =>
-                  openModal({ type: "image_viewer", file: query.data!.banner! })
-              : undefined
-          }
-          onClickAvatar={(e) => {
-            e.stopPropagation();
+      {/* BBT: profilul BBT (ca în Community-ul vechi); cel Stoat doar ca rezervă. */}
+      <MiniProfilBBT
+        user={props.user}
+        member={props.member}
+        onClose={props.onClose}
+        inFoaie
+        fallback={
+          <Grid>
+            <Profile.Banner
+              width={3}
+              user={props.user}
+              member={props.member}
+              bannerUrl={query.data?.animatedBannerURL}
+              onClick={
+                query.data?.banner
+                  ? () =>
+                      openModal({
+                        type: "image_viewer",
+                        file: query.data!.banner!,
+                      })
+                  : undefined
+              }
+              onClickAvatar={(e) => {
+                e.stopPropagation();
 
-            if (props.user.avatar) {
-              openModal({ type: "image_viewer", file: props.user.avatar });
-            }
-          }}
-        />
+                if (props.user.avatar) {
+                  openModal({ type: "image_viewer", file: props.user.avatar });
+                }
+              }}
+            />
 
-        <Profile.Actions
-          user={props.user}
-          member={props.member}
-          onClose={props.onClose}
-          width={3}
-        />
-        <Profile.Roles member={props.member} />
-        <Profile.Status user={props.user} />
-        <Profile.Badges user={props.user} />
-        <Profile.Joined user={props.user} member={props.member} />
-        <Profile.Mutuals user={props.user} member={props.member} />
-        <Profile.Bio content={query.data?.content} full />
-      </Grid>
+            <Profile.Actions
+              user={props.user}
+              member={props.member}
+              onClose={props.onClose}
+              width={3}
+            />
+            <Profile.Roles member={props.member} />
+            <Profile.Status user={props.user} />
+            <Profile.Badges user={props.user} />
+            <Profile.Joined user={props.user} member={props.member} />
+            <Profile.Mutuals user={props.user} member={props.member} />
+            <Profile.Bio content={query.data?.content} full />
+          </Grid>
+        }
+      />
     </Dialog>
   );
 }

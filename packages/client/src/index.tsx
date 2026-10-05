@@ -45,6 +45,7 @@ import { AndroidNag } from "./AndroidNag";
 import Interface from "./Interface";
 import { Acasa } from "./bbt/Acasa";
 import Sso, { BbtLogin } from "./bbt/Sso";
+import { legaEcranulVizibil } from "./bbt/ecran";
 import "./index.css";
 import { DevelopmentPage } from "./interface/Development";
 import { Discover } from "./interface/Discover";
@@ -179,6 +180,9 @@ const routes = () => (
 );
 
 const snackbarCtrl = new SnackbarController();
+
+// BBT: aplicația = ecranul vizibil, fără derularea paginii (src/bbt/ecran.ts).
+legaEcranulVizibil();
 
 render(
   () => (
