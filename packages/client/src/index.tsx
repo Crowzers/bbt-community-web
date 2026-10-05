@@ -1,6 +1,8 @@
 /**
  * Configure contexts and render App
  */
+// BBT: PRIMUL — iOS 17 n-are API-uri pe care clientul le folosește (unele la pornire). Vezi fișierul.
+import "./bbt/polyfill-safari17";
 import "./sentry";
 
 import { JSX, onMount } from "solid-js";
@@ -40,9 +42,9 @@ import {
 import "@revolt/ui/styles";
 
 import { AndroidNag } from "./AndroidNag";
+import Interface from "./Interface";
 import { Acasa } from "./bbt/Acasa";
 import Sso, { BbtLogin } from "./bbt/Sso";
-import Interface from "./Interface";
 import "./index.css";
 import { DevelopmentPage } from "./interface/Development";
 import { Discover } from "./interface/Discover";

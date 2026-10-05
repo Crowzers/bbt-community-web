@@ -125,7 +125,10 @@ export default defineConfig({
     }),
   ],
   build: {
-    target: "esnext",
+    // BBT: sintaxa se coboară până la Safari 16 (iOS 16) — cu "esnext", o sintaxă mai nouă decât
+    // Safari-ul telefonului = SyntaxError = ecran gri. API-urile lipsă NU se rezolvă aici, ci prin
+    // polyfill (src/bbt/polyfill-iteratori.ts).
+    target: ["es2022", "safari16"],
     rollupOptions: {
       external: ["hast"],
       output: {
