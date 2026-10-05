@@ -8,13 +8,17 @@ import {
   ChannelContextMenu,
   ServerSidebarContextMenu,
 } from "@revolt/app";
-import { useClient, useUser } from "@revolt/client";
+import { useClient } from "@revolt/client";
 import { useModals } from "@revolt/modal";
 import { useLocation, useParams, useSmartParams } from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { LAYOUT_SECTIONS } from "@revolt/state/stores/Layout";
 
-import { HomeSidebar, ServerList, ServerSidebar } from "./navigation";
+import { useDevice } from "@revolt/common";
+
+import { BaraSectiuni } from "../bbt/BaraSectiuni";
+import { BaraSus } from "../bbt/BaraSus";
+import { HomeSidebar, ServerSidebar } from "./navigation";
 
 const MainBar = styled("div", {
   base: {
@@ -33,53 +37,65 @@ const MainBar = styled("div", {
 /**
  * Left-most channel navigation sidebar
  */
-export const Sidebar = (props: {
+export const Sidebar = (_props: {
   /**
    * Menu generator TODO FIXME: remove
    */
   menuGenerator: (t: ServerI | Channel) => JSX.Directives["floating"];
 }) => {
-  const user = useUser();
   const state = useState();
   const client = useClient();
-  const { openModal } = useModals();
 
   const params = useParams<{ server: string }>();
   const location = useLocation();
 
+  const { layout } = useDevice();
+  const telefon = () => layout() === "phone";
+
+  // BBT: în locul listei de servere (`ServerList`), bara de secțiuni BBT — src/bbt/BaraSectiuni.tsx.
+  // Pe telefon, ecranul cu lista de canale devine o coloană: bara de sus (contul) → canalele → bara
+  // de tab-uri jos, ca într-o aplicație (pânza aprobată, 5 oct 2026).
+  const necititeMesaje = () =>
+    state.ordering
+      .orderedConversations(client())
+      .filter((channel) => channel.unread).length;
+
   return (
-    <MainBar class="main_bar">
-      <ServerList
-        orderedServers={state.ordering.orderedServers(client())}
-        orderedEntries={state.ordering.orderedEntries(client())}
-        setServerOrder={state.ordering.setServerOrder}
-        unreadConversations={state.ordering
-          .orderedConversations(client())
-          .filter(
-            // TODO: muting channels
-            (channel) => channel.unread,
-          )}
-        user={user()!}
-        selectedServer={() => params.server}
-        onCreateOrJoinServer={() =>
-          openModal({
-            type: "create_or_join_server",
-            client: client(),
-          })
-        }
-        menuGenerator={props.menuGenerator}
-      />
-      <Show
-        when={
-          state.layout.getSectionState(LAYOUT_SECTIONS.PRIMARY_SIDEBAR, true) &&
-          !location.pathname.startsWith("/discover")
-        }
+    <MainBar
+      class="main_bar"
+      style={telefon() ? { "flex-direction": "column" } : undefined}
+    >
+      <Show when={telefon()}>
+        <BaraSus compact />
+      </Show>
+      <Show when={!telefon()}>
+        <BaraSectiuni necititeMesaje={necititeMesaje()} />
+      </Show>
+      <div
+        style={{
+          display: "flex",
+          "flex-grow": 1,
+          "min-height": 0,
+          ...(telefon() ? { width: "100%" } : {}),
+        }}
       >
-        <Switch fallback={<Home />}>
-          <Match when={params.server}>
-            <Server />
-          </Match>
-        </Switch>
+        <Show
+          when={
+            state.layout.getSectionState(
+              LAYOUT_SECTIONS.PRIMARY_SIDEBAR,
+              true,
+            ) && !location.pathname.startsWith("/discover")
+          }
+        >
+          <Switch fallback={<Home />}>
+            <Match when={params.server}>
+              <Server />
+            </Match>
+          </Switch>
+        </Show>
+      </div>
+      <Show when={telefon()}>
+        <BaraSectiuni orizontal necititeMesaje={necititeMesaje()} />
       </Show>
     </MainBar>
   );

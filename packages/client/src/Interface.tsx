@@ -17,6 +17,7 @@ import { Titlebar } from "@revolt/app/interface/desktop/Titlebar";
 import { useClient, useClientLifecycle } from "@revolt/client";
 import { State } from "@revolt/client/Controller";
 import { NotificationsWorker } from "@revolt/client/NotificationsWorker";
+import { useDevice } from "@revolt/common";
 import { useModals } from "@revolt/modal";
 import { Navigate, useBeforeLeave, useLocation } from "@revolt/routing";
 import { useState } from "@revolt/state";
@@ -25,6 +26,7 @@ import { LoadingScreen } from "@revolt/ui";
 
 import { SlideDrawer } from "../components/ui/components/navigation/SlideDrawer";
 import { ApelPrimit } from "./bbt/ApelPrimit";
+import { BaraSus } from "./bbt/BaraSus";
 import { Sidebar } from "./interface/Sidebar";
 
 /**
@@ -36,6 +38,7 @@ const Interface = (props: { children: JSX.Element }) => {
   const { openModal } = useModals();
   const { isLoggedIn, lifecycle } = useClientLifecycle();
   const { pathname } = useLocation();
+  const { layout } = useDevice();
 
   useBeforeLeave((e) => {
     if (!e.defaultPrevented) {
@@ -98,6 +101,11 @@ const Interface = (props: { children: JSX.Element }) => {
             <Navigate href="/login" />
           </Match>
           <Match when={lifecycle.loadedOnce()}>
+            {/* BBT: bara de sus cu contul separat — doar desktop; pe telefon stă în capul listei
+                de canale (src/interface/Sidebar.tsx). src/bbt/BaraSus.tsx */}
+            <Show when={layout() !== "phone"}>
+              <BaraSus />
+            </Show>
             <Layout
               disconnected={isDisconnected()}
               style={{ "flex-grow": 1, "min-height": 0 }}

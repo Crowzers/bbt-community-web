@@ -41,7 +41,6 @@ import {
 /* @refresh reload */
 import "@revolt/ui/styles";
 
-import { AndroidNag } from "./AndroidNag";
 import Interface from "./Interface";
 import { Acasa } from "./bbt/Acasa";
 import Sso, { BbtLogin } from "./bbt/Sso";
@@ -133,7 +132,7 @@ function MountContext(props: { children?: JSX.Element }) {
                   {props.children}
                   <ModalRenderer />
                   <FloatingManager />
-                  <AndroidNag />
+                  {/* BBT: fără ecranul Stoat „instalează aplicația noastră din Google Play" (AndroidNag). */}
                 </QueryClientProvider>
               </VoiceContext>
             </SoundContext>

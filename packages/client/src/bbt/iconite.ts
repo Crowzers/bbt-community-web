@@ -89,6 +89,7 @@ import i_message_circle from "lucide-static/icons/message-circle.svg?raw";
 import i_message_circle_check from "lucide-static/icons/message-circle-check.svg?raw";
 import i_message_square_dot from "lucide-static/icons/message-square-dot.svg?raw";
 import i_message_square_text from "lucide-static/icons/message-square-text.svg?raw";
+import i_messages_square from "lucide-static/icons/messages-square.svg?raw";
 import i_mic from "lucide-static/icons/mic.svg?raw";
 import i_mic_off from "lucide-static/icons/mic-off.svg?raw";
 import i_minimize from "lucide-static/icons/minimize.svg?raw";
@@ -129,6 +130,7 @@ import i_timer_off from "lucide-static/icons/timer-off.svg?raw";
 import i_trash from "lucide-static/icons/trash.svg?raw";
 import i_trash_2 from "lucide-static/icons/trash-2.svg?raw";
 import i_triangle_alert from "lucide-static/icons/triangle-alert.svg?raw";
+import i_trophy from "lucide-static/icons/trophy.svg?raw";
 import i_user_minus from "lucide-static/icons/user-minus.svg?raw";
 import i_user_plus from "lucide-static/icons/user-plus.svg?raw";
 import i_users from "lucide-static/icons/users.svg?raw";
@@ -230,6 +232,7 @@ export const SVG_LUCIDE: Record<string, string> = {
   "message-circle-check": i_message_circle_check,
   "message-square-dot": i_message_square_dot,
   "message-square-text": i_message_square_text,
+  "messages-square": i_messages_square,
   "mic": i_mic,
   "mic-off": i_mic_off,
   "minimize": i_minimize,
@@ -270,6 +273,7 @@ export const SVG_LUCIDE: Record<string, string> = {
   "trash": i_trash,
   "trash-2": i_trash_2,
   "triangle-alert": i_triangle_alert,
+  "trophy": i_trophy,
   "user-minus": i_user_minus,
   "user-plus": i_user_plus,
   "users": i_users,
