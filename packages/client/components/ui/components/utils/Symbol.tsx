@@ -4,6 +4,8 @@ import { css } from "styled-system/css";
 import { splitCssProps, styled } from "styled-system/jsx";
 import { HTMLStyledProps } from "styled-system/types";
 
+import { lucidePentru } from "../../../../src/bbt/IconitaLucide";
+
 interface Props {
   /**
    * Whether to use the filled version of this symbol.
@@ -72,6 +74,32 @@ export function Symbol(rawProps: Props & HTMLStyledProps<"span">) {
         : `, "opsz" ${local.opticalSize}`
     }`;
   });
+
+  // BBT: dacă iconița are corespondent Lucide (design system-ul BBT), se desenează SVG-ul Lucide la
+  // mărimea glifei (1em) — vezi src/bbt/IconitaLucide.tsx. Altfel, glifa Material, ca la ei.
+  const lucide = createMemo(() =>
+    typeof rawProps.children === "string" ? lucidePentru(rawProps.children) : null,
+  );
+  const svgLucide = () =>
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${lucide()}</svg>`;
+
+  if (lucide()) {
+    const [, faraCopii] = splitProps(restProps, ["children"]);
+    return (
+      <styled.span
+        // Aceeași clasă ca glifa: același font-size calculat ⇒ SVG-ul de 1em ocupă exact locul glifei.
+        class={`material-symbols-${local.type ?? "outlined"} ${memoClassName()}`}
+        style={{
+          display: "block",
+          "line-height": 0,
+          "font-size": local.size ? `${local.size}px` : undefined,
+        }}
+        aria-hidden="true"
+        {...faraCopii}
+        innerHTML={svgLucide()}
+      />
+    );
+  }
 
   return (
     <styled.span

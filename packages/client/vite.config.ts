@@ -1,6 +1,6 @@
 import { lingui as linguiSolidPlugin } from "@lingui/vite-plugin";
 import devtools from "@solid-devtools/transform";
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import babelMacrosPlugin from "vite-plugin-babel-macros";
@@ -11,6 +11,41 @@ import solidSvg from "vite-plugin-solid-svg";
 
 import codegenPlugin from "./codegen.plugin";
 import { addFontPreload } from "./fontpreload.plugin";
+
+/**
+ * BBT: importurile de iconițe Material (`@material-design-icons/svg/<stil>/<nume>.svg?component-solid`)
+ * devin iconițe Lucide, ca pe site — fără să atingem cele ~60 de fișiere care le importă. Harta e
+ * `src/bbt/iconite-harta.json`; ce lipsește din ea rămâne Material. Vezi src/bbt/IconitaLucide.tsx.
+ * ⚠️ `enforce: "pre"`: altfel vite-plugin-solid-svg prinde importul primul și desenează Material.
+ */
+function iconiteLucide() {
+  const harta = JSON.parse(
+    readFileSync(resolve(__dirname, "src/bbt/iconite-harta.json"), "utf8"),
+  ) as Record<string, string>;
+  // Fără backslash-uri, dinadins: `[.]` și `[?]` în loc de escape — mai ușor de citit și de copiat.
+  const MATERIAL = new RegExp(
+    "^@material-design-icons/svg/[a-z]+/([a-z_0-9]+)[.]svg[?]component-solid$",
+  );
+  // Prefixul NUL e convenția Rollup pentru module virtuale: niciun alt plugin nu încearcă să le citească.
+  const PREFIX = String.fromCharCode(0) + "bbt-iconita:";
+  return {
+    name: "bbt-iconite-lucide",
+    enforce: "pre" as const,
+    resolveId(id: string) {
+      const potrivire = MATERIAL.exec(id);
+      if (potrivire && harta[potrivire[1]]) return PREFIX + potrivire[1];
+    },
+    load(id: string) {
+      if (!id.startsWith(PREFIX)) return;
+      const nume = id.slice(PREFIX.length);
+      const componenta = JSON.stringify(resolve(__dirname, "src/bbt/IconitaLucide.tsx"));
+      return [
+        `import { componentaLucide } from ${componenta};`,
+        `export default componentaLucide(${JSON.stringify(nume)});`,
+      ].join(String.fromCharCode(10));
+    },
+  };
+}
 
 const base = process.env.BASE_PATH ?? "/";
 const pwaScope = process.env.PWA_SCOPE || base;
@@ -28,6 +63,7 @@ export default defineConfig({
       },
     }),
     linguiSolidPlugin(),
+    iconiteLucide(),
     solidSvg({
       defaultAsComponent: false,
     }),

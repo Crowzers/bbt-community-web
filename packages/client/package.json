@@ -111,6 +111,7 @@
     "lodash.isequal": "^4.5.0",
     "long-press-event": "^2.5.2",
     "lowlight": "^3.3.0",
+    "lucide-static": "^1.52.0",
     "material-symbols": "^0.36.0",
     "mdast": "^3.0.0",
     "mdast-util-to-hast": "^13.2.0",

@@ -28,3 +28,9 @@ export const BBT_SITE_URL = faraSlash(
 
 /** Pagina de pe site care verifică poarta și trimite înapoi aici, la `/sso`, cu un cod. */
 export const BBT_INTRARE = `${BBT_SITE_URL}/hub`;
+
+/**
+ * Logo-ul BBT în cerc (negru pe roz), din iconițele PWA. Îl poartă serverul BBT în bara din stânga
+ * cât timp n-are o imagine încărcată din setările serverului — altfel Stoat ar fi pus inițiala „B".
+ */
+export const ICONITA_BBT = "/assets/web/android-chrome-192x192.png";

@@ -15,6 +15,8 @@ import {
 
 import { SelectedTheme, TypeTheme } from "@revolt/state/stores/Theme";
 
+import { SCHEMA_BBT } from "../../../src/bbt/tema";
+
 /**
  * Generate the Material variables from the given properties
  *
@@ -24,16 +26,12 @@ export function createMaterialColourVariables<P extends string>(
   theme: SelectedTheme,
   prefix: P,
 ): addPrefixToObject<MaterialColours, P> {
+  // BBT: culori FIXE din design system-ul BBT, nu generate din accent (src/bbt/tema.ts). Generatorul
+  // lor rămâne în fișier, nefolosit, ca sincronizarea cu upstream să nu dea conflicte aici.
+  void generateMaterialYouScheme;
   switch (theme.preset) {
     case "you":
-      return Object.entries(
-        generateMaterialYouScheme(
-          theme.accent,
-          theme.darkMode,
-          theme.contrast,
-          theme.variant,
-        ),
-      ).reduce(
+      return Object.entries(SCHEMA_BBT).reduce(
         (d, [key, value]) => ({
           ...d,
           [`${prefix}${key}`]: value,

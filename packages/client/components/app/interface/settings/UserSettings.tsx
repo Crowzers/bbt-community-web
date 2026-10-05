@@ -224,6 +224,7 @@ const Config: SettingsConfiguration<{ server: Server }> = {
         },
         {
           title: "Stoat",
+          hidden: true, // BBT: boții și feedback-ul sunt ai lor
           entries: [
             {
               id: "bots",
@@ -269,6 +270,7 @@ const Config: SettingsConfiguration<{ server: Server }> = {
             },
             {
               id: "appearance",
+              hidden: true, // BBT: tema e fixă (src/bbt/tema.ts)
               icon: <MdPalette {...iconSize(20)} />,
               title: <Trans>Appearance</Trans>,
             },
@@ -326,9 +328,11 @@ const Config: SettingsConfiguration<{ server: Server }> = {
               },
               icon: <MdCampaign {...iconSize(20)} />,
               title: <Trans>What's New</Trans>,
+              hidden: true, // BBT: noutățile lor, nu ale noastre
             },
             {
-              href: "https://github.com/stoatchat",
+              // BBT: AGPL — sursa modificată (fork-ul BBT) trebuie să fie la un click distanță.
+              href: "https://github.com/Crowzers/bbt-community-web",
               icon: <MdMemory {...iconSize(20)} />,
               title: <Trans>Source Code</Trans>,
             },
@@ -339,6 +343,7 @@ const Config: SettingsConfiguration<{ server: Server }> = {
             },
             {
               href: "https://ko-fi.com/stoatchat",
+              hidden: true, // BBT: donațiile sunt pentru ei
               icon: <MdCoffee {...iconSize(20)} />,
               title: <Trans>Donate</Trans>,
             },

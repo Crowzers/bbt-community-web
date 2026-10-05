@@ -10,6 +10,8 @@ import {
 import { useModals } from "@revolt/modal";
 import { CategoryButton, Column, Row, iconSize, useSnackbar } from "@revolt/ui";
 
+import { BBT_SITE_URL } from "../../../../../src/bbt/config";
+
 import MdAlternateEmail from "@material-design-icons/svg/outlined/alternate_email.svg?component-solid";
 import MdBlock from "@material-design-icons/svg/outlined/block.svg?component-solid";
 import MdDelete from "@material-design-icons/svg/outlined/delete.svg?component-solid";
@@ -25,6 +27,18 @@ import { UserSummary } from "./account/index";
 /**
  * Account Page
  */
+function ContBbt() {
+  return (
+    <p style={{ "font-size": "14px", "line-height": "20px", opacity: 0.8 }}>
+      Contul tău din Community e contul tău BBT. Emailul, parola și ștergerea contului se schimbă pe{" "}
+      <a href={`${BBT_SITE_URL}/dashboard`} style={{ color: "var(--md-sys-color-primary)" }}>
+        beanbagtheory.ro
+      </a>
+      .
+    </p>
+  );
+}
+
 export function MyAccount() {
   const client = useClient();
   const profile = createOwnProfileResource();
@@ -38,9 +52,17 @@ export function MyAccount() {
         onEdit={() => navigate("profile")}
         showBadges
       />
-      <EditAccount />
-      <MultiFactorAuth />
-      <ManageAccount />
+      {/* BBT: contul din Community e creat și deschis de podul BBT, cu email și parolă DERIVATE.
+          O parolă schimbată sau un 2FA pornit aici ar bloca intrarea prin beanbagtheory.ro/hub, iar
+          ștergerea trebuie să treacă prin BBT (GDPR). De-aia rămâne doar profilul. */}
+      <ContBbt />
+      {false && (
+        <>
+          <EditAccount />
+          <MultiFactorAuth />
+          <ManageAccount />
+        </>
+      )}
     </Column>
   );
 }

@@ -37,7 +37,7 @@ import { Tooltip } from "@revolt/ui/components/floating";
 
 import { UserMenu } from "./UserMenu";
 import { RailEntry, createRailDrag } from "./railDrag";
-import { BBT_SITE_URL } from "../../../bbt/config";
+import { BBT_SITE_URL, ICONITA_BBT } from "../../../bbt/config";
 
 interface Props {
   /**
@@ -268,6 +268,39 @@ export const ServerList = (props: Props) => {
   return (
     <ServerListBase>
       <div use:invisibleScrollable={{ direction: "y", class: listBase() }}>
+        {/* BBT: serverul BBT SUS, deasupra mesajelor — e comunitatea, nu „unul dintre servere". */}
+        <div ref={rail}>
+          <For each={props.orderedEntries}>
+            {(entry) => (
+              <Switch>
+                <Match when={entry?.type === "server" && entry}>
+                  {(item) => (
+                    <ServerEntry
+                      server={item().server}
+                      selectedServer={props.selectedServer}
+                      menuGenerator={props.menuGenerator}
+                      drag={drag}
+                    />
+                  )}
+                </Match>
+                <Match when={entry?.type === "folder" && entry}>
+                  {(item) => (
+                    <FolderEntry
+                      entry={item()}
+                      selectedServer={props.selectedServer}
+                      menuGenerator={props.menuGenerator}
+                      drag={drag}
+                    />
+                  )}
+                </Match>
+              </Switch>
+            )}
+          </For>
+          <Show when={insertionAtEnd()}>
+            <div class={railInsertion} style={{ position: "relative" }} />
+          </Show>
+        </div>
+        <LineDivider />
         <a
           class={entryContainer({
             indicator: !props.selectedServer() ? "selected" : undefined,
@@ -360,38 +393,6 @@ export const ServerList = (props: Props) => {
             />
           </a>
         </Show>
-        <LineDivider />
-        <div ref={rail}>
-          <For each={props.orderedEntries}>
-            {(entry) => (
-              <Switch>
-                <Match when={entry?.type === "server" && entry}>
-                  {(item) => (
-                    <ServerEntry
-                      server={item().server}
-                      selectedServer={props.selectedServer}
-                      menuGenerator={props.menuGenerator}
-                      drag={drag}
-                    />
-                  )}
-                </Match>
-                <Match when={entry?.type === "folder" && entry}>
-                  {(item) => (
-                    <FolderEntry
-                      entry={item()}
-                      selectedServer={props.selectedServer}
-                      menuGenerator={props.menuGenerator}
-                      drag={drag}
-                    />
-                  )}
-                </Match>
-              </Switch>
-            )}
-          </For>
-          <Show when={insertionAtEnd()}>
-            <div class={railInsertion} style={{ position: "relative" }} />
-          </Show>
-        </div>
         <div aria-live="polite" class={srOnly}>
           {drag.status()}
         </div>
@@ -566,7 +567,7 @@ function ServerEntry(props: {
         >
           <Avatar
             size={42}
-            src={props.server.iconURL}
+            src={props.server.iconURL ?? ICONITA_BBT}
             holepunch={
               mentions()
                 ? props.server.voiceStatus !== "none"
