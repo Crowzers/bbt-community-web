@@ -37,6 +37,7 @@ import { Tooltip } from "@revolt/ui/components/floating";
 
 import { UserMenu } from "./UserMenu";
 import { RailEntry, createRailDrag } from "./railDrag";
+import { BBT_SITE_URL } from "../../../bbt/config";
 
 interface Props {
   /**
@@ -271,20 +272,20 @@ export const ServerList = (props: Props) => {
           class={entryContainer({
             indicator: !props.selectedServer() ? "selected" : undefined,
           })}
-          href="/app"
+          href="/friends"
           use:floating={{
             tooltip: {
               content:
                 homeNotifications() > 0
                   ? t`You have ${homeNotifications()} pending friend requests.`
-                  : t`Home`,
+                  : t`Mesaje`,
               placement: "right",
             },
           }}
         >
           <Avatar
             size={42}
-            fallback={<Symbol fill>home</Symbol>}
+            fallback={<Symbol fill>chat</Symbol>}
             holepunch={homeNotifications() ? "top-right" : undefined}
             overlay={
               <Show when={homeNotifications()}>
@@ -435,14 +436,17 @@ export const ServerList = (props: Props) => {
             </Portal>
           )}
         </Show>
-        <Tooltip placement="right" content={"Create or join a server"}>
-          <a
-            class={entryContainer()}
-            onClick={() => props.onCreateOrJoinServer()}
-          >
-            <Avatar size={42} fallback={<Symbol>add</Symbol>} />
-          </a>
-        </Tooltip>
+        {/* BBT: fără „Creează sau intră într-un server" — BBT Community e un singur server. */}
+        <Show when={false}>
+          <Tooltip placement="right" content={"Create or join a server"}>
+            <a
+              class={entryContainer()}
+              onClick={() => props.onCreateOrJoinServer()}
+            >
+              <Avatar size={42} fallback={<Symbol>add</Symbol>} />
+            </a>
+          </Tooltip>
+        </Show>
         <Show when={instance.isStoat}>
           <Tooltip placement="right" content={"Find new servers to join"}>
             <a
@@ -457,6 +461,12 @@ export const ServerList = (props: Props) => {
       <Shadow>
         <div />
       </Shadow>
+      {/* BBT: drumul înapoi pe site (tabere, cursuri, profil). */}
+      <Tooltip placement="right" content="Înapoi la BBT">
+        <a class={entryContainer()} href={BBT_SITE_URL}>
+          <Avatar size={42} fallback={<Symbol fill>arrow_back</Symbol>} interactive />
+        </a>
+      </Tooltip>
       <Tooltip placement="right" content="Settings">
         <a
           class={entryContainer()}

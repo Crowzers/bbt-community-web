@@ -40,13 +40,13 @@ import {
 import "@revolt/ui/styles";
 
 import { AndroidNag } from "./AndroidNag";
+import { Acasa } from "./bbt/Acasa";
 import Sso, { BbtLogin } from "./bbt/Sso";
 import Interface from "./Interface";
 import "./index.css";
 import { DevelopmentPage } from "./interface/Development";
 import { Discover } from "./interface/Discover";
 import { Friends } from "./interface/Friends";
-import { HomePage } from "./interface/Home";
 import { ServerHome } from "./interface/ServerHome";
 import { ChannelPage } from "./interface/channels/ChannelPage";
 import "./serviceWorkerInterface";
@@ -171,7 +171,7 @@ const routes = () => (
         <Route path="/*" component={ServerHome} />
       </Route>
       <Route path="/channel/:channel/*" component={ChannelPage} />
-      <Route path="/*" component={HomePage} />
+      <Route path="/*" component={Acasa} />
     </Route>
   </Route>
 );

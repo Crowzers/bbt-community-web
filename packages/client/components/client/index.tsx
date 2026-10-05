@@ -34,7 +34,8 @@ export function ClientContext(props: { children: JSXElement }) {
   const controller = new ClientController(state, instance);
   onCleanup(() => controller.dispose());
 
-  let fetchedChangelog = false;
+  // BBT: noutățile lui Stoat („What's new") nu sunt ale noastre — fereastra nu se mai deschide.
+  let fetchedChangelog = true;
   createEffect(() => {
     if (!controller.isLoggedIn() || fetchedChangelog) return;
     fetchedChangelog = true;

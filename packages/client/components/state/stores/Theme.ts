@@ -132,9 +132,11 @@ export class Theme extends AbstractStore<"theme", TypeTheme> {
   default(): TypeTheme {
     return {
       preset: "you",
-      mode: "system",
+      // BBT: întunecat și roz, ca Community-ul dinainte (paleta din website/CLAUDE.md, accentul
+      // = --color-bbt-pink). Se aplică doar cui n-a ales deja o temă — setările salvate rămân.
+      mode: "dark",
 
-      m3Accent: "#5470ec",
+      m3Accent: "#FFA8CD",
       m3Contrast: 0.0,
       m3Variant: "tonal_spot",
 
