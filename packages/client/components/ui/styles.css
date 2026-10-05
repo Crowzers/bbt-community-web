@@ -26,9 +26,10 @@ body {
    ⚠️ NU `zoom` pe pagină: testat, meniurile plutitoare (floating-ui) se poziționau decalat
    proporțional cu distanța de colț — ei calculează din coordonatele mouse-ului, nescalate.
    Fontul de bază scalează tot ce e în `rem` (tipografia Material, mdui); restul e în px.
-   Iconițele: 20px implicit (src/bbt/IconitaLucide.tsx + `.material-symbols-*` mai jos). */
+   Iconițele: 20px implicit (src/bbt/IconitaLucide.tsx + `.material-symbols-*` mai jos).
+   90% s-a dovedit „puțin prea mic" (aceeași zi) ⇒ 95%. */
 html {
-  font-size: 90%;
+  font-size: 95%;
 }
 
 .material-symbols-outlined,

@@ -88,7 +88,7 @@ export function BaraSectiuni(props: {
         }
       : {
           position: "relative" as const,
-          width: "56px",
+          width: "64px",
           padding: "7px 0 6px",
           "border-radius": "10px",
           display: "flex",
@@ -105,10 +105,10 @@ export function BaraSectiuni(props: {
 
   const continut = (s: Sectiune) => (
     <>
-      <Symbol size={props.orizontal ? 21 : 20}>{s.simbol}</Symbol>
+      <Symbol size={props.orizontal ? 22 : 22}>{s.simbol}</Symbol>
       <span
         style={{
-          "font-size": props.orizontal ? "10.5px" : "10px",
+          "font-size": "11px",
           "font-weight": 500,
         }}
       >
@@ -155,7 +155,7 @@ export function BaraSectiuni(props: {
               background: "#000",
             }
           : {
-              width: "64px",
+              width: "72px",
               "flex-shrink": 0,
               display: "flex",
               "flex-direction": "column",
@@ -200,10 +200,10 @@ export function BaraSectiuni(props: {
           ...(props.orizontal ? {} : { "margin-bottom": "10px" }),
         }}
       >
-        <Symbol size={props.orizontal ? 21 : 20}>arrow_back</Symbol>
+        <Symbol size={props.orizontal ? 22 : 22}>arrow_back</Symbol>
         <span
           style={{
-            "font-size": props.orizontal ? "10.5px" : "10px",
+            "font-size": "11px",
             "font-weight": 500,
           }}
         >

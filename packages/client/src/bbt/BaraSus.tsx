@@ -1,192 +1,404 @@
-import { Show } from "solid-js";
+import { For, Show, createSignal, onCleanup } from "solid-js";
 
-import {
-  ContextMenu,
-  ContextMenuButton,
-  ContextMenuDivider,
-} from "@revolt/app/menus/ContextMenu";
+import { useQuery } from "@tanstack/solid-query";
+
 import { useClient, useClientLifecycle } from "@revolt/client";
 import { useModals } from "@revolt/modal";
+import { useState } from "@revolt/state";
 import { Avatar } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
-import { BBT_SITE_URL, ICONITA_BBT } from "./config";
+import Wordmark from "../../public/assets/web/wordmark.svg?component-solid";
+
+import { BBT_ADMIN_URL, BBT_SITE_URL } from "./config";
 
 /**
- * Bara de sus a BBT Community: sigla + „COMMUNITY" în stânga, CONTUL separat în dreapta.
+ * Bara de sus a BBT Community — copia barei din Community-ul vechi
+ * (`website/src/app/community/BaraSus.tsx` + `CasetaUtilizator.tsx`), la cererea userului
+ * (5 oct 2026): „logoul să fie mare cum e în Community-ul vechi, iar user card-ul din dreapta
+ * sus să fie același cu cel de pe website".
  *
- * Cererea userului (5 oct 2026): „în Community-ul vechi îmi plăcea că userul conectat nu stătea în
- * bara din stânga, era un element separat; inspiră-te din TRW". Stoat îl ținea jos în lista de
- * servere. Aici e o pastilă (avatar, nume, stare) cu meniul contului la click: Profil, Setări,
- * Înapoi pe site, Deconectare — fostele acțiuni de pe avatarul din stânga.
+ * - Stânga: sigla BBT completă, albă, 30px, + „COMMUNITY" (15px, majuscule, spațiere 0.18em).
+ * - Dreapta: caseta de cont — avatar 34px, nume, sub el „Artist verificat" (verde) sau
+ *   „Completează profilul" (chihlimbar), exact regula de pe site (telefon confirmat). La hover
+ *   (desktop) sau atingere, meniul de cont al site-ului: aceleași linkuri ca `MeniuCont`
+ *   (`dashboardNavItems`), deschise pe site, plus ce ține de Community (setările lui, ieșirea).
  *
- * ⚠️ Fără căutare globală și fără clopoțel, deși schița le are: Stoat n-are căutare peste tot
- * serverul și nici centru de notificări — un buton care nu face nimic e mai rău decât niciunul
- * (căutarea în canal rămâne în antetul canalului).
+ * Înălțimea e 64px, nu 72 ca pe site: compromisul cerut („foarte puțin mai mari, cât să încapă
+ * logoul mai mare") față de cei 48 ai primei variante.
  *
- * Desktop: deasupra întregii aplicații (`src/Interface.tsx`). Telefon: în capul ecranului cu
- * lista de canale (`src/interface/Sidebar.tsx`), compactă — pe ecranul unui canal sus stă antetul
- * canalului.
+ * ⚠️ Fără căutare globală și fără clopoțel: Stoat n-are căutare peste tot serverul și nici centru
+ * de notificări — un buton care nu face nimic e mai rău decât niciunul.
+ *
+ * Telefon (`compact`): în capul ecranului cu lista de canale (`src/interface/Sidebar.tsx`).
  */
+
+type ProfilEu = {
+  numeComplet: string;
+  numeAfisat: string | null;
+  username: string | null;
+  verificat: boolean;
+  siteUrl: string;
+};
+
+const LINIE = "rgba(255,255,255,0.08)";
+const FOAIE = "#141414";
+
+/** Aceleași rânduri ca meniul de cont al site-ului (`website/src/lib/dashboardNavItems.ts`). */
+const ACTIVITATE = [
+  { href: "/dashboard/mycamps", nume: "My Camps", simbol: "camping" },
+  { href: "/dashboard/workshops", nume: "My Workshops", simbol: "bolt" },
+  { href: "/dashboard/cursuri", nume: "My Courses", simbol: "school" },
+  {
+    href: "/dashboard/diplome",
+    nume: "Diplomele mele",
+    simbol: "workspace_premium",
+  },
+];
+const CONT = [
+  { href: "/dashboard/plati", nume: "Plățile mele", simbol: "payments" },
+  { href: "/dashboard/wishlist", nume: "Wishlist", simbol: "favorite" },
+  { href: "/dashboard/setari", nume: "Setări cont", simbol: "settings" },
+];
+
 export function BaraSus(props: { compact?: boolean }) {
   const client = useClient();
+  const state = useState();
   const { logout } = useClientLifecycle();
   const { openModal } = useModals();
 
-  const eu = () => client().user;
-  const stareOnline = () => {
-    const p = eu()?.presence;
-    return p === "Busy"
-      ? "#e5484d"
-      : p === "Idle"
-        ? "#ffd731"
-        : p === "Invisible"
-          ? "#555555"
-          : "#30a46c";
-  };
+  const [meniu, setMeniu] = createSignal(false);
+  let inchidere: ReturnType<typeof setTimeout> | undefined;
+  onCleanup(() => clearTimeout(inchidere));
 
-  const setari = (pagina?: string) =>
+  const profil = useQuery(() => ({
+    queryKey: ["bbt-profil-eu"],
+    retry: false,
+    staleTime: 5 * 60_000,
+    queryFn: async (): Promise<ProfilEu | null> => {
+      const r = await fetch(`${BBT_ADMIN_URL}/api/public/stoat/profil`, {
+        headers: { "X-Session-Token": state.auth.getSession()?.token ?? "" },
+      });
+      return r.ok ? r.json() : null;
+    },
+  }));
+
+  const eu = () => client().user;
+  const nume = () =>
+    eu()?.displayName ?? profil.data?.numeComplet ?? "Contul meu";
+  const site = () => profil.data?.siteUrl ?? BBT_SITE_URL;
+  const linkProfil = () =>
+    profil.data?.username
+      ? `${site()}/u/${profil.data.username}`
+      : `${site()}/dashboard/profil`;
+
+  function deschideSetari(pagina?: string) {
+    setMeniu(false);
     openModal({
       type: "settings",
       config: "user",
       context: pagina ? { page: pagina } : undefined,
     });
+  }
 
-  const meniu = () => (
-    <ContextMenu>
-      <ContextMenuButton
-        _titleCase={false}
-        symbol={<Symbol>account_circle</Symbol>}
-        onClick={() => setari("profile")}
-      >
-        Profilul meu
-      </ContextMenuButton>
-      <ContextMenuButton
-        _titleCase={false}
-        symbol={<Symbol>settings</Symbol>}
-        onClick={() => setari()}
-      >
-        Setări
-      </ContextMenuButton>
-      <ContextMenuButton
-        _titleCase={false}
-        symbol={<Symbol>open_in_new</Symbol>}
-        onClick={() => window.open(BBT_SITE_URL, "_blank", "noopener")}
-      >
-        Deschide site-ul BBT
-      </ContextMenuButton>
-      <ContextMenuDivider />
-      <ContextMenuButton
-        _titleCase={false}
-        symbol={<Symbol>logout</Symbol>}
-        destructive
-        onClick={() => logout()}
-      >
-        Deconectare
-      </ContextMenuButton>
-    </ContextMenu>
+  const randMeniu = {
+    display: "flex",
+    "align-items": "center",
+    gap: "8px",
+    "min-height": "44px",
+    padding: "0 16px",
+    "font-size": "13.5px",
+    "font-weight": 500,
+    color: "rgba(255,255,255,0.8)",
+    "text-decoration": "none",
+    background: "transparent",
+    border: "0",
+    width: "100%",
+    cursor: "pointer",
+    // ⚠️ `font-family`, NU `font: inherit`: scurtătura resetează și `font-size` de mai sus.
+    "font-family": "inherit",
+    "text-align": "left" as const,
+  };
+
+  const Grup = (p: { linkuri: typeof ACTIVITATE }) => (
+    <For each={p.linkuri}>
+      {(l) => (
+        <a
+          href={`${site()}${l.href}`}
+          target="_blank"
+          rel="noopener"
+          onClick={() => setMeniu(false)}
+          style={randMeniu}
+        >
+          <Symbol size={15}>{l.simbol}</Symbol>
+          {l.nume}
+        </a>
+      )}
+    </For>
   );
 
   return (
     <header
       style={{
-        height: props.compact ? "56px" : "48px",
+        height: props.compact ? "56px" : "64px",
         "flex-shrink": 0,
+        // Deasupra conținutului: meniul de cont cade peste lista de canale și mesaje.
+        position: "relative",
+        "z-index": 20,
         display: "flex",
         "align-items": "center",
-        gap: "10px",
-        padding: props.compact ? "0 8px 0 12px" : "0 12px 0 14px",
+        "justify-content": "space-between",
+        gap: "12px",
+        padding: props.compact ? "0 8px 0 14px" : "0 20px 0 18px",
         background: "#000",
-        "border-bottom": "1px solid rgba(255,255,255,0.08)",
+        "border-bottom": `1px solid ${LINIE}`,
         color: "#fff",
       }}
     >
-      <img
-        src={ICONITA_BBT}
-        alt=""
-        style={{
-          width: "30px",
-          height: "30px",
-          "border-radius": "9px",
-          "flex-shrink": 0,
-        }}
-      />
-      <Show
-        when={!props.compact}
-        fallback={
-          <span
-            style={{ "font-size": "15px", "font-weight": 700, "flex-grow": 1 }}
-          >
-            BBT Community
-          </span>
-        }
-      >
-        <span
-          style={{
-            "font-size": "12px",
-            "font-weight": 700,
-            "letter-spacing": "0.14em",
-          }}
-        >
-          COMMUNITY
-        </span>
-        <div style={{ "flex-grow": 1 }} />
-      </Show>
-
-      <button
-        type="button"
-        aria-label="Contul meu"
-        use:floating={{ contextMenu: meniu, contextMenuHandler: "click" }}
+      <div
         style={{
           display: "flex",
           "align-items": "center",
-          gap: "8px",
-          height: props.compact ? "44px" : "36px",
-          padding: props.compact ? "0 6px" : "0 10px 0 4px",
-          "border-radius": "18px",
-          background: props.compact ? "transparent" : "#141414",
-          border: props.compact ? "0" : "1px solid rgba(255,255,255,0.1)",
-          color: "#fff",
-          cursor: "pointer",
-          font: "inherit",
+          gap: "12px",
+          "min-width": 0,
         }}
       >
-        <span style={{ position: "relative", display: "flex" }}>
+        <Wordmark
+          aria-label="BBT"
+          style={{
+            height: props.compact ? "24px" : "30px",
+            width: "auto",
+            color: "#fff",
+            "flex-shrink": 0,
+          }}
+        />
+        <span
+          style={{
+            "font-size": props.compact ? "13px" : "15px",
+            "font-weight": 700,
+            "letter-spacing": "0.18em",
+            "text-transform": "uppercase",
+          }}
+        >
+          Community
+        </span>
+      </div>
+
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          "align-items": "center",
+          "align-self": "stretch",
+        }}
+        onMouseEnter={() => {
+          clearTimeout(inchidere);
+          if (!props.compact) setMeniu(true);
+        }}
+        onMouseLeave={() => {
+          // Răgaz scurt: între pastilă și panou e un gol, iar fără el meniul s-ar închide exact
+          // când mouse-ul îl traversează. Același truc ca pe site.
+          inchidere = setTimeout(() => setMeniu(false), 200);
+        }}
+      >
+        <button
+          type="button"
+          aria-haspopup="menu"
+          aria-expanded={meniu()}
+          aria-label="Contul meu"
+          onClick={() => setMeniu((m) => !m)}
+          style={{
+            display: "flex",
+            "align-items": "center",
+            gap: "10px",
+            padding: props.compact ? "4px" : "6px 16px 6px 6px",
+            "border-radius": "999px",
+            border: props.compact ? "0" : `1px solid ${LINIE}`,
+            background:
+              meniu() && !props.compact
+                ? "rgba(255,255,255,0.06)"
+                : "transparent",
+            color: "#fff",
+            cursor: "pointer",
+            font: "inherit",
+          }}
+        >
           <Avatar
             src={eu()?.animatedAvatarURL}
-            fallback={eu()?.displayName}
+            fallback={nume()}
             fallbackBackground
-            size={props.compact ? 32 : 28}
+            size={34}
           />
-          <span
+          <Show when={!props.compact}>
+            <span
+              style={{
+                "text-align": "left",
+                "line-height": "1.25",
+                "min-width": 0,
+              }}
+            >
+              <span
+                style={{
+                  display: "block",
+                  "max-width": "150px",
+                  overflow: "hidden",
+                  "text-overflow": "ellipsis",
+                  "white-space": "nowrap",
+                  "font-size": "14px",
+                  "font-weight": 700,
+                }}
+              >
+                {nume()}
+              </span>
+              <span
+                style={{
+                  display: "block",
+                  "font-size": "12px",
+                  "font-weight": 600,
+                  color: profil.data?.verificat ? "#5BD08A" : "#E0A854",
+                }}
+              >
+                {profil.data?.verificat
+                  ? "Artist verificat"
+                  : "Completează profilul"}
+              </span>
+            </span>
+          </Show>
+        </button>
+
+        <Show when={meniu()}>
+          <div
+            role="menu"
             style={{
               position: "absolute",
-              right: "-1px",
-              bottom: "-1px",
-              width: "9px",
-              height: "9px",
-              "border-radius": "50%",
-              background: stareOnline(),
-              border: `2px solid ${props.compact ? "#000" : "#141414"}`,
-            }}
-          />
-        </span>
-        <Show when={!props.compact}>
-          <span
-            style={{
-              "font-size": "13px",
-              "font-weight": 600,
-              "max-width": "180px",
-              overflow: "hidden",
-              "text-overflow": "ellipsis",
-              "white-space": "nowrap",
+              right: 0,
+              top: "100%",
+              "z-index": 50,
+              width: "240px",
+              "padding-top": props.compact ? "4px" : "0",
             }}
           >
-            {eu()?.displayName}
-          </span>
-          <Symbol size={16}>keyboard_arrow_down</Symbol>
+            <div
+              style={{
+                overflow: "hidden",
+                "border-radius": "16px",
+                border: `1px solid ${LINIE}`,
+                background: FOAIE,
+                padding: "8px 0",
+                "box-shadow": "0 16px 48px rgba(0,0,0,0.6)",
+              }}
+            >
+              <a
+                href={linkProfil()}
+                target="_blank"
+                rel="noopener"
+                onClick={() => setMeniu(false)}
+                style={{
+                  display: "flex",
+                  "align-items": "center",
+                  gap: "12px",
+                  padding: "4px 16px 12px",
+                  "margin-bottom": "4px",
+                  "border-bottom": `1px solid ${LINIE}`,
+                  "text-decoration": "none",
+                  color: "#fff",
+                }}
+              >
+                <Avatar
+                  src={eu()?.animatedAvatarURL}
+                  fallback={nume()}
+                  fallbackBackground
+                  size={38}
+                />
+                <span style={{ "min-width": 0, "line-height": "1.3" }}>
+                  <span
+                    style={{
+                      display: "block",
+                      "font-size": "13.5px",
+                      "font-weight": 700,
+                    }}
+                  >
+                    {nume()}
+                  </span>
+                  <Show when={profil.data?.username}>
+                    <span
+                      style={{
+                        display: "block",
+                        "font-size": "12px",
+                        color: "rgba(255,255,255,0.6)",
+                      }}
+                    >
+                      @{profil.data!.username}
+                    </span>
+                  </Show>
+                  <Show when={profil.data?.verificat}>
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        "align-items": "center",
+                        gap: "4px",
+                        "margin-top": "2px",
+                        "font-size": "12px",
+                        "font-weight": 700,
+                        color: "#5BD08A",
+                      }}
+                    >
+                      <Symbol size={11}>check_circle</Symbol> Artist verificat
+                    </span>
+                  </Show>
+                </span>
+              </a>
+
+              <Grup linkuri={ACTIVITATE} />
+              <div
+                style={{ margin: "4px 0", "border-top": `1px solid ${LINIE}` }}
+              />
+              <Grup linkuri={CONT} />
+              <div
+                style={{
+                  "margin-top": "4px",
+                  "padding-top": "4px",
+                  "border-top": `1px solid ${LINIE}`,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => deschideSetari("profile")}
+                  style={randMeniu}
+                >
+                  <Symbol size={15}>person</Symbol> Profilul în Community
+                </button>
+                <button
+                  type="button"
+                  onClick={() => deschideSetari("notifications")}
+                  style={randMeniu}
+                >
+                  <Symbol size={15}>notifications</Symbol> Setări Community
+                </button>
+                <a
+                  href={`${site()}/camps?vitrina=1`}
+                  target="_blank"
+                  rel="noopener"
+                  onClick={() => setMeniu(false)}
+                  style={randMeniu}
+                >
+                  <Symbol size={15}>explore</Symbol> Descoperă experiențe
+                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMeniu(false);
+                    logout();
+                  }}
+                  style={{ ...randMeniu, color: "#FF8A80" }}
+                >
+                  <Symbol size={15}>logout</Symbol> Deconectare
+                </button>
+              </div>
+            </div>
+          </div>
         </Show>
-      </button>
+      </div>
     </header>
   );
 }

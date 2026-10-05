@@ -62,11 +62,13 @@ import i_folder_plus from "lucide-static/icons/folder-plus.svg?raw";
 import i_folder_x from "lucide-static/icons/folder-x.svg?raw";
 import i_gavel from "lucide-static/icons/gavel.svg?raw";
 import i_globe from "lucide-static/icons/globe.svg?raw";
+import i_graduation_cap from "lucide-static/icons/graduation-cap.svg?raw";
 import i_grip_vertical from "lucide-static/icons/grip-vertical.svg?raw";
 import i_hand from "lucide-static/icons/hand.svg?raw";
 import i_hash from "lucide-static/icons/hash.svg?raw";
 import i_headphone_off from "lucide-static/icons/headphone-off.svg?raw";
 import i_headphones from "lucide-static/icons/headphones.svg?raw";
+import i_heart from "lucide-static/icons/heart.svg?raw";
 import i_hourglass from "lucide-static/icons/hourglass.svg?raw";
 import i_house from "lucide-static/icons/house.svg?raw";
 import i_id_card from "lucide-static/icons/id-card.svg?raw";
@@ -125,12 +127,14 @@ import i_speaker from "lucide-static/icons/speaker.svg?raw";
 import i_square from "lucide-static/icons/square.svg?raw";
 import i_square_check from "lucide-static/icons/square-check.svg?raw";
 import i_star from "lucide-static/icons/star.svg?raw";
+import i_tent from "lucide-static/icons/tent.svg?raw";
 import i_timer from "lucide-static/icons/timer.svg?raw";
 import i_timer_off from "lucide-static/icons/timer-off.svg?raw";
 import i_trash from "lucide-static/icons/trash.svg?raw";
 import i_trash_2 from "lucide-static/icons/trash-2.svg?raw";
 import i_triangle_alert from "lucide-static/icons/triangle-alert.svg?raw";
 import i_trophy from "lucide-static/icons/trophy.svg?raw";
+import i_user from "lucide-static/icons/user.svg?raw";
 import i_user_minus from "lucide-static/icons/user-minus.svg?raw";
 import i_user_plus from "lucide-static/icons/user-plus.svg?raw";
 import i_users from "lucide-static/icons/users.svg?raw";
@@ -140,6 +144,7 @@ import i_volume_2 from "lucide-static/icons/volume-2.svg?raw";
 import i_webhook from "lucide-static/icons/webhook.svg?raw";
 import i_wrench from "lucide-static/icons/wrench.svg?raw";
 import i_x from "lucide-static/icons/x.svg?raw";
+import i_zap from "lucide-static/icons/zap.svg?raw";
 import i_zoom_in from "lucide-static/icons/zoom-in.svg?raw";
 import i_zoom_out from "lucide-static/icons/zoom-out.svg?raw";
 
@@ -205,11 +210,13 @@ export const SVG_LUCIDE: Record<string, string> = {
   "folder-x": i_folder_x,
   "gavel": i_gavel,
   "globe": i_globe,
+  "graduation-cap": i_graduation_cap,
   "grip-vertical": i_grip_vertical,
   "hand": i_hand,
   "hash": i_hash,
   "headphone-off": i_headphone_off,
   "headphones": i_headphones,
+  "heart": i_heart,
   "hourglass": i_hourglass,
   "house": i_house,
   "id-card": i_id_card,
@@ -268,12 +275,14 @@ export const SVG_LUCIDE: Record<string, string> = {
   "square": i_square,
   "square-check": i_square_check,
   "star": i_star,
+  "tent": i_tent,
   "timer": i_timer,
   "timer-off": i_timer_off,
   "trash": i_trash,
   "trash-2": i_trash_2,
   "triangle-alert": i_triangle_alert,
   "trophy": i_trophy,
+  "user": i_user,
   "user-minus": i_user_minus,
   "user-plus": i_user_plus,
   "users": i_users,
@@ -283,6 +292,7 @@ export const SVG_LUCIDE: Record<string, string> = {
   "webhook": i_webhook,
   "wrench": i_wrench,
   "x": i_x,
+  "zap": i_zap,
   "zoom-in": i_zoom_in,
   "zoom-out": i_zoom_out,
 };
