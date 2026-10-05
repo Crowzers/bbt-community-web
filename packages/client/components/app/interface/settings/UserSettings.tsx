@@ -116,6 +116,10 @@ const Config: SettingsConfiguration<{ server: Server }> = {
     const { pop, openModal } = useModals();
     const { logout } = useClientLifecycle();
     const { limits, config } = useInstance();
+    const client = useClient();
+    const esteProprietar = client()
+      .servers.toList()
+      .some((server) => server.ownerId === client().user?.id);
 
     return {
       context: null!,
@@ -224,8 +228,11 @@ const Config: SettingsConfiguration<{ server: Server }> = {
           ],
         },
         {
-          title: "Stoat",
-          hidden: true, // BBT: boții și feedback-ul sunt ai lor
+          title: "Avansat",
+          // BBT: doar PROPRIETARUL serverului vede „Boții mei" — de acolo se creează botul BBT care
+          // sincronizează rolurile muzicale (admin: lib/stoat/roluri.ts, STOAT_BOT_TOKEN). Feedback-ul
+          // e al lor, ascuns pentru toți.
+          hidden: !esteProprietar,
           entries: [
             {
               id: "bots",
@@ -234,6 +241,7 @@ const Config: SettingsConfiguration<{ server: Server }> = {
             },
             {
               id: "feedback",
+              hidden: true,
               icon: <MdRateReview {...iconSize(20)} />,
               title: <Trans>Feedback</Trans>,
             },
