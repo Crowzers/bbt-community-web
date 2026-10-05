@@ -40,7 +40,7 @@ import {
 import "@revolt/ui/styles";
 
 import { AndroidNag } from "./AndroidNag";
-import AuthPage from "./Auth";
+import Sso, { BbtLogin } from "./bbt/Sso";
 import Interface from "./Interface";
 import "./index.css";
 import { DevelopmentPage } from "./interface/Development";
@@ -144,7 +144,9 @@ function MountContext(props: { children?: JSX.Element }) {
 
 const routes = () => (
   <Route component={MountContext}>
-    <Route path="/login" component={AuthPage as never}>
+    {/* BBT: intrarea doar prin contul BBT (src/bbt/Sso.tsx). Login-ul lor cu parolă nu mai e folosit. */}
+    <Route path="/sso" component={Sso} />
+    <Route path="/login" component={BbtLogin as never}>
       <Route path="/delete/:token" component={FlowDeleteAccount} />
       <Route path="/check" component={FlowCheck} />
       <Route path="/create" component={FlowCreate} />
