@@ -13,8 +13,8 @@ import { BBT_SITE_URL } from "./config";
  * 5 oct 2026: https://claude.ai/artifact/VF8eFPB2Xm7uznVkPX6t5F
  *
  * ⚠️ Etapa 1 = doar secțiuni care merg din prima zi, fără butoane spre ecrane goale (decizia
- * userului): Chat, Mesaje, Challenge, Site. Live (cu programul și înregistrările) vine odată cu
- * webinarele; Lecții abia când există destule înregistrări.
+ * userului): Chat, Mesaje, Site. Live (cu programul și înregistrările) vine odată cu webinarele;
+ * Lecții abia când există destule înregistrări. ⛔ Fără Challenge — userul nu l-a vrut în meniu.
  *
  * Contul NU mai stă aici (era avatarul de jos): e în bara de sus, `BaraSus.tsx`.
  *
@@ -66,12 +66,6 @@ export function BaraSectiuni(props: {
           location.pathname.startsWith("/channel")),
       badge: () => props.necititeMesaje,
       laApasare: () => navigate("/friends"),
-    },
-    {
-      nume: "Challenge",
-      simbol: "emoji_events",
-      activ: () => false,
-      link: `${BBT_SITE_URL}/challenges`,
     },
   ];
 
