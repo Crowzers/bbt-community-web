@@ -73,5 +73,7 @@ jobs:
             echo "Secretele Coolify lipsesc — deploy sărit."
             exit 0
           fi
-          curl --fail-with-body -sS -H "Authorization: Bearer $COOLIFY_TOKEN" \
+          # ⚠️ POST: Coolify >= 4.3 refuză GET-ul de altădată cu 405 („This endpoint has changed to a POST
+          # request") — prima rulare cu secretele puse (5 oct) a picat exact așa.
+          curl --fail-with-body -sS -X POST -H "Authorization: Bearer $COOLIFY_TOKEN" \
             "$COOLIFY_URL/api/v1/deploy?uuid=$COOLIFY_WEB_UUID&force=false"
