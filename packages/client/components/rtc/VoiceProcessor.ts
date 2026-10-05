@@ -1,9 +1,19 @@
 import { AudioProcessorOptions, Track, TrackProcessor } from "livekit-client";
-import { RNNoiseNode } from "livekit-rnnoise-processor";
+import type { RNNoiseNode } from "livekit-rnnoise-processor";
 import { createEffect, createRoot, on } from "solid-js";
 
 import { CONFIGURATION } from "@revolt/common";
 import { Voice } from "@revolt/state/stores/Voice";
+
+/**
+ * BBT: modulul RNNoise se încarcă LA CERERE, la prima intrare în voce — nu odată cu aplicația.
+ *
+ * 🔴 `livekit-rnnoise-processor` declară la încărcare `class … extends AudioWorkletNode`. Importat
+ * static, era în bundle-ul principal: un browser fără `AudioWorkletNode` arunca ReferenceError
+ * înainte să se deseneze ceva ⇒ ECRAN NEGRU pe tot Community-ul (reprodus în WebKit, 5 oct 2026,
+ * după ce userul a văzut negru pe iPhone). Acum, în cel mai rău caz, nu merge doar vocea.
+ */
+let modulRNNoise: typeof import("livekit-rnnoise-processor") | undefined;
 
 export class VoiceProcessor implements TrackProcessor<
   Track.Kind.Audio,
@@ -72,7 +82,8 @@ export class VoiceProcessor implements TrackProcessor<
   }
 
   async init(opts: AudioProcessorOptions): Promise<void> {
-    await RNNoiseNode.loadModule(
+    modulRNNoise ??= await import("livekit-rnnoise-processor");
+    await modulRNNoise.RNNoiseNode.loadModule(
       opts.audioContext,
       CONFIGURATION.RNNOISE_WORKLET_CDN_URL,
     );
@@ -105,7 +116,9 @@ export class VoiceProcessor implements TrackProcessor<
       this.highpassNode.frequency.value = 50;
       this.highpassNode.Q.value = Math.SQRT1_2;
 
-      this.noiseSuppressionNode = new RNNoiseNode(this.audioContext!);
+      this.noiseSuppressionNode = new modulRNNoise!.RNNoiseNode(
+        this.audioContext!,
+      );
       this.highpassNode.connect(this.noiseSuppressionNode);
 
       // Create a new dynamics compressor
