@@ -43,6 +43,7 @@ import "@revolt/ui/styles";
 
 import Interface from "./Interface";
 import { Acasa } from "./bbt/Acasa";
+import { DeschideDM } from "./bbt/DeschideDM";
 import Sso, { BbtLogin } from "./bbt/Sso";
 import { legaEcranulVizibil } from "./bbt/ecran";
 import "./index.css";
@@ -168,6 +169,7 @@ const routes = () => (
       <Route path="/invite/:code" component={InviteRedirect} />
       <Route path="/bot/:code" component={BotRedirect} />
       <Route path="/friends" component={Friends} />
+      <Route path="/bbt/dm/:userId" component={DeschideDM} />
       <Route path="/server/:server/*">
         <Route path="/channel/:channel/*" component={ChannelPage} />
         <Route path="/*" component={ServerHome} />

@@ -44,6 +44,19 @@ function trimiteLaSite(): boolean {
   return true;
 }
 
+/**
+ * Unde intră omul după SSO: `spre` din fragment, pus de admin când linkul de pe site cerea un loc
+ * anume (mesajele, conversația cu cineva). Doar formele cunoscute — orice altceva = acasă, ca un
+ * link măsluit să nu poată trimite nicăieri.
+ */
+let destinatie = "/";
+function citesteDestinatia(fragment: URLSearchParams) {
+  const spre = fragment.get("spre") ?? "";
+  destinatie = /^\/(friends|bbt\/dm\/[0-9A-HJKMNP-TV-Z]{26})$/.test(spre)
+    ? spre
+    : "/";
+}
+
 function uitaTrimiterile() {
   try {
     sessionStorage.removeItem(CHEIE_BUCLA);
@@ -142,7 +155,7 @@ export default function Sso() {
     if (!astept()) return;
     if (isLoggedIn()) {
       uitaTrimiterile();
-      navigate("/", { replace: true });
+      navigate(destinatie, { replace: true });
     } else if (lifecycle.state() === State.Error) {
       setAstept(false);
       setEroare(
@@ -152,7 +165,9 @@ export default function Sso() {
   });
 
   onMount(async () => {
-    const cod = new URLSearchParams(window.location.hash.slice(1)).get("cod");
+    const fragment = new URLSearchParams(window.location.hash.slice(1));
+    const cod = fragment.get("cod");
+    citesteDestinatia(fragment);
     window.history.replaceState(null, "", "/sso");
 
     if (!cod) {
@@ -200,7 +215,7 @@ export default function Sso() {
         if (curenta.userId === s.userId) {
           // Același om, deja conectat: sesiunea nouă e în plus, dar inofensivă. Intră direct.
           uitaTrimiterile();
-          navigate("/", { replace: true });
+          navigate(destinatie, { replace: true });
           return;
         }
         logout();
