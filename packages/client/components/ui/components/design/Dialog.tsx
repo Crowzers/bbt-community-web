@@ -140,10 +140,12 @@ Dialog.Scrim = (
 
 const Scrim = styled("div", {
   base: {
-    top: 0,
+    // BBT: ecranul VIZIBIL (src/bbt/ecran.ts), nu `bottom: 0` — pe iPhone, cu tastatura deschisă
+    // sau cu bara de adrese jos, butoanele ferestrei („Creează", „Salvare") ajungeau sub ele.
+    top: "var(--bbt-ecran-sus, 0px)",
     left: 0,
     right: 0,
-    bottom: 0,
+    height: "var(--bbt-ecran-h, 100dvh)",
     position: "fixed",
     zIndex: "998",
     maxHeight: "100%",

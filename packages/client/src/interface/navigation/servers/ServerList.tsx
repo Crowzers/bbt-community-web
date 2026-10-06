@@ -377,7 +377,7 @@ export const ServerList = (props: Props) => {
                     </>
                   }
                   fallback={
-                    conversation.name ?? conversation.recipient?.username
+                    conversation.name ?? conversation.recipient?.displayName
                   }
                   interactive
                 />

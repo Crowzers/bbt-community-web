@@ -1,29 +1,18 @@
-import MdFolder from "@material-design-icons/svg/outlined/folder.svg?component-solid";
 import { For, Show } from "solid-js";
 
 import { Trans } from "@lingui/solid/macro";
 import dayjs from "dayjs";
 import { Server } from "stoat.js";
 
-import { useClient } from "@revolt/client";
-import { useDevice } from "@revolt/common";
 import { useModals } from "@revolt/modal";
 import { useState } from "@revolt/state";
 import { Column, Text, Time } from "@revolt/ui";
 
 import MdAlternateEmail from "@material-design-icons/svg/outlined/alternate_email.svg?component-solid";
-import MdBadge from "@material-design-icons/svg/outlined/badge.svg?component-solid";
-import MdCreateNewFolder from "@material-design-icons/svg/outlined/create_new_folder.svg?component-solid";
-import MdFace from "@material-design-icons/svg/outlined/face.svg?component-solid";
-import MdFolderOff from "@material-design-icons/svg/outlined/folder_off.svg?component-solid";
-import MdLogout from "@material-design-icons/svg/outlined/logout.svg?component-solid";
 import MdMarkChatRead from "@material-design-icons/svg/outlined/mark_chat_read.svg?component-solid";
 import MdNotificationsActive from "@material-design-icons/svg/outlined/notifications_active.svg?component-solid";
 import MdNotificationsOff from "@material-design-icons/svg/outlined/notifications_off.svg?component-solid";
-import MdPersonAdd from "@material-design-icons/svg/outlined/person_add.svg?component-solid";
-import MdReport from "@material-design-icons/svg/outlined/report.svg?component-solid";
 import MdSettings from "@material-design-icons/svg/outlined/settings.svg?component-solid";
-import MdShield from "@material-design-icons/svg/outlined/shield.svg?component-solid";
 
 import MdDoNotDisturbOff from "@material-symbols/svg-400/outlined/do_not_disturb_off.svg?component-solid";
 import MdDoNotDisturbOn from "@material-symbols/svg-400/outlined/do_not_disturb_on.svg?component-solid";
@@ -43,8 +32,6 @@ import {
  */
 export function ServerContextMenu(props: { server: Server }) {
   const state = useState();
-  const client = useClient();
-  const device = useDevice();
   const { openModal } = useModals();
 
   /**
@@ -52,35 +39,6 @@ export function ServerContextMenu(props: { server: Server }) {
    */
   function markAsRead() {
     props.server.ack();
-  }
-
-  /**
-   * Create a new invite
-   */
-  function createInvite() {
-    // Find the first channel we can invite people to
-    const channel = props.server.orderedChannels
-      .find((category) =>
-        category.channels.find((channel) =>
-          channel.havePermission("InviteOthers"),
-        ),
-      )!
-      .channels.find((channel) => channel.havePermission("InviteOthers"))!;
-
-    openModal({
-      type: "create_invite",
-      channel,
-    });
-  }
-
-  /**
-   * Open server settings
-   */
-  function editIdentity() {
-    openModal({
-      type: "server_identity",
-      member: props.server.member!,
-    });
   }
 
   /**
@@ -93,59 +51,6 @@ export function ServerContextMenu(props: { server: Server }) {
       context: props.server,
     });
   }
-
-  /**
-   * Report the server
-   */
-  function report() {
-    openModal({
-      type: "report_content",
-      target: props.server,
-      client: client(),
-    });
-  }
-
-  /**
-   * Leave the server
-   */
-  function leave() {
-    openModal({
-      type: "leave_server",
-      server: props.server,
-    });
-  }
-
-  /**
-   * Open server in Stoat Admin Panel
-   */
-  function openAdminPanel() {
-    window.open(
-      `https://admin.stoatinternal.com/panel/inspect/server/${props.server.id}`,
-      "_blank",
-    );
-  }
-
-  /**
-   * Copy server id to clipboard
-   */
-  function copyId() {
-    navigator.clipboard.writeText(props.server.id);
-  }
-
-  /**
-   * Determine whether we can invite others to any channels
-   */
-  const permissionInviteOthers = () =>
-    props.server.channels.find((channel) =>
-      channel.havePermission("InviteOthers"),
-    );
-
-  /**
-   * Determine whether we can edit our identity
-   */
-  const permissionEditIdentity = () =>
-    props.server.havePermission("ChangeNickname") ||
-    props.server.havePermission("ChangeAvatar");
 
   /**
    * Determine whether we can access settings
@@ -238,47 +143,7 @@ export function ServerContextMenu(props: { server: Server }) {
         </ContextMenuSubMenu>
       </Show>
 
-      <ContextMenuSubMenu
-        onClick={
-          device.layout() === "desktop" && !device.isMobile && !device.hasTouch
-            ? () => state.ordering.createFolder("New Folder", [props.server.id])
-            : undefined
-        }
-        icon={MdFolder}
-        buttonContent={<Trans>Add to folder</Trans>}
-      >
-        <For each={state.ordering.folders()}>
-          {(folder) => (
-            <ContextMenuButton
-              onClick={() =>
-                state.ordering.addToFolder(folder.id, props.server.id)
-              }
-            >
-              <Show when={folder.name} fallback={<Trans>Unnamed folder</Trans>}>
-                {folder.name}
-              </Show>
-            </ContextMenuButton>
-          )}
-        </For>
-        <ContextMenuButton
-          icon={MdCreateNewFolder}
-          onClick={() =>
-            state.ordering.createFolder("New Folder", [props.server.id])
-          }
-        >
-          <Trans>New folder</Trans>
-        </ContextMenuButton>
-      </ContextMenuSubMenu>
-
-      <Show when={state.ordering.folderOf(props.server.id)}>
-        <ContextMenuButton
-          icon={MdFolderOff}
-          onClick={() => state.ordering.removeFromFolder(props.server.id)}
-        >
-          <Trans>Remove from folder</Trans>
-        </ContextMenuButton>
-      </Show>
-
+      {/* BBT: fără dosare — n-avem listă de servere, doar serverul BBT (src/bbt/BaraSectiuni.tsx). */}
       <ContextMenuDivider />
 
       <ContextMenuSubMenu
@@ -319,59 +184,13 @@ export function ServerContextMenu(props: { server: Server }) {
           <Trans>None</Trans>
         </ContextMenuButton>
       </ContextMenuSubMenu>
-      <ContextMenuDivider />
-
-      <Show when={permissionInviteOthers()}>
-        <ContextMenuButton icon={MdPersonAdd} onClick={createInvite}>
-          <Trans>Create invite</Trans>
-        </ContextMenuButton>
-      </Show>
-      <Show when={permissionEditIdentity()}>
-        <ContextMenuButton icon={MdFace} onClick={editIdentity}>
-          <Trans>Edit your identity</Trans>
-        </ContextMenuButton>
-      </Show>
+      {/* BBT: fără invitație (intrarea e prin contul BBT), fără „identitate pe server" (numele și
+          poza vin din BBT, lib/stoat/profil.ts în admin), fără raportare (moderăm noi, în server) și
+          fără „Părăsește serverul" (podul l-ar băga înapoi la următoarea intrare). */}
       <Show when={permissionServerSettings()}>
+        <ContextMenuDivider />
         <ContextMenuButton icon={MdSettings} onClick={openSettings}>
           <Trans>Open server settings</Trans>
-        </ContextMenuButton>
-      </Show>
-      <Show
-        when={
-          permissionInviteOthers() ||
-          permissionEditIdentity() ||
-          permissionServerSettings()
-        }
-      >
-        <ContextMenuDivider />
-      </Show>
-
-      <ContextMenuButton icon={MdReport} onClick={report} destructive>
-        <Trans>Report server</Trans>
-      </ContextMenuButton>
-      <Show when={!props.server.owner?.self}>
-        <ContextMenuButton icon={MdLogout} onClick={leave} destructive>
-          <Trans>Leave server</Trans>
-        </ContextMenuButton>
-      </Show>
-
-      <Show
-        when={
-          state.settings.getValue("advanced:admin_panel") &&
-          state.settings.getValue("advanced:copy_id")
-        }
-      >
-        <ContextMenuDivider />
-      </Show>
-
-      <Show when={state.settings.getValue("advanced:admin_panel")}>
-        <ContextMenuButton icon={MdShield} onClick={openAdminPanel}>
-          <Trans>Admin Panel</Trans>
-        </ContextMenuButton>
-      </Show>
-      <Show when={state.settings.getValue("advanced:copy_id")}>
-        <ContextMenuButton icon={MdBadge} onClick={copyId}>
-          <Trans>Copy server ID</Trans>
         </ContextMenuButton>
       </Show>
     </ContextMenu>

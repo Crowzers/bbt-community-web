@@ -4,7 +4,10 @@ import { Motion, Presence } from "solid-motionone";
 import { css } from "styled-system/css";
 import { styled } from "styled-system/jsx";
 
+import { useDevice } from "@revolt/common";
+import { useState } from "@revolt/state";
 import { Breadcrumbs, IconButton, Text } from "@revolt/ui";
+import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import MdClose from "@material-design-icons/svg/outlined/close.svg?component-solid";
 
@@ -24,6 +27,8 @@ export function SettingsContent(props: {
   action: Accessor<(() => JSX.Element) | undefined>;
 }) {
   const { navigate } = useSettingsNavigation();
+  const { diagDrawer } = useState();
+  const { layout } = useDevice();
   const reduceMotion =
     typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -33,6 +38,30 @@ export function SettingsContent(props: {
       <Show when={props.page()}>
         <InnerContent class="settings_cont">
           <InnerColumn>
+            {/* BBT: pe telefon/tabletă, ieșirile vizibile. Butonul „X" de pe desktop e ascuns sub
+                lățimea de tabletă, iar înapoi la listă se ajungea DOAR glisând — pe iPhone nimeni
+                nu ghicea, deci panoul nu mai avea ieșire (6 oct 2026). */}
+            <BaraTelefon>
+              {/* Lista paginilor e un ecran separat DOAR pe telefon; pe tabletă stă alături. */}
+              <Show when={layout() === "phone"}>
+                <button
+                  type="button"
+                  onClick={() => diagDrawer()?.setShown(false)}
+                >
+                  <Symbol size={18}>arrow_back</Symbol>
+                  Meniu
+                </button>
+              </Show>
+              <Show when={props.onClose}>
+                <button
+                  type="button"
+                  aria-label="Închide"
+                  onClick={() => props.onClose?.()}
+                >
+                  <Symbol size={18}>close</Symbol>
+                </button>
+              </Show>
+            </BaraTelefon>
             <Show when={props.page() !== "account"}>
               <Text class="title" size="large">
                 <Breadcrumbs
@@ -129,8 +158,10 @@ const InnerContent = styled("div", {
     justifyContent: "stretch",
     zIndex: 1,
 
-    _tablet: { padding: "12px" },
-    _phone: { height: "100vh" },
+    _tablet: { padding: "0 12px 12px" },
+    // BBT: `minHeight: 100%` în loc de `height: 100vh` — pe iPhone 100vh e mai înalt decât ecranul
+    // vizibil, iar ultimele câmpuri (și „Salvare") nu se mai puteau aduce în ecran.
+    _phone: { minHeight: "100%" },
   },
 });
 
@@ -170,7 +201,10 @@ const ActionRail = styled("div", {
     _tablet: {
       position: "fixed",
       insetInlineEnd: 0,
-      height: "100dvh",
+      // BBT: ecranul vizibil (src/bbt/ecran.ts), ca butoanele plutitoare să nu stea sub bara Safari.
+      top: "calc(var(--bbt-ecran-sus, 0px) + env(safe-area-inset-top))",
+      height:
+        "calc(var(--bbt-ecran-h, 100dvh) - env(safe-area-inset-top) - env(safe-area-inset-bottom))",
       padding: "12px",
       paddingBlockEnd: "calc(12px + env(safe-area-inset-bottom))",
       alignItems: "flex-end",
@@ -179,6 +213,51 @@ const ActionRail = styled("div", {
 
       "& > *": {
         pointerEvents: "auto",
+      },
+    },
+  },
+});
+
+/**
+ * BBT: bara de sus pe telefon/tabletă — „← Meniu" (lista paginilor) și „X". Lipită sus cât derulezi.
+ */
+const BaraTelefon = styled("div", {
+  base: {
+    display: "none",
+
+    _tablet: {
+      position: "sticky",
+      top: 0,
+      zIndex: 3,
+      height: "52px",
+      flexShrink: 0,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginInline: "-12px",
+      paddingInline: "4px",
+      background: "var(--md-sys-color-surface-container-low)",
+      borderBottom: "1px solid rgba(255,255,255,0.08)",
+
+      "& button": {
+        height: "40px",
+        minWidth: "40px",
+        padding: "0 10px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "6px",
+        border: 0,
+        borderRadius: "10px",
+        background: "transparent",
+        color: "#fff",
+        fontFamily: "inherit",
+        fontSize: "14px",
+        fontWeight: 600,
+        cursor: "pointer",
+      },
+      "& button:last-child": {
+        marginInlineStart: "auto",
       },
     },
   },

@@ -1,6 +1,5 @@
 import { Trans } from "@lingui/solid/macro";
 
-import { useClient } from "@revolt/client";
 import { Markdown } from "@revolt/markdown";
 import { Dialog, DialogProps } from "@revolt/ui";
 
@@ -10,7 +9,6 @@ import { Modals } from "../types";
 export function ServerInfoModal(
   props: DialogProps & Modals & { type: "server_info" },
 ) {
-  const client = useClient();
   const { openModal } = useModals();
 
   const canOpenSettings = () =>
@@ -41,25 +39,8 @@ export function ServerInfoModal(
               },
             ]
           : []),
-        {
-          text: <Trans>Edit Identity</Trans>,
-          onClick() {
-            openModal({
-              type: "server_identity",
-              member: props.server.member!,
-            });
-          },
-        },
-        {
-          text: <Trans>Report</Trans>,
-          onClick() {
-            openModal({
-              type: "report_content",
-              client: client(),
-              target: props.server,
-            });
-          },
-        },
+        // BBT: fără „Edit Identity" (numele și poza vin din contul BBT) și fără „Report" (serverul
+        // e al nostru) — „nu fac sens pentru noi" (6 oct 2026).
         { text: <Trans>Close</Trans> },
       ]}
     >

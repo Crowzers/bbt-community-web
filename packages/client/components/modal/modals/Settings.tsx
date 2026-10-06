@@ -42,9 +42,12 @@ export function SettingsModal(
           "z-index": 100,
           position: "fixed",
           width: "100%",
-          height: "100vh",
+          // BBT: ecranul VIZIBIL (src/bbt/ecran.ts), ca #root. Cu `100vh`, pe iPhone partea de jos a
+          // setărilor (butonul de salvare) stătea sub bara de adrese a Safari-ului (6 oct 2026).
+          height:
+            "calc(var(--bbt-ecran-h, 100dvh) - env(safe-area-inset-top) - env(safe-area-inset-bottom))",
           left: 0,
-          top: 0,
+          top: "calc(var(--bbt-ecran-sus, 0px) + env(safe-area-inset-top))",
           "pointer-events": "none",
         }}
       >

@@ -159,6 +159,9 @@ const Server: Component = () => {
    * Open the server information modal
    */
   function openServerInfo() {
+    // BBT: fereastra arată doar descrierea serverului (fără identitate/raportare, ServerInfo.tsx);
+    // fără descriere ar fi o fereastră goală cu „Închide" — atunci apăsarea pe nume nu face nimic.
+    if (!server()?.description?.trim()) return;
     openModal({
       type: "server_info",
       server: server(),

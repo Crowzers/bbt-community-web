@@ -238,9 +238,10 @@ export function UserContextMenu(props: {
   function canEditIdentity() {
     return (
       props.member &&
+      // BBT: propria identitate pe server NU — numele și poza vin din contul BBT (admin,
+      // lib/stoat/profil.ts) și o poreclă de server le-ar ascunde. Moderatorii o pot schimba la alții.
       (props.user.self
-        ? props.member!.server!.havePermission("ChangeNickname") ||
-          props.member!.server!.havePermission("ChangeAvatar")
+        ? false
         : (props.member!.server!.havePermission("ManageNicknames") ||
             props.member!.server!.havePermission("RemoveAvatars")) &&
           props.member!.inferiorTo(props.member!.server!.member!))
