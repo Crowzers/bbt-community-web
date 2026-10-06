@@ -4,6 +4,7 @@ import type { User } from "stoat.js";
 
 import { useClient } from "@revolt/client";
 import { useNavigate, useParams } from "@revolt/routing";
+import { useState } from "@revolt/state";
 
 /**
  * `/bbt/dm/:userId` — deschide conversația directă cu un om și intră în ea.
@@ -30,6 +31,7 @@ type Stare =
 export function DeschideDM() {
   const client = useClient();
   const navigate = useNavigate();
+  const state = useState();
   const params = useParams<{ userId: string }>();
   const [stare, setStare] = createSignal<Stare>({ tip: "incarc" });
   const [lucrez, setLucrez] = createSignal(false);
@@ -38,6 +40,9 @@ export function DeschideDM() {
   async function intra(om: User) {
     const dm = await om.openDM();
     navigate(`/channel/${dm.id}`, { replace: true });
+    // Pe telefon aplicația pornește pe listă (SlideDrawer, `continutLaInceput`): aici omul a cerut
+    // conversația anume („Mesaj" de pe un profil), deci glisăm direct în ea.
+    state.appDrawer()?.setShown(true);
   }
 
   /** De ce nu se poate scrie încă, după relația cu omul. */

@@ -77,7 +77,8 @@ const Interface = (props: { children: JSX.Element }) => {
   createEffect(() => {
     //Create drawer
     const cont = contRef();
-    if (cont && !sDrawer) sDrawer = new SlideDrawer(cont, rootRef!);
+    // BBT: pe telefon, intrarea în aplicație arată lista de canale, nu canalul (vezi SlideDrawer).
+    if (cont && !sDrawer) sDrawer = new SlideDrawer(cont, rootRef!, false);
     //Update on layout change
     if (sDrawer) {
       const en = sDrawer.enabled;

@@ -49,10 +49,17 @@ export class SlideDrawer {
   private sGet!: Accessor<SlideState>;
   private sSet!: Setter<SlideState>;
 
+  /**
+   * @param continutLaInceput BBT: `false` = pe telefon pornește pe PANOUL din stânga (lista de
+   * canale), nu pe conținut. Aplicația (`Interface.tsx`) îl vrea așa: „când intri în comunitate,
+   * prima pagină să fie lista de canale, nu General" (6 oct 2026). Setările îl lasă pe `true`.
+   */
   constructor(
     private drawer: HTMLElement,
     private root: HTMLElement,
+    continutLaInceput = true,
   ) {
+    this.lShow = continutLaInceput;
     this.start = this.start.bind(this);
     this.move = this.move.bind(this);
     this.cancel = this.cancel.bind(this);
