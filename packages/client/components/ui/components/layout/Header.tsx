@@ -20,8 +20,11 @@ export const Header = styled("div", {
     fontWeight: 600,
     userSelect: "none",
     overflow: "hidden",
-    height: "48px",
-    borderRadius: "var(--borderRadius-lg)",
+    // BBT (pânza TRW): antet plat, 52px, cu un fir dedesubt — nu pastilă rotunjită cu margini.
+    height: "52px",
+    borderRadius: 0,
+    padding: "0 16px",
+    borderBottom: "1px solid rgba(255,255,255,0.08)",
 
     color: "var(--md-sys-color-on-surface)",
     fill: "var(--md-sys-color-on-surface)",
@@ -31,16 +34,21 @@ export const Header = styled("div", {
     "& svg": {
       flexShrink: 0,
     },
+    // BBT: butoanele-iconiță din antet — 32px, colțuri de 8px (pânza TRW), nu cercuri de 40px.
+    "& > button": {
+      height: "32px",
+      borderRadius: "8px",
+    },
   },
   variants: {
     placement: {
       primary: {
-        margin: "var(--gap-md) var(--gap-md) var(--gap-md) 0",
-        _phone: { marginLeft: "var(--gap-lg)" },
+        margin: 0,
       },
       secondary: {
-        margin: "var(--gap-md)",
-        backgroundColor: "var(--md-sys-color-surface-variant)",
+        margin: 0,
+        padding: "0 14px",
+        backgroundColor: "transparent",
       },
     },
     image: {
@@ -67,15 +75,7 @@ export const Header = styled("div", {
       },
     },
   },
-  compoundVariants: [
-    {
-      placement: "secondary",
-      image: false,
-      css: {
-        marginLeft: "var(--gap-lg)",
-      },
-    },
-  ],
+  compoundVariants: [],
   defaultVariants: {
     placement: "primary",
     image: false,

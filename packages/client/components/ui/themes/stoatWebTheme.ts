@@ -93,7 +93,7 @@ const themeConstants = {
     xxl: "64px",
   },
   layout: {
-    "width-channel-sidebar": "248px",
+    "width-channel-sidebar": "240px", // BBT: 240, ca în pânza TRW
     "width-user-context-menu-truncate": "300px",
     "height-message-box": "32vh",
   },

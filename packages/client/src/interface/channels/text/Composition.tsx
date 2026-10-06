@@ -10,6 +10,7 @@ import {
 
 import { useLingui } from "@lingui/solid/macro";
 import { Channel } from "stoat.js";
+import { styled } from "styled-system/jsx";
 
 import { useClient } from "@revolt/client";
 import { debounce } from "@revolt/common";
@@ -413,17 +414,7 @@ export function MessageComposition(props: Props) {
               >
                 {(triggerProps) => (
                   <>
-                    <Show
-                      when={
-                        !canSend() && props.channel.havePermission("SendEmbeds")
-                      }
-                    >
-                      <MessageBox.InlineIcon>
-                        <IconButton onPress={triggerProps.onClickGif}>
-                          <Symbol>gif</Symbol>
-                        </IconButton>
-                      </MessageBox.InlineIcon>
-                    </Show>
+                    {/* BBT: fără butonul GIF (cererea userului, 5 oct 2026). */}
                     <MessageBox.InlineIcon>
                       <IconButton onPress={triggerProps.onClickEmoji}>
                         <Symbol>mood</Symbol>
@@ -433,15 +424,28 @@ export function MessageComposition(props: Props) {
                   </>
                 )}
               </CompositionMediaPicker>
+              {/* BBT: butonul de trimis stă ÎN casetă, mereu (pânza TRW) — nu mai depinde de
+                  setarea „show_send_button", pe telefon e singurul mod evident de a trimite. */}
+              <ButonTrimite
+                type="button"
+                aria-label="Trimite"
+                disabled={!canSend()}
+                onClick={() => sendMessage()}
+              >
+                <Symbol size={16}>send</Symbol>
+              </ButonTrimite>
             </MessageBox.ActionContainer>
           </MessageBox.ActionContainer>
         }
         placeholder={
+          // BBT: copy-ul din pânză, în română direct (interfața BBT nu are altă limbă).
           props.channel.type === "SavedMessages"
-            ? t`Save to your notes`
+            ? "Scrie o notiță pentru tine"
             : props.channel.type === "DirectMessage"
-              ? t`Message ${props.channel.recipient?.username}`
-              : t`Message ${props.channel.name}`
+              ? `Scrie-i lui ${props.channel.recipient?.displayName ?? ""}`
+              : props.channel.type === "Group"
+                ? `Scrie în ${props.channel.name}`
+                : `Scrie în #${props.channel.name}`
         }
         sendingAllowed={
           props.channel.havePermission("SendMessage") && !isTimedOut()
@@ -451,23 +455,8 @@ export function MessageComposition(props: Props) {
         updateDraftSelection={(start, end) =>
           state.draft.setSelection(props.channel.id, start, end)
         }
-        hasActionsAppend={
-          state.settings.getValue("appearance:show_send_button") || false
-        }
-        actionsAppend={
-          <Show when={state.settings.getValue("appearance:show_send_button")}>
-            <IconButton
-              _compositionSendMessage
-              size="sm"
-              variant={canSend() ? "filled" : "tonal"}
-              shape="square"
-              isDisabled={!canSend()}
-              onPress={sendMessage}
-            >
-              <Symbol fill={true}>send</Symbol>
-            </IconButton>
-          </Show>
-        }
+        hasActionsAppend={false}
+        actionsAppend={null}
       />
       <Show when={canUploadFiles()}>
         <FilePasteCollector onFiles={onFiles} />
@@ -476,3 +465,27 @@ export function MessageComposition(props: Props) {
     </>
   );
 }
+
+/**
+ * BBT: butonul de trimis din casetă — pătrat roz de 32px (pânza TRW). Stins cât nu ai ce trimite.
+ */
+const ButonTrimite = styled("button", {
+  base: {
+    flexShrink: 0,
+    width: "32px",
+    height: "32px",
+    border: 0,
+    borderRadius: "8px",
+    background: "#ffa8cd",
+    color: "#000",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    transition: "opacity .12s",
+    "&:disabled": {
+      opacity: 0.35,
+      cursor: "default",
+    },
+  },
+});

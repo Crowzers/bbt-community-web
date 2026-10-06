@@ -102,25 +102,19 @@ const Base = styled("div", {
     flexGrow: 1,
     minWidth: 0,
 
-    padding: "var(--gap-sm) var(--gap-md)",
-    borderStartRadius: "var(--borderRadius-xl)",
+    // BBT (pânza TRW): casetă de 44px, colțuri de 10px, #141414 cu fir — butoanele de 32px stau
+    // înăuntru, inclusiv cel de trimis. 1 + 5 + 32 + 5 + 1 = 44 pe un rând; textul lung crește în sus.
+    minHeight: "44px",
+    boxSizing: "border-box",
+    padding: "5px 6px",
+    gap: "6px",
+    borderRadius: "10px",
+    border: "1px solid rgba(255,255,255,0.1)",
 
     display: "flex",
-    background: "var(--md-sys-color-surface-container-high)",
+    alignItems: "flex-end",
+    background: "#141414",
     color: "var(--md-sys-color-on-surface)",
-  },
-  variants: {
-    hasActionsAppend: {
-      true: {
-        borderEndRadius: "var(--borderRadius-md)",
-      },
-      false: {
-        borderEndRadius: "var(--borderRadius-xl)",
-      },
-    },
-  },
-  defaultVariants: {
-    hasActionsAppend: false,
   },
 });
 
@@ -131,7 +125,8 @@ const Parent = styled("div", {
 
     display: "flex",
     gap: "var(--gap-md)",
-    margin: "0 0 var(--gap-md) 0",
+    // BBT: zona de mesaje n-are padding lateral (e plată, pânza TRW) — marginea o pune caseta.
+    margin: "0 16px 14px",
     maxHeight: "var(--layout-height-message-box)",
   },
 });
@@ -158,13 +153,22 @@ export const InlineIcon = styled("div", {
   base: {
     flexShrink: 0,
     display: "flex",
-    alignItems: "end",
+    alignItems: "center",
     justifyContent: "center",
+    height: "32px",
+
+    // BBT: „+" și emoji = butoane pătrate de 32px cu colțuri de 8px (pânza), nu cercuri de 40px.
+    "& > button": {
+      width: "32px",
+      height: "32px",
+      paddingInline: 0,
+      borderRadius: "8px",
+    },
   },
   variants: {
     size: {
-      short: { width: "14px" },
-      normal: { width: "42px" },
+      short: { width: "4px" },
+      normal: { width: "32px" },
     },
   },
   defaultVariants: {
@@ -233,7 +237,7 @@ export function MessageBox(props: Props) {
 
   return (
     <Parent>
-      <Base hasActionsAppend={props.hasActionsAppend}>
+      <Base>
         <Switch fallback={props.actionsStart}>
           <Match when={props.timeoutActive || !props.sendingAllowed}>
             <InlineIcon>

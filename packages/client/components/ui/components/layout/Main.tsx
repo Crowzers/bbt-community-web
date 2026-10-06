@@ -15,10 +15,12 @@ export const main = cva({
     overflow: "hidden",
     flexDirection: "column",
 
-    paddingInline: "var(--gap-md)",
-    margin: "0 var(--gap-md) var(--gap-md) 0",
-    borderRadius: "var(--borderRadius-xl)",
-    background: "var(--md-sys-color-surface-container-lowest)",
+    // BBT (layout TRW, pânza aprobată 5 oct 2026): zona de mesaje e PLATĂ — fără ramă, fără colțuri,
+    // lipită de lista de canale și de cea de membri, separate doar de un fir. #0D0D0D = alb 5% pe negru.
+    paddingInline: 0,
+    margin: 0,
+    borderRadius: 0,
+    background: "#0D0D0D",
     paddingBottom: "env(keyboard-inset-height)",
 
     _tablet: {

@@ -520,7 +520,9 @@ const EmojiOption = styled("div", {
         padding: "var(--gap-sm)",
         borderRadius: "var(--borderRadius-sm)",
 
-        "--emoji-size": "100%",
+        // BBT: mărime fixă — emoji-ul nativ e TEXT (UnicodeEmoji), iar un font de „100%" ar fi
+        // ieșit cât textul din jur. Imaginile (emoji-urile custom) rămân pe regula de dedesubt.
+        "--emoji-size": "26px",
         "& img": {
           width: "100%",
           height: "100%",

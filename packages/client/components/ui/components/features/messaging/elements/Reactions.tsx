@@ -226,6 +226,8 @@ const ReactionBase = styled("div", {
     transition: "var(--transitions-fast) all",
     fontWeight: 600,
     fontFeatureSettings: "'tnum' 1",
+    // BBT: emoji-ul nativ (text) are mărimea din variabila asta — vezi UnicodeEmoji.
+    "--emoji-size": "1.2em",
 
     "& img": {
       width: "1.2em",

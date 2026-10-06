@@ -10,6 +10,7 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import Wordmark from "../../public/assets/web/wordmark.svg?component-solid";
 
+import { CautareSus, Clopotel } from "./CautareSiAlerte";
 import { BBT_ADMIN_URL, BBT_SITE_URL } from "./config";
 
 /**
@@ -27,8 +28,8 @@ import { BBT_ADMIN_URL, BBT_SITE_URL } from "./config";
  * Înălțimea e 64px, nu 72 ca pe site: compromisul cerut („foarte puțin mai mari, cât să încapă
  * logoul mai mare") față de cei 48 ai primei variante.
  *
- * ⚠️ Fără căutare globală și fără clopoțel: Stoat n-are căutare peste tot serverul și nici centru
- * de notificări — un buton care nu face nimic e mai rău decât niciunul.
+ * Căutarea (în canalul deschis) și clopoțelul (mențiuni + mesaje directe necitite) stau lângă cont,
+ * ca în pânza TRW — vezi `CautareSiAlerte.tsx` pentru ce pot și ce nu pot face.
  *
  * Telefon (`compact`): în capul ecranului cu lista de canale (`src/interface/Sidebar.tsx`).
  */
@@ -143,8 +144,11 @@ export function BaraSus(props: { compact?: boolean }) {
         height: props.compact ? "56px" : "64px",
         "flex-shrink": 0,
         // Deasupra conținutului: meniul de cont cade peste lista de canale și mesaje.
+        // ⚠️ Pe telefon bara stă în ecranul cu lista de canale, iar ecranul canalului ALUNECĂ peste el:
+        // cu z-index permanent, bara rămânea deasupra canalului și îi acoperea antetul. Acolo urcă
+        // doar cât e deschis meniul (care se deschide din ecranul cu lista, deci nimic nu e acoperit).
         position: "relative",
-        "z-index": 20,
+        "z-index": !props.compact || meniu() ? 20 : undefined,
         display: "flex",
         "align-items": "center",
         "justify-content": "space-between",
@@ -184,6 +188,20 @@ export function BaraSus(props: { compact?: boolean }) {
         </span>
       </div>
 
+      {/* BBT: căutarea în canal și clopoțelul, lângă cont (pânza TRW) — src/bbt/CautareSiAlerte.tsx. */}
+      <div
+        style={{
+          display: "flex",
+          "align-items": "center",
+          gap: "8px",
+          "margin-left": "auto",
+        }}
+      >
+        <Show when={!props.compact}>
+          <CautareSus />
+          <Clopotel />
+        </Show>
+      </div>
       <div
         style={{
           position: "relative",

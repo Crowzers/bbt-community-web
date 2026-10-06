@@ -197,9 +197,7 @@ const Content = styled("div", {
   variants: {
     sidebar: {
       false: {
-        paddingLeft: "var(--gap-md)",
-        borderTopLeftRadius: "var(--borderRadius-lg)",
-        borderBottomLeftRadius: "var(--borderRadius-lg)",
+        // BBT: fără ramă rotunjită când lista de canale e ascunsă — layout plat (pânza TRW).
         overflow: "hidden",
 
         _tablet: {

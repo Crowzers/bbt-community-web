@@ -27,6 +27,8 @@ import {
 } from "@revolt/ui";
 import { VoiceChannelCallCardMount } from "@revolt/ui/components/features/voice/callCard/VoiceCallCard";
 
+import { BandaFixat } from "../../../bbt/BandaFixat";
+import { cautareCeruta } from "../../../bbt/cautare";
 import { ChannelHeader } from "../ChannelHeader";
 import { ChannelPageProps } from "../ChannelPage";
 
@@ -176,6 +178,16 @@ export function TextChannel(props: ChannelPageProps) {
     ),
   );
 
+  // BBT: căutarea din bara de sus deschide panoul de căutare al canalului (src/bbt/cautare.ts).
+  createEffect(
+    on(
+      cautareCeruta,
+      (cerere) =>
+        cerere && setSidebarState({ state: "search", query: cerere.q }),
+      { defer: true },
+    ),
+  );
+
   // If this is a server text channel, sync the members
   // todo: useQuery
   createEffect(
@@ -201,6 +213,11 @@ export function TextChannel(props: ChannelPageProps) {
       </Header>
       <Content>
         <main class={main()}>
+          {/* BBT: ultimul mesaj fixat, ca bandă sub antet (pânza TRW). */}
+          <BandaFixat
+            channel={props.channel}
+            onVezi={() => setSidebarState({ state: "pins" })}
+          />
           <Show
             when={canConnect()}
             fallback={
@@ -260,6 +277,33 @@ export function TextChannel(props: ChannelPageProps) {
               width: sidebarState().state !== "default" ? "360px" : "",
             }}
           >
+            {/* BBT: filele panoului din dreapta (pânza TRW). „Fișiere" din schiță lipsește: Stoat n-are
+                o listă de fișiere a canalului — un buton spre nimic e mai rău decât niciunul. */}
+            <Show
+              when={
+                props.channel.type === "TextChannel" &&
+                sidebarState().state !== "search"
+              }
+            >
+              <FileePanou>
+                <button
+                  type="button"
+                  data-activ={
+                    sidebarState().state === "default" ? "" : undefined
+                  }
+                  onClick={() => setSidebarState({ state: "default" })}
+                >
+                  Membri
+                </button>
+                <button
+                  type="button"
+                  data-activ={sidebarState().state === "pins" ? "" : undefined}
+                  onClick={() => setSidebarState({ state: "pins" })}
+                >
+                  Fixate
+                </button>
+              </FileePanou>
+            </Show>
             <Switch
               fallback={
                 <MemberSidebar
@@ -273,7 +317,7 @@ export function TextChannel(props: ChannelPageProps) {
                 <WideSidebarContainer>
                   <SidebarTitle>
                     <Text class="label" size="large">
-                      Search Results
+                      Rezultatele căutării
                     </Text>
                   </SidebarTitle>
                   <TextSearchSidebar
@@ -288,7 +332,7 @@ export function TextChannel(props: ChannelPageProps) {
                 <WideSidebarContainer>
                   <SidebarTitle>
                     <Text class="label" size="large">
-                      Pinned Messages
+                      Mesaje fixate
                     </Text>
                   </SidebarTitle>
                   <TextSearchSidebar
@@ -356,5 +400,41 @@ const SidebarTitle = styled("div", {
   base: {
     padding: "var(--gap-md)",
     color: "var(--md-sys-color-on-surface)",
+  },
+});
+
+/**
+ * BBT: filele „Membri | Fixate" din capul panoului din dreapta — lipite sus, 52px ca antetele.
+ */
+const FileePanou = styled("div", {
+  base: {
+    position: "sticky",
+    top: 0,
+    zIndex: 2,
+    height: "52px",
+    flexShrink: 0,
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    padding: "0 10px",
+    background: "#000",
+    borderBottom: "1px solid rgba(255,255,255,0.08)",
+
+    "& button": {
+      height: "30px",
+      padding: "0 10px",
+      borderRadius: "8px",
+      border: 0,
+      background: "transparent",
+      color: "rgba(255,255,255,0.6)",
+      fontFamily: "inherit",
+      fontSize: "12px",
+      fontWeight: 600,
+      cursor: "pointer",
+    },
+    "& button[data-activ]": {
+      background: "rgba(255,255,255,0.1)",
+      color: "#fff",
+    },
   },
 });

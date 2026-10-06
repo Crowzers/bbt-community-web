@@ -19,8 +19,6 @@ import { cva } from "styled-system/css";
 import { styled } from "styled-system/jsx";
 
 import { useDevice } from "@revolt/common";
-import { Button } from "@revolt/ui/components/design";
-import { Row } from "@revolt/ui/components/layout";
 
 import { Channel } from "stoat.js";
 import { EmojiPicker } from "./EmojiPicker";
@@ -169,31 +167,8 @@ function Picker(
       }
     >
       <Container>
-        <Row gap="xs" justify class="CompositionButton">
-          <Show
-            when={!props.channel || props.channel.havePermission("SendEmbeds")}
-          >
-            <Button
-              groupActive={props.show() === "gif"}
-              onPress={() => props.setShow("gif")}
-              group="connected-start"
-            >
-              GIFs
-            </Button>
-          </Show>
-
-          <Button
-            groupActive={props.show() === "emoji"}
-            onPress={() => props.setShow("emoji")}
-            group={
-              !props.channel || props.channel.havePermission("SendEmbeds")
-                ? "connected-end"
-                : undefined
-            }
-          >
-            Emoji
-          </Button>
-        </Row>
+        {/* BBT: fără GIF-uri (cererea userului, 5 oct 2026) ⇒ fără rândul de file „GIFs | Emoji";
+            selectorul e doar de emoji. */}
 
         <Switch fallback={<span>Not available yet.</span>}>
           <Match when={props.show() === "gif"}>

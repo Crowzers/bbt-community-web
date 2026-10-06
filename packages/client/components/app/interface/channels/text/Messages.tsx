@@ -827,7 +827,12 @@ export function Messages(props: Props) {
         messagesWithTail.push(
           objectCache.get(date) ?? {
             t: 1,
-            date: dayjs(date).format("LL"),
+            // BBT: „Astăzi" / „Ieri", apoi data întreagă — ca în pânza TRW.
+            date: dayjs(date).isSame(dayjs(), "day")
+              ? "Astăzi"
+              : dayjs(date).isSame(dayjs().subtract(1, "day"), "day")
+                ? "Ieri"
+                : dayjs(date).format("LL"),
           },
         );
       }

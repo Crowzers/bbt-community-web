@@ -9,8 +9,8 @@ export const SidebarBase = styled("div", {
     flexShrink: 0,
     flexDirection: "column",
     overflow: "hidden",
-    borderTopLeftRadius: "var(--borderRadius-lg)",
-    borderBottomLeftRadius: "var(--borderRadius-lg)",
+    // BBT: plat, cu un fir spre zona de mesaje (pânza TRW), nu ramă rotunjită.
+    borderRight: "1px solid rgba(255,255,255,0.08)",
     // borderRadius: "var(--borderRadius-lg)",
     // margin: "var(--gap-md) var(--gap-md) var(--gap-md) 0",
     width: "var(--layout-width-channel-sidebar)",

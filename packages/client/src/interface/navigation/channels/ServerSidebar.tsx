@@ -7,12 +7,14 @@ import {
   Switch,
   createMemo,
   createSignal,
+  onMount,
 } from "solid-js";
 
 import { useLingui } from "@lingui/solid/macro";
 import type { Channel, Server, ServerFlags } from "stoat.js";
 import { styled } from "styled-system/jsx";
 
+import { useClient } from "@revolt/client";
 import { useDevice } from "@revolt/common";
 import { KeybindAction, createKeybind } from "@revolt/keybinds";
 import { TextWithEmoji } from "@revolt/markdown";
@@ -25,13 +27,10 @@ import {
   Draggable,
   Header,
   IconButton,
-  MenuButton,
-  OverflowingText,
   Row,
   Tooltip,
   iconSize,
   symbolSize,
-  typography,
 } from "@revolt/ui";
 import { UnreadCallout } from "@revolt/ui/components/features/navigation/UnreadCallout";
 import { VoiceChannelPreview } from "@revolt/ui/components/features/voice/VoiceChannelPreview";
@@ -322,11 +321,51 @@ function ServerInfo(
     canManageServer: boolean;
   },
 ) {
+  const client = useClient();
+
+  // BBT (pânza TRW): sub nume, „● N online · M membri". Lista de membri se aduce o dată pe sesiune
+  // (`syncMembers` ține minte), aceeași pe care o folosește și coloana de membri.
+  onMount(() => void props.server.syncMembers().catch(() => {}));
+  const numarare = createMemo(() => {
+    let total = 0;
+    let online = 0;
+    for (const member of client().serverMembers.values()) {
+      if (member.id.server !== props.server.id) continue;
+      total++;
+      if (member.user?.online) online++;
+    }
+    return { total, online };
+  });
+  const numar = (n: number) => n.toLocaleString("ro-RO");
+
   return (
     <Row align grow minWidth={0}>
       <ServerBadge flags={props.server.flags} />
       <ServerName onClick={props.openServerInfo}>
-        <TextWithEmoji content={props.server.name} />
+        <span
+          style={{
+            display: "block",
+            "font-size": "14px",
+            "font-weight": 700,
+            "line-height": "1.25",
+          }}
+        >
+          <TextWithEmoji content={props.server.name} />
+        </span>
+        <Show when={numarare().total > 0}>
+          <span
+            style={{
+              display: "block",
+              "font-size": "11px",
+              "font-weight": 400,
+              "line-height": "1.3",
+              color: "rgba(255,255,255,0.6)",
+            }}
+          >
+            <span style={{ color: "#30A46C" }}>●</span>{" "}
+            {numar(numarare().online)} online · {numar(numarare().total)} membri
+          </span>
+        </Show>
       </ServerName>
       <Show when={props.canManageServer}>
         <IconButton
@@ -335,7 +374,7 @@ function ServerInfo(
           variant={props.server.banner ? "_header" : "standard"}
           onPress={props.openServerSettings}
         >
-          <MdSettings {...symbolSize(24)} />
+          <MdSettings {...symbolSize(18)} />
         </IconButton>
       </Show>
     </Row>
@@ -418,8 +457,8 @@ function Category(
             }}
             {...createDragHandle(props.dragDisabled, props.setDragDisabled)}
           >
+            <MdChevronRight {...iconSize(11)} />
             {props.category.title}
-            <MdChevronRight {...iconSize(12)} />
           </CategoryBase>
         </div>
       </Show>
@@ -454,18 +493,14 @@ function Category(
   );
 }
 
+// BBT (pânza TRW): categorii și rânduri dense, fără blocuri colorate — vezi `RandCanal` mai jos.
 const CategorySection = styled("div", {
   base: {
     display: "flex",
-    gap: "var(--gap-sm)",
+    gap: "1px",
     flexDirection: "column",
-    paddingBlock: "var(--gap-sm)",
-    borderRadius: "var(--borderRadius-sm)",
-    background: "var(--md-sys-color-surface-container-low)",
-
-    "&:first-child": {
-      paddingTop: 0,
-    },
+    padding: "0 8px",
+    background: "transparent",
   },
 });
 
@@ -476,25 +511,24 @@ const CategoryBase = styled("div", {
   base: {
     display: "flex",
     alignItems: "center",
-    gap: "var(--gap-sm)",
-
-    padding: "0 var(--gap-sm)",
-    paddingLeft: "calc(var(--gap-lg) + 5px)",
-    paddingBlock: "var(--gap-sm)",
+    gap: "4px",
+    padding: "14px 8px 4px",
 
     cursor: "pointer",
     userSelect: "none",
     transition: "var(--transitions-fast) all",
 
-    "--color": "var(--md-sys-color-on-surface)",
+    "--color": "rgba(255,255,255,0.48)",
     color: "var(--color)",
     fill: "var(--color)",
 
-    ...typography.raw({ class: "label", size: "small" }),
-    fontSize: "13px",
+    fontSize: "11px",
+    fontWeight: 600,
+    letterSpacing: "0.06em",
+    textTransform: "uppercase",
 
     "&:hover": {
-      "--color": "var(--md-sys-color-on-surface-variant)",
+      "--color": "rgba(255,255,255,0.8)",
     },
 
     "& svg": {
@@ -529,17 +563,6 @@ function Entry(
     ),
   );
 
-  const canInvite = createMemo(() =>
-    props.channel.server?.havePermission("InviteOthers"),
-  );
-
-  const alertState = createMemo(
-    () =>
-      !props.active &&
-      props.channel.unread &&
-      (props.channel.mentions?.size || true),
-  );
-
   const inCall = () => props.channel.id === voice.channel()?.id;
 
   const attentionState = createMemo(() =>
@@ -556,84 +579,125 @@ function Entry(
 
   return (
     <Column gap="sm">
-      <MenuButton
+      <RandCanal
         href={`/server/${props.channel.serverId}/channel/${props.channel.id}`}
         use:floating={props.menuGenerator(props.channel)}
-        size="normal"
         data-unread={props.channel.unread ? "" : undefined}
         data-mentions={props.channel.mentions?.size || undefined}
-        alert={alertState()}
-        attention={attentionState()}
-        icon={
-          <>
-            <Switch fallback={<Symbol>grid_3x3</Symbol>}>
-              <Match when={props.channel.isVoice}>
-                <Symbol
-                  color={inCall() ? "var(--md-sys-color-primary)" : undefined}
-                >
-                  headset_mic
-                </Symbol>
-              </Match>
-            </Switch>
-            <Show when={props.channel.icon}>
-              <ChannelIcon
-                src={props.channel.iconURL}
-                css={{ marginEnd: "0.2em" }}
-              />
-            </Show>
-          </>
-        }
-        actions={
-          <Show when={!isMobile}>
-            <Show when={canInvite()}>
-              <a
-                use:floating={{
-                  tooltip: { placement: "top", content: "Create Invite" },
-                }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  openModal({
-                    type: "create_invite",
-                    channel: props.channel,
-                  });
-                }}
-              >
-                <Symbol size={16} fill>
-                  person_add
-                </Symbol>
-              </a>
-            </Show>
-            <Show when={canEditChannel()}>
-              <a
-                use:floating={{
-                  tooltip: { placement: "top", content: "Edit Channel" },
-                }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  openModal({
-                    type: "settings",
-                    config: "channel",
-                    context: props.channel,
-                  });
-                }}
-              >
-                <Symbol size={16} fill>
-                  settings
-                </Symbol>
-              </a>
-            </Show>
-          </Show>
-        }
+        activ={props.active}
+        stare={attentionState()}
       >
-        <OverflowingText>
+        <Switch fallback={<Symbol size={15}>grid_3x3</Symbol>}>
+          <Match when={props.channel.isVoice}>
+            <Symbol
+              size={15}
+              color={inCall() ? "var(--md-sys-color-primary)" : undefined}
+            >
+              volume_up
+            </Symbol>
+          </Match>
+        </Switch>
+        <Show when={props.channel.icon}>
+          <ChannelIcon src={props.channel.iconURL} />
+        </Show>
+        <span class="nume">
           <TextWithEmoji content={props.channel.name!} />
-        </OverflowingText>
-      </MenuButton>
+        </span>
+        <Show when={!props.active && (props.channel.mentions?.size ?? 0) > 0}>
+          <span class="mentiuni">{props.channel.mentions!.size}</span>
+        </Show>
+        <Show when={!isMobile && canEditChannel()}>
+          <span
+            class="actiuni"
+            role="button"
+            aria-label="Setările canalului"
+            onClick={(e) => {
+              e.preventDefault();
+              openModal({
+                type: "settings",
+                config: "channel",
+                context: props.channel,
+              });
+            }}
+          >
+            <Symbol size={14}>settings</Symbol>
+          </span>
+        </Show>
+      </RandCanal>
 
       <VoiceChannelPreview channel={props.channel} />
     </Column>
   );
 }
+
+/**
+ * BBT: rândul de canal din pânza TRW — 28px, 13px, colțuri de 6px. Stări: activ (alb 10%), necitit
+ * (alb, îngroșat), mut (stins), normal (alb 60%). Mențiunile = pastilă roșie cu numărul.
+ * Înlocuiește `MenuButton`-ul lor (pastile de 40px, prea „voluminoase" pentru user).
+ */
+const RandCanal = styled("a", {
+  base: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    height: "28px",
+    padding: "0 8px",
+    borderRadius: "6px",
+    fontSize: "13px",
+    color: "rgba(255,255,255,0.6)",
+    fill: "currentColor",
+    textDecoration: "none",
+    cursor: "pointer",
+    flexShrink: 0,
+
+    "& .nume": {
+      flexGrow: 1,
+      minWidth: 0,
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+    },
+    "& .mentiuni": {
+      minWidth: "16px",
+      height: "16px",
+      padding: "0 4px",
+      boxSizing: "border-box",
+      borderRadius: "8px",
+      background: "#E5484D",
+      color: "#fff",
+      fontSize: "10px",
+      fontWeight: 700,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    "& .actiuni": {
+      display: "none",
+      color: "rgba(255,255,255,0.6)",
+    },
+    "&:hover": {
+      background: "rgba(255,255,255,0.05)",
+      color: "rgba(255,255,255,0.85)",
+    },
+    "&:hover .actiuni": {
+      display: "flex",
+    },
+  },
+  variants: {
+    activ: {
+      true: {
+        background: "rgba(255,255,255,0.1) !important",
+        color: "#fff !important",
+      },
+    },
+    stare: {
+      selected: {},
+      active: { color: "#fff", fontWeight: 600 },
+      muted: { opacity: 0.45 },
+      normal: {},
+    },
+  },
+});
 
 /**
  * Channel icon styling

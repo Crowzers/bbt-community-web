@@ -18,7 +18,6 @@ import {
   NonBreakingText,
   OverflowingText,
   Spacer,
-  typography,
   UserStatus,
 } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
@@ -80,11 +79,8 @@ export function ChannelHeader(props: Props) {
             <Symbol>grid_3x3</Symbol>
           </HeaderIcon>
           <NonBreakingText
-            class={
-              typography({ class: "title", size: "medium" }) +
-              " " +
-              mobileOverflow
-            }
+            class={mobileOverflow}
+            style={{ "font-size": "15px", "font-weight": 700 }}
             onClick={() =>
               openModal({
                 type: "channel_info",
@@ -112,7 +108,11 @@ export function ChannelHeader(props: Props) {
               }}
             >
               <OverflowingText
-                class={typography({ class: "title", size: "small" })}
+                style={{
+                  "font-size": "13px",
+                  "font-weight": 400,
+                  color: "rgba(255,255,255,0.6)",
+                }}
               >
                 <TextWithEmoji
                   content={props.channel.description?.split("\n").shift()}
@@ -255,56 +255,24 @@ export function ChannelHeader(props: Props) {
         </IconButton>
       </Show>
 
-      <Show when={searchValue() !== null}>
-        <Show
-          when={
-            layout() === "desktop" || props.sidebarState!().state !== "default"
-          }
-          fallback={
-            <IconButton
-              onPress={() =>
-                props.setSidebarState!({ state: "search", query: "" })
-              }
-              use:floating={{
-                tooltip: {
-                  placement: "bottom",
-                  content: t`Search`,
-                },
-              }}
-            >
-              <Symbol>search</Symbol>
-            </IconButton>
-          }
+      {/* BBT: pe desktop căutarea stă în bara de sus (src/bbt/BaraSus.tsx); aici rămâne doar
+          iconița, pe telefon și tabletă, unde bara de sus n-are câmp. */}
+      <Show when={searchValue() !== null && layout() !== "desktop"}>
+        <IconButton
+          onPress={() => props.setSidebarState!({ state: "search", query: "" })}
+          use:floating={{
+            tooltip: {
+              placement: "bottom",
+              content: t`Search`,
+            },
+          }}
         >
-          <SearchBox
-            placeholder="Search messages..."
-            value={searchValue()!}
-            onChange={(e) =>
-              e.currentTarget.value
-                ? props.setSidebarState!({
-                    state: "search",
-                    query: e.currentTarget.value,
-                  })
-                : props.setSidebarState!({
-                    state: "default",
-                  })
-            }
-          />
-        </Show>
+          <Symbol>search</Symbol>
+        </IconButton>
       </Show>
     </>
   );
 }
-
-const SearchBox = styled("input", {
-  base: {
-    height: "40px",
-    width: "240px",
-    paddingInline: "16px",
-    borderRadius: "var(--borderRadius-full)",
-    background: "var(--md-sys-color-surface-container-high)",
-  },
-});
 
 /**
  * Vertical divider between name and topic

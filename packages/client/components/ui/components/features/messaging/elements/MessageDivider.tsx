@@ -12,19 +12,19 @@ const Base = styled("div", {
     display: "flex",
     userSelect: "none",
     alignItems: "center",
-    margin: "17px 12px 17px 8px",
+    // BBT (pânza TRW): data CENTRATĂ pe un fir fin — „—— Astăzi ——".
+    justifyContent: "center",
+    margin: "17px 16px",
 
     "& time": {
       marginTop: "-2px",
-      fontSize: "0.6875rem",
-      lineHeight: "0.6875rem",
-      fontWeight: 600,
-      paddingInline: "5px 5px",
+      fontSize: "11px",
+      lineHeight: "11px",
+      fontWeight: 500,
+      paddingInline: "10px",
 
-      borderRadius: "var(--borderRadius-md)",
-
-      color: "var(--md-sys-color-outline)",
-      background: "var(--md-sys-color-surface-container-lowest)",
+      color: "rgba(255,255,255,0.48)",
+      background: "#0D0D0D",
     },
   },
   variants: {
@@ -33,7 +33,7 @@ const Base = styled("div", {
         borderTop: "thin solid var(--md-sys-color-primary)",
       },
       false: {
-        borderTop: "thin solid var(--md-sys-color-outline-variant)",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
       },
     },
   },

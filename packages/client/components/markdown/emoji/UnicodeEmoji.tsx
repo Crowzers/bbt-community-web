@@ -2,8 +2,7 @@ import { ComponentProps, splitProps } from "solid-js";
 
 import emojiRegex from "emoji-regex";
 
-import { useState } from "@revolt/state";
-import { EmojiBase } from ".";
+import { styled } from "styled-system/jsx";
 
 // openmoji is off due to incomplete implementation
 
@@ -103,27 +102,38 @@ export function unicodeEmojiUrl(
 
 /**
  * Display Unicode emoji
+ *
+ * BBT: ca TEXT, nu ca imagine — exact emoji-ul telefonului (Apple pe iPhone, Google pe Android), în
+ * selector, mesaje, reacții. Ca `<img>` (chiar și SVG-ul-text de mai sus) Safari îl putea desena
+ * altfel decât în textul obișnuit. Aceeași cutie ca imaginea (`--emoji-size`), ca nimic să nu se
+ * mute în jur.
  */
 export function UnicodeEmoji(
   props: { emoji: string; pack?: UnicodeEmojiPacks } & Omit<
-    ComponentProps<typeof EmojiBase>,
-    "loading" | "class" | "alt" | "draggable" | "src"
+    ComponentProps<typeof EmojiText>,
+    "class" | "children"
   >,
 ) {
-  const [local, remote] = splitProps(props, ["emoji"]);
-  const state = useState();
-
+  const [local, remote] = splitProps(props, ["emoji", "pack"]);
   return (
-    <EmojiBase
-      {...remote}
-      loading="lazy"
-      class="emoji"
-      alt={local.emoji}
-      draggable={false}
-      src={unicodeEmojiUrl(
-        props.pack ?? state.settings.getValue("appearance:unicode_emoji"),
-        props.emoji,
-      )}
-    />
+    <EmojiText {...remote} class="emoji" role="img" aria-label={local.emoji}>
+      {local.emoji.replace(/[-‌]/g, "")}
+    </EmojiText>
   );
 }
+
+const EmojiText = styled("span", {
+  base: {
+    display: "inline-block",
+    width: "var(--emoji-size, 1.25em)",
+    height: "var(--emoji-size, 1.25em)",
+    margin: "0 0.05em 0 0.1em",
+    verticalAlign: "-0.3em",
+    fontSize: "calc(var(--emoji-size, 1.25em) * 0.86)",
+    lineHeight: "var(--emoji-size, 1.25em)",
+    textAlign: "center",
+    fontFamily:
+      '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif',
+    userSelect: "none",
+  },
+});

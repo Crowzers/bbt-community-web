@@ -9,15 +9,11 @@ import {
 } from "@codemirror/view";
 import { Channel, ServerMember, ServerRole, User } from "stoat.js";
 
-import {
-  RE_UNICODE_EMOJI,
-  unicodeEmojiUrl,
-} from "@revolt/markdown/emoji/UnicodeEmoji";
+import { RE_UNICODE_EMOJI } from "@revolt/markdown/emoji/UnicodeEmoji";
 import { userInformation } from "@revolt/markdown/users";
 import { useSmartParams } from "@revolt/routing";
 
 import { useInstance } from "@revolt/instance";
-import { parseUnicodeEmoji } from "@revolt/markdown/plugins/unicodeEmoji";
 import { isInCodeBlock } from "./codeMirrorCommon";
 
 export function codeMirrorWidgets() {
@@ -46,9 +42,9 @@ export function codeMirrorWidgets() {
       let widget: WidgetType = null!;
 
       if (unicodeEmoji) {
-        const { str, pack } = parseUnicodeEmoji(unicodeEmoji);
-
-        widget = new EmojiWidget(unicodeEmojiUrl(pack, str));
+        // BBT: emoji-urile Unicode rămân TEXT în editor — le desenează fontul telefonului, exact ca
+        // pe tastatură. Ca widget-imagine apăreau abia după încărcare („nu vezi dacă l-ai scris").
+        return null;
       } else if (emojiId) {
         widget = new EmojiWidget(`${instance.mediaUrl}/emojis/${emojiId}`);
       } else if (userId) {

@@ -12,14 +12,10 @@ import { TextWithEmoji } from "@revolt/markdown";
 import { userInformation } from "@revolt/markdown/users";
 import {
   Avatar,
+  ColouredText,
   Deferred,
-  MenuButton,
-  OverflowingText,
-  Row,
   Symbol,
   Tooltip,
-  typography,
-  Username,
   UserStatus,
 } from "@revolt/ui";
 
@@ -171,26 +167,15 @@ export function ServerMemberSidebar(props: Props) {
     return elements;
   });
 
-  const onlineMembers = createMemo(
-    () => elements().filter((ele) => ele.t === 1 && ele.isOnline).length,
-  );
-
+  // BBT: fără titlul „N members online" — numărul stă deja în antetul listei de canale
+  // („● N online · M membri", pânza TRW); aici ar fi fost a doua oară.
   return (
     <Container>
-      <Show when={!props.isLargeServer}>
-        <MemberTitle bottomMargin="yes">
-          <Row align>
-            <UserStatus size="0.7em" status="Online" />
-            {onlineMembers()} members online
-          </Row>
-        </MemberTitle>
-      </Show>
-
       <Deferred>
         <VirtualContainer
           items={elements()}
           scrollTarget={props.scrollTargetElement}
-          itemSize={{ height: 42 }}
+          itemSize={{ height: INALTIME_RAND }}
         >
           {(item) => (
             <div
@@ -205,9 +190,9 @@ export function ServerMemberSidebar(props: Props) {
                     <Show when={item.item.icon}>
                       <RoleIcon src={item.item.icon!} alt="" />
                     </Show>
-                    <span>{(item.item as { name: string }).name}</span>
                     <span>
-                      {" – "}
+                      {(item.item as { name: string }).name}
+                      {" — "}
                       {(item.item as { count: number }).count}
                     </span>
                   </CategoryTitle>
@@ -233,9 +218,9 @@ export function ServerMemberSidebar(props: Props) {
 export function GroupMemberSidebar(props: Props) {
   return (
     <Container>
-      <MemberTitle>
-        <Row align>{props.channel.recipientIds.size} members</Row>
-      </MemberTitle>
+      <CategoryTitle>
+        <span>Membri — {props.channel.recipientIds.size}</span>
+      </CategoryTitle>
 
       <Deferred>
         <VirtualContainer
@@ -243,7 +228,7 @@ export function GroupMemberSidebar(props: Props) {
             a.displayName.localeCompare(b.displayName),
           )}
           scrollTarget={props.scrollTargetElement}
-          itemSize={{ height: 42 }}
+          itemSize={{ height: INALTIME_RAND }}
         >
           {(item) => (
             <div
@@ -262,27 +247,41 @@ export function GroupMemberSidebar(props: Props) {
 }
 
 /**
+ * BBT (pânza TRW): o singură înălțime pentru rânduri ȘI titlurile de categorie — lista e virtuală,
+ * cu pas fix, deci titlul își ia aerul de sus din aceeași înălțime (aliniat jos).
+ */
+const INALTIME_RAND = 32;
+
+/**
  * Container styles
  */
 const Container = styled("div", {
   base: {
-    paddingRight: "var(--gap-md)",
+    padding: "0 8px 8px",
+    boxSizing: "border-box",
     width: "var(--layout-width-channel-sidebar)",
   },
 });
 
 /**
- * Category Title
+ * Category Title — ca la canale: 11px, majuscule, alb 48%.
  */
 const CategoryTitle = styled("div", {
   base: {
-    padding: "28px 14px 0",
-    color: "var(--md-sys-color-on-surface)",
+    height: `${INALTIME_RAND}px`,
+    boxSizing: "border-box",
+    padding: "0 8px 4px",
     display: "flex",
-    alignItems: "center",
-    gap: "6px",
+    alignItems: "flex-end",
+    gap: "4px",
 
-    ...typography.raw({ class: "label", size: "small" }),
+    fontSize: "11px",
+    fontWeight: 600,
+    letterSpacing: "0.06em",
+    textTransform: "uppercase",
+    color: "rgba(255,255,255,0.48)",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
   },
 });
 
@@ -296,35 +295,55 @@ const RoleIcon = styled("img", {
 });
 
 /**
- * Member title
+ * BBT (pânza TRW): rândul unui membru — avatar 28, numele 13px în culoarea rolului, dedesubt
+ * statusul în 11px. Înlocuiește `MenuButton`-ul lor de 42px (aceeași decizie ca la canale).
  */
-const MemberTitle = styled("div", {
+const RandMembru = styled("div", {
   base: {
-    marginTop: "12px",
-    marginLeft: "14px",
-    color: "var(--md-sys-color-on-surface)",
-
-    ...typography.raw({ class: "label", size: "small" }),
-  },
-  variants: {
-    bottomMargin: {
-      no: {},
-      yes: {
-        marginBottom: "-12px",
-      },
-    },
-  },
-});
-
-/**
- * Styles required to correctly display name and status
- */
-const NameStatusStack = styled("div", {
-  base: {
-    height: "100%",
+    height: `${INALTIME_RAND}px`,
+    boxSizing: "border-box",
     display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
+    alignItems: "center",
+    gap: "8px",
+    padding: "0 6px",
+    borderRadius: "6px",
+    cursor: "pointer",
+    userSelect: "none",
+    color: "#fff",
+
+    "&:hover": {
+      background: "rgba(255,255,255,0.06)",
+    },
+    "&[data-offline]": {
+      opacity: 0.45,
+    },
+
+    "& .text": {
+      display: "flex",
+      flexDirection: "column",
+      minWidth: 0,
+      lineHeight: 1.15,
+    },
+    "& .nume": {
+      display: "flex",
+      alignItems: "center",
+      gap: "4px",
+      minWidth: 0,
+      fontSize: "13px",
+      fontWeight: 500,
+    },
+    "& .nume > span:first-child": {
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+    },
+    "& .sub": {
+      fontSize: "11px",
+      color: "rgba(255,255,255,0.48)",
+      whiteSpace: "nowrap",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+    },
   },
 });
 
@@ -350,17 +369,18 @@ function Member(props: {
     ),
   );
 
+  // Rândul secundar = statusul scris de om (sau „Concentrat"); fără el, rândul rămâne doar cu numele.
   const status = () =>
     (props.user ?? props.member?.user)?.statusMessage((s) =>
       s === "Online"
-        ? t`Online`
+        ? "Online"
         : s === "Busy"
-          ? t`Busy`
+          ? "Ocupat"
           : s === "Focus"
-            ? t`Focus`
+            ? "Concentrat"
             : s === "Idle"
-              ? t`Idle`
-              : t`Offline`,
+              ? "Inactiv"
+              : "Offline",
     );
 
   return (
@@ -373,57 +393,57 @@ function Member(props: {
         props.group,
       )}
     >
-      <MenuButton
-        size="normal"
-        attention={
-          (props.user ?? props.member?.user)?.online ? "active" : "muted"
-        }
-        icon={
-          <div
-            style={{
-              opacity: timedOut() && moderationPerms() ? 0.5 : 1,
-            }}
-          >
-            <Avatar
-              src={user().avatar}
-              size={32}
-              holepunch="bottom-right"
-              overlay={
-                <UserStatus.Graphic
-                  status={(props.user ?? props.member?.user)?.presence}
-                />
-              }
-            />
-          </div>
+      <RandMembru
+        data-offline={
+          (props.user ?? props.member?.user)?.online ? undefined : ""
         }
       >
-        <NameStatusStack>
-          <OverflowingText>
-            <Row align gap="xs">
-              <Username username={user().username} colour={user().colour!} />
-              <Show when={timedOut() && moderationPerms}>
-                <Tooltip
-                  content={t`Timed out until ${props.member!.timeout!.toLocaleString()}`}
-                  placement="top"
-                >
-                  <Symbol size={14}>timer_off</Symbol>
-                </Tooltip>
-              </Show>
-            </Row>
-          </OverflowingText>
+        <div
+          style={{
+            opacity: timedOut() && moderationPerms() ? 0.5 : 1,
+            display: "flex",
+          }}
+        >
+          <Avatar
+            src={user().avatar}
+            size={28}
+            holepunch="bottom-right"
+            overlay={
+              <UserStatus.Graphic
+                status={(props.user ?? props.member?.user)?.presence}
+              />
+            }
+          />
+        </div>
+        <span class="text">
+          <span class="nume">
+            <span>
+              <ColouredText colour={user().colour!}>
+                {user().username}
+              </ColouredText>
+            </span>
+            <Show when={timedOut() && moderationPerms()}>
+              <Tooltip
+                content={t`Timed out until ${props.member!.timeout!.toLocaleString()}`}
+                placement="top"
+              >
+                <Symbol size={13}>timer_off</Symbol>
+              </Tooltip>
+            </Show>
+          </span>
           <Show when={status()}>
             <Tooltip
               content={() => <TextWithEmoji content={status()!} />}
               placement="top-start"
               aria={status()!}
             >
-              <OverflowingText class={typography({ class: "_status" })}>
+              <span class="sub">
                 <TextWithEmoji content={status()!} />
-              </OverflowingText>
+              </span>
             </Tooltip>
           </Show>
-        </NameStatusStack>
-      </MenuButton>
+        </span>
+      </RandMembru>
     </div>
   );
 }
