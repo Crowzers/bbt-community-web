@@ -366,6 +366,8 @@ const Content = styled("div", {
     flexGrow: 1,
     minWidth: 0,
     minHeight: 0,
+    // Ancora panoului din dreapta pe telefon (`sidebar`, `_phone`).
+    position: "relative",
   },
 });
 
@@ -380,6 +382,19 @@ const sidebar = cva({
     borderRadius: "var(--borderRadius-lg)",
     // color: "var(--colours-sidebar-channels-foreground)",
     // background: "var(--colours-sidebar-channels-background)",
+
+    // BBT (6 oct 2026): pe telefon, membrii / fixatele / căutarea ACOPERĂ canalul, nu stau lângă el.
+    // Alături, pe 375px, chat-ul rămânea o coloană de un deget, cu câmpul de scris strivit. Se închid
+    // din același buton din antet (antetul rămâne deasupra). `!important` bate lățimea inline de 360px
+    // pusă pentru căutare/fixate.
+    _phone: {
+      position: "absolute",
+      inset: 0,
+      zIndex: 5,
+      width: "100% !important",
+      borderRadius: 0,
+      background: "#000",
+    },
   },
 });
 

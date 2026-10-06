@@ -89,6 +89,10 @@ export function ServerMemberSidebar(props: Props) {
       if (member.id.server !== props.channel.serverId) {
         continue;
       }
+      // BBT: fără boți în listă — botul BBT (rolurile, lib/stoat/roluri.ts în admin) e unealtă, nu om.
+      if (member.user?.bot) {
+        continue;
+      }
       // If the channel is restricted, check for permission
       if (restricted && !member.hasPermission(props.channel, "ViewChannel")) {
         continue;
@@ -263,6 +267,8 @@ const Container = styled("div", {
     padding: "0 8px 8px",
     boxSizing: "border-box",
     width: "var(--layout-width-channel-sidebar)",
+    // Pe telefon panoul acoperă tot canalul (TextChannel.tsx, `sidebar`).
+    _phone: { width: "100%" },
   },
 });
 
