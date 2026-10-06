@@ -83,14 +83,26 @@ export function ServerMemberSidebar(props: Props) {
       { member: ServerMember; displayName: string; online: boolean }[]
     > = new Map();
     byRole.set("default", []);
+    byRole.set("boti", []);
+    // BBT: boții (botul BBT al rolurilor) apar DOAR celor care pot da roluri, într-o grupă a lor, la
+    // final. Pentru restul sunt unelte, nu oameni. Proprietarul are nevoie să-l vadă: în Stoat un rol
+    // se dă din lista de membri (apăsare lungă → „Edit roles"), iar pagina de membri din setările
+    // serverului e ascunsă și la ei (nescrisă) — fără grupa asta, rolul botului nu avea de unde să fie dat.
+    const vedBoti = props.channel.server!.havePermission("AssignRoles");
     hoistedRoles.forEach((role) => byRole.set(role.id, []));
 
     for (const member of client().serverMembers.values()) {
       if (member.id.server !== props.channel.serverId) {
         continue;
       }
-      // BBT: fără boți în listă — botul BBT (rolurile, lib/stoat/roluri.ts în admin) e unealtă, nu om.
       if (member.user?.bot) {
+        if (vedBoti) {
+          byRole.get("boti")!.push({
+            member,
+            displayName: member.nickname ?? member.user.displayName ?? "",
+            online: Boolean(member.user.online),
+          });
+        }
         continue;
       }
       // If the channel is restricted, check for permission
@@ -140,6 +152,7 @@ export function ServerMemberSidebar(props: Props) {
       });
     }
     roles.push({ id: "default", name: "Membri" });
+    roles.push({ id: "boti", name: "Boți" });
 
     for (const role of roles) {
       const roleMembers = byRole
