@@ -17,8 +17,10 @@ export function createStoatWebVariables(theme: SelectedTheme) {
 
     // emoji size
     "--emoji-size": "1.4em",
-    "--emoji-size-medium": "48px",
-    "--emoji-size-large": "96px",
+    // BBT: mesajele doar cu emoji — 32px când sunt mai multe, 48px unul singur (ca Discord). Ale lor
+    // (48/96) umpleau tot ecranul telefonului: „emoji-urile arată mult prea mari" (6 oct 2026).
+    "--emoji-size-medium": "32px",
+    "--emoji-size-large": "48px",
 
     // effects
     "--effects-blur-md": theme.blur ? "blur(20px)" : "unset",

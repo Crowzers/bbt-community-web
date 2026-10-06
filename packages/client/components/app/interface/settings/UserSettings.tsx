@@ -308,6 +308,8 @@ const Config: SettingsConfiguration<{ server: Server }> = {
               id: "language",
               icon: <MdLanguage {...iconSize(20)} />,
               title: <Trans>Language</Trans>,
+              // BBT: interfața e mereu în română (components/state/stores/Locale.ts).
+              hidden: true,
             },
             // {
             //   id: "sync",

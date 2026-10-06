@@ -127,6 +127,39 @@ export function floating(element: HTMLElement, accessor: Accessor<Props>) {
     trigger("contextMenu");
   }
 
+  /**
+   * BBT: apăsarea lungă pe iPhone (`long-press-event`). NU cu `preventDefault`: atunci biblioteca
+   * înghite URMĂTORUL click din document — iar ridicarea degetului după o apăsare lungă de obicei nu
+   * dă click, deci înghițit era primul tap pe o opțiune din meniu („Edit message merge abia din a
+   * doua", 6 oct 2026). Aici se înghite DOAR click-ul care vine imediat după ridicarea degetului
+   * (altfel ar deschide și cardul de profil al avatarului apăsat, peste meniu).
+   */
+  function onLongPress(event: Event) {
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    trigger("contextMenu");
+
+    let ridicatLa = 0;
+    // Fereastra începe la ridicarea degetului (oricât l-ai ține apăsat) și se închide după 350ms.
+    const laRidicare = () => {
+      ridicatLa = performance.now();
+      setTimeout(curata, 350);
+    };
+    const laClick = (e: Event) => {
+      if (ridicatLa && performance.now() - ridicatLa < 350) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+      }
+      curata();
+    };
+    const curata = () => {
+      document.removeEventListener("touchend", laRidicare, true);
+      document.removeEventListener("click", laClick, true);
+    };
+    document.addEventListener("touchend", laRidicare, true);
+    document.addEventListener("click", laClick, true);
+  }
+
   let isTouching = false,
     tTmr: NodeJS.Timeout | undefined;
 
@@ -204,7 +237,7 @@ export function floating(element: HTMLElement, accessor: Accessor<Props>) {
               "contextmenu" &&
             isIOSTouch
           ) {
-            element.addEventListener("long-press", onContextMenu);
+            element.addEventListener("long-press", onLongPress);
           } else {
             element.addEventListener(
               accessor().contextMenuHandler ?? "contextmenu",
@@ -214,7 +247,7 @@ export function floating(element: HTMLElement, accessor: Accessor<Props>) {
 
           onCleanup(() => {
             if (isIOSTouch) {
-              element.removeEventListener("long-press", onContextMenu);
+              element.removeEventListener("long-press", onLongPress);
             }
             element.removeEventListener(
               accessor().contextMenuHandler ?? "contextmenu",

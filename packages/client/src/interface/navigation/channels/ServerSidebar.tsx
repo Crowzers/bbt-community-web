@@ -582,6 +582,9 @@ function Entry(
       <RandCanal
         href={`/server/${props.channel.serverId}/channel/${props.channel.id}`}
         use:floating={props.menuGenerator(props.channel)}
+        // BBT: pe telefon, apăsarea pe canal îl și deschide (glisează ecranul canalului) — ca
+        // `MenuButton`-ul pe care l-a înlocuit rândul ăsta; fără asta, rămâneai pe listă (6 oct 2026).
+        onClick={() => state.appDrawer()?.setShown(true)}
         data-unread={props.channel.unread ? "" : undefined}
         data-mentions={props.channel.mentions?.size || undefined}
         activ={props.active}
@@ -613,6 +616,7 @@ function Entry(
             aria-label="Setările canalului"
             onClick={(e) => {
               e.preventDefault();
+              e.stopPropagation();
               openModal({
                 type: "settings",
                 config: "channel",

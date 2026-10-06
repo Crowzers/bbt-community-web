@@ -253,12 +253,21 @@ export function Messages(props: Props) {
       // Assume we are not at the end if we jumped to a message
       // NB. we set this late to not display the "jump to bottom" bar
       if (typeof nearby === "string") {
+        // BBT: serverul întoarce cel mult `limit / 2 + 1` mesaje de FIECARE parte a lui `nearby`
+        // (stoatchat crates/core/database …/messages/ops/mongodb.rs). Mai puține pe o parte = capătul
+        // canalului în direcția aia. Fără asta, la „Salt la început" într-un canal scurt rămâneau
+        // scheletele de încărcare pentru totdeauna și bara „Acum vezi mesajele vechi" (6 oct 2026).
+        const peParte = Math.floor(INITIAL_FETCH_LIMIT / 2) + 1;
+        const maiVechi = messages.filter((msg) => msg.id < nearby).length;
+        const maiNoi = messages.length - maiVechi;
+        setStart(maiVechi < peParte);
         setEnd(
-          // If the messages fetched include the latest message,
-          // then we are at the end and mark the channel as such.
-          messages.findIndex(
-            (msg) => msg.id === props.channel.lastMessageId,
-          ) !== -1,
+          maiNoi < peParte ||
+            // If the messages fetched include the latest message,
+            // then we are at the end and mark the channel as such.
+            messages.findIndex(
+              (msg) => msg.id === props.channel.lastMessageId,
+            ) !== -1,
         );
       }
       // Check if we're at the start of the conversation otherwise

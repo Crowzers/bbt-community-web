@@ -74,11 +74,15 @@ export function ServerMemberSidebar(props: Props) {
       (role) => role.hoist,
     );
 
+    // BBT (ca la TRW, 6 oct 2026): TOATĂ lumea pe grupe de rol — Echipa BBT, Moderatori, rolurile
+    // din onboarding (admin, lib/stoat/roluri.ts) — online ȘI offline în aceeași grupă (offline
+    // estompați, mai jos în grupă). Fără grupa separată „Offline", care ascundea rolul omului.
     const restricted = props.channel.potentiallyRestrictedChannel;
-    const byRole: Map<string, { member: ServerMember; displayName: string }[]> =
-      new Map();
+    const byRole: Map<
+      string,
+      { member: ServerMember; displayName: string; online: boolean }[]
+    > = new Map();
     byRole.set("default", []);
-    byRole.set("offline", []);
     hoistedRoles.forEach((role) => byRole.set(role.id, []));
 
     for (const member of client().serverMembers.values()) {
@@ -94,14 +98,7 @@ export function ServerMemberSidebar(props: Props) {
       // If you need to access anything on the member in a loop define a const here.
       const memberRoles = member.roles;
       const memberName = member.nickname ?? member.user?.displayName ?? "";
-
-      if (!member.user?.online) {
-        byRole.get("offline")!.push({
-          member,
-          displayName: memberName,
-        });
-        continue;
-      }
+      const online = Boolean(member.user?.online);
 
       if (memberRoles.length) {
         let assigned;
@@ -110,6 +107,7 @@ export function ServerMemberSidebar(props: Props) {
             byRole.get(hoistedRole.id)!.push({
               member,
               displayName: memberName,
+              online,
             });
             assigned = true;
             break;
@@ -122,6 +120,7 @@ export function ServerMemberSidebar(props: Props) {
       byRole.get("default")!.push({
         member,
         displayName: memberName,
+        online,
       });
     }
 
@@ -136,13 +135,17 @@ export function ServerMemberSidebar(props: Props) {
         icon: role.icon?.previewUrl,
       });
     }
-    roles.push({ id: "default", name: "Online" });
-    roles.push({ id: "offline", name: "Offline" });
+    roles.push({ id: "default", name: "Membri" });
 
     for (const role of roles) {
       const roleMembers = byRole
         .get(role.id)!
-        .sort((a, b) => a.displayName?.localeCompare(b.displayName) || 0);
+        .sort(
+          (a, b) =>
+            Number(b.online) - Number(a.online) ||
+            a.displayName?.localeCompare(b.displayName) ||
+            0,
+        );
 
       if (!roleMembers?.length) {
         continue;
@@ -159,7 +162,7 @@ export function ServerMemberSidebar(props: Props) {
         elements.push({
           t: 1,
           member: member.member,
-          isOnline: role.id !== "offline",
+          isOnline: member.online,
         });
       }
     }

@@ -58,6 +58,26 @@ body {
   background: #000;
 }
 
+/* BBT (6 oct 2026): pe ecranele tactile, apăsarea lungă e A NOASTRĂ (meniul mesajului / al omului,
+   `components/ui/directives/floating.ts`). Fără asta, iOS pornea în paralel lupa, selecția de text și
+   meniul lui („Copiază", „Salvează imaginea") — două meniuri care se băteau pe același deget. Textul
+   unui mesaj se copiază din meniul nostru („Copiază textul"); câmpurile de scris rămân selectabile. */
+@media (hover: none) and (pointer: coarse) {
+  #root,
+  #floating {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  #root :is(input, textarea, [contenteditable="true"], .cm-content, mdui-text-field),
+  #floating :is(input, textarea, [contenteditable="true"], .cm-content, mdui-text-field) {
+    -webkit-touch-callout: default;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+}
+
 html.bbt-tastatura #root {
   height: calc(var(--bbt-ecran-h, 100dvh) - env(safe-area-inset-top));
 }

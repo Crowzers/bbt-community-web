@@ -1,9 +1,4 @@
-import {
-  Language,
-  Languages,
-  browserPreferredLanguage,
-  loadAndSwitchLocale,
-} from "@revolt/i18n";
+import { Language, Languages, loadAndSwitchLocale } from "@revolt/i18n";
 import type { LocaleOptions } from "@revolt/i18n/Languages";
 import { updateTimeLocaleOptions } from "@revolt/i18n/dayjs";
 
@@ -39,8 +34,11 @@ export class Locale extends AbstractStore<"locale", TypeLocale> {
    * Hydrate external context
    */
   hydrate(): void {
-    const { lang, options } = this.get();
-    loadAndSwitchLocale(lang, options);
+    const { options } = this.get();
+    // BBT: Community e în ROMÂNĂ pentru toată lumea, oricare ar fi limba telefonului. Cu limba
+    // aleasă după sistem, un iPhone în engleză vedea „New messages since…", „Jump to present",
+    // „Yesterday at" (6 oct 2026). Pagina „Limba" din setări e ascunsă (UserSettings.tsx).
+    loadAndSwitchLocale(Language.ROMANIAN, options);
   }
 
   /**
@@ -48,7 +46,7 @@ export class Locale extends AbstractStore<"locale", TypeLocale> {
    */
   default(): TypeLocale {
     return {
-      lang: browserPreferredLanguage() as Language,
+      lang: Language.ROMANIAN,
       options: {},
     };
   }

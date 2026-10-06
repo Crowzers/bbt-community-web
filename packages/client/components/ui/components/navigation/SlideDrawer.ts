@@ -55,9 +55,20 @@ export class SlideDrawer {
   ) {
     this.start = this.start.bind(this);
     this.move = this.move.bind(this);
+    this.cancel = this.cancel.bind(this);
+    this.resync = this.resync.bind(this);
     root.addEventListener("touchstart", this.start);
     root.addEventListener("touchmove", this.move);
     root.addEventListener("touchend", this.move);
+    // BBT (6 oct 2026, iPhone/PWA): gestul de ieșire din aplicație (sau un apel, o notificare) taie
+    // atingerea cu `touchcancel`, nu cu `touchend`. Fără ascultătorul ăsta, panoul rămânea oprit la
+    // jumătatea glisării (o fâșie din ecranul canalului în dreapta), iar atingerea rămânea „în curs"
+    // pentru totdeauna ⇒ nici glisarea, nici `setShown` (apăsarea pe canal) nu mai mergeau.
+    root.addEventListener("touchcancel", this.cancel);
+    // La revenirea în aplicație și la orice schimbare de lățime: panoul pus EXACT pe starea lui.
+    window.addEventListener("pageshow", this.resync);
+    window.addEventListener("resize", this.resync);
+    document.addEventListener("visibilitychange", this.resync);
 
     createRoot((dispose) => {
       this.dispose = dispose;
@@ -153,6 +164,35 @@ export class SlideDrawer {
     }
   }
 
+  /**
+   * BBT: atingere întreruptă de sistem — panoul se întoarce la starea dinaintea glisării.
+   */
+  private cancel() {
+    if (!this.touch) return;
+    const trig = this.touch.trig;
+    this.endTouch();
+    if (trig) this.tfTimer(true, this.ofs !== 0);
+  }
+
+  /**
+   * BBT: aliniază panoul la starea lui (afișat / ascuns) — după revenirea din fundal, după rotire,
+   * după o atingere tăiată. `ofs` se recalculează din `innerWidth`-ul de ACUM: pe iOS, lățimea se
+   * poate schimba cât aplicația stă în comutatorul de aplicații.
+   */
+  private resync() {
+    if (!this.eGet() || document.visibilityState === "hidden") return;
+    if (this.touch && !this.touch.trig) return; // o atingere obișnuită, în curs: nu e treaba noastră
+    this.endTouch();
+    clearTimeout(this.tTmr!);
+    this.tTmr = null;
+    const show = this.ofs !== 0;
+    const ds = this.drawer.style;
+    ds.transition = ds.transform = "";
+    this.ofs = show ? -innerWidth : 0;
+    this.setElState(show);
+    this.sSet(show ? SlideState.SHOWN : SlideState.HIDDEN);
+  }
+
   private velTimer() {
     if (this.vTmr) return;
     this.vTmr = setInterval(this.addVel.bind(this), VEL_MS);
@@ -223,6 +263,10 @@ export class SlideDrawer {
     this.root.removeEventListener("touchstart", this.start);
     this.root.removeEventListener("touchmove", this.move);
     this.root.removeEventListener("touchend", this.move);
+    this.root.removeEventListener("touchcancel", this.cancel);
+    window.removeEventListener("pageshow", this.resync);
+    window.removeEventListener("resize", this.resync);
+    document.removeEventListener("visibilitychange", this.resync);
     this.dispose();
   }
 
