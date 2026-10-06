@@ -27,6 +27,12 @@ type Profil = {
   avatarUrl: string | null;
   profilUrl: string;
   setariUrl: string;
+  /**
+   * Ce a făcut adminul când a potrivit profilul din Community cu cel BBT (la deschiderea paginii și
+   * la salvare). `eroare` = motivul pentru care poza/numele NU au ajuns — singura fereastră spre
+   * eroare pe producție (6 oct 2026).
+   */
+  comunitate?: { poza: string; eroare: string | null };
 };
 
 /** Aceleași limite ca pe site (adminul le verifică oricum). */
@@ -83,14 +89,18 @@ export function ProfilBBT() {
 
   async function cerere(metoda: "GET" | "PUT", corp?: unknown) {
     const token = state.auth.getSession()?.token;
-    const r = await fetch(`${BBT_ADMIN_URL}/api/public/stoat/profil`, {
-      method: metoda,
-      headers: {
-        "X-Session-Token": token ?? "",
-        ...(corp ? { "Content-Type": "application/json" } : {}),
+    // `verifica=1`: adminul potrivește profilul din Community ACUM și spune dacă a mers.
+    const r = await fetch(
+      `${BBT_ADMIN_URL}/api/public/stoat/profil?verifica=1`,
+      {
+        method: metoda,
+        headers: {
+          "X-Session-Token": token ?? "",
+          ...(corp ? { "Content-Type": "application/json" } : {}),
+        },
+        body: corp ? JSON.stringify(corp) : undefined,
       },
-      body: corp ? JSON.stringify(corp) : undefined,
-    });
+    );
     const date = await r.json().catch(() => null);
     if (!r.ok)
       throw new Error(date?.error ?? "Profilul nu răspunde. Încearcă din nou.");
@@ -228,7 +238,15 @@ export function ProfilBBT() {
                 </span>
               </Text>
             </Show>
-            <Show when={salvat()}>
+            <Show when={p().comunitate?.eroare}>
+              <Text class="body">
+                <span style={{ color: "var(--md-sys-color-error)" }}>
+                  Profilul e salvat în contul BBT, dar n-a ajuns în Community:{" "}
+                  {p().comunitate!.eroare}
+                </span>
+              </Text>
+            </Show>
+            <Show when={salvat() && !p().comunitate?.eroare}>
               <Text class="body">
                 Salvat. Toată lumea din Community vede deja schimbarea.
               </Text>
