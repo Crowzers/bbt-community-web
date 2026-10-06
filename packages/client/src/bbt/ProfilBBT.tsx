@@ -33,6 +33,23 @@ type Profil = {
    * eroare pe producție (6 oct 2026).
    */
   comunitate?: { poza: string; eroare: string | null };
+  /** Rolurile din Community (grupa ta din lista de membri) — vezi `MOTIV_ROLURI`. */
+  roluri?: { stare: string; eroare?: string };
+};
+
+/**
+ * De ce NU are omul rolurile lui în Community (grupa din lista de membri). Doar stările care cer
+ * ceva de făcut; `la-zi` / `actualizate` / `fara-cont` nu se arată. Textele spun și ce trebuie
+ * reparat în admin: pe producție, pagina asta e singura fereastră spre motiv (6 oct 2026).
+ */
+const MOTIV_ROLURI: Record<string, string> = {
+  "fara-bot":
+    "Rolurile din Community nu se pot pune încă: botul BBT nu e configurat în admin (STOAT_BOT_TOKEN).",
+  "fara-server":
+    "Rolurile din Community nu se pot pune încă: invitația serverului BBT lipsește din admin (STOAT_INVITATIE_SERVER).",
+  "nu-e-in-server":
+    "Nu ești încă în serverul BBT, deci nu ai încă rol în el. Ieși din Community și intră din nou de pe site.",
+  eroare: "Rolurile din Community nu s-au putut actualiza",
 };
 
 /** Aceleași limite ca pe site (adminul le verifică oricum). */
@@ -243,6 +260,14 @@ export function ProfilBBT() {
                 <span style={{ color: "var(--md-sys-color-error)" }}>
                   Profilul e salvat în contul BBT, dar n-a ajuns în Community:{" "}
                   {p().comunitate!.eroare}
+                </span>
+              </Text>
+            </Show>
+            <Show when={p().roluri && MOTIV_ROLURI[p().roluri!.stare]}>
+              <Text class="body">
+                <span style={{ color: "var(--md-sys-color-error)" }}>
+                  {MOTIV_ROLURI[p().roluri!.stare]}
+                  {p().roluri!.eroare ? ` (${p().roluri!.eroare})` : ""}
                 </span>
               </Text>
             </Show>
