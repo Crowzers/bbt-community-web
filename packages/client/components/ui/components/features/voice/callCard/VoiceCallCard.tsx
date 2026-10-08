@@ -154,11 +154,14 @@ export function VoiceCallCardContext(props: { children: JSX.Element }) {
   onCleanup(resetEvents);
 
   onMount(() => {
-    document
-      .getElementById("floating")
-      ?.addEventListener("fullscreenchange", () => {
-        if (!document.fullscreenElement) voice.resetLayout();
-      });
+    const floating = document.getElementById("floating");
+    floating?.addEventListener("fullscreenchange", (e) => {
+      // BBT: doar ieșirea din ecranul complet al APELULUI resetează aranjamentul. Evenimentul urcă
+      // și de la plăcuța unui ecran partajat pusă singură pe ecran complet (ParticipantTile), iar
+      // fără verificarea asta, ieșirea de acolo strângea și apelul mărit.
+      if (e.target === floating && !document.fullscreenElement)
+        voice.resetLayout();
+    });
   });
 
   createEffect(() => {

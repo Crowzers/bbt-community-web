@@ -38,6 +38,37 @@ export function ParticipantTile(props: TileProps) {
   const user = useUser(participant.identity);
 
   let videoRef: HTMLVideoElement | undefined;
+  let tileRef: HTMLDivElement | undefined;
+
+  /**
+   * BBT: ecran complet pe UN singur ecran partajat (sau o cameră), ca la Discord.
+   *
+   * Plângerea (8 oct 2026): „nu pot face full screen screenshare-ul". Butonul lor de ecran complet
+   * pune pe tot ecranul TOT apelul — grila, bara cu ceilalți, controalele — deci ecranul partajat
+   * rămânea mic; iar pe iPhone nici atât: Safari n-are Fullscreen API pentru un `div` (doar iPad).
+   * Aici se pune pe ecran complet doar plăcuța, iar unde asta nu există, `<video>`-ul ei, cu
+   * ecranul complet nativ al sistemului (`webkitEnterFullscreen`, singurul care merge pe iPhone).
+   */
+  function ecranComplet(e: MouseEvent) {
+    e.stopPropagation();
+    if (document.fullscreenElement) {
+      void document.exitFullscreen();
+      return;
+    }
+    const placa = tileRef as
+      | (HTMLDivElement & { webkitRequestFullscreen?: () => void })
+      | undefined;
+    const video = videoRef as
+      | (HTMLVideoElement & { webkitEnterFullscreen?: () => void })
+      | undefined;
+    if (placa?.requestFullscreen) {
+      placa.requestFullscreen().catch(() => video?.webkitEnterFullscreen?.());
+    } else if (placa?.webkitRequestFullscreen) {
+      placa.webkitRequestFullscreen();
+    } else {
+      video?.webkitEnterFullscreen?.();
+    }
+  }
 
   const [videoDims, setVideoDims] = createSignal<{
     height: number;
@@ -86,6 +117,10 @@ export function ParticipantTile(props: TileProps) {
   return (
     <Show when={!isScreenShare() || !isRemoteScreenShareMuted()}>
       <div
+        ref={tileRef}
+        onDblClick={(e) => {
+          if (isVideo() || isScreenShare()) ecranComplet(e);
+        }}
         class={
           tile({
             speaking: !isScreenShare() && isSpeaking(),
@@ -171,6 +206,17 @@ export function ParticipantTile(props: TileProps) {
             </Row>
           </OverlayInner>
         </Overlay>
+        {/* BBT: butonul de ecran complet, mereu vizibil pe un ecran partajat — pe telefon nu există
+            „hover", deci un buton ascuns până la hover n-ar apărea niciodată. */}
+        <Show when={isScreenShare()}>
+          <ButonEcranComplet
+            aria-label="Ecran complet"
+            title="Ecran complet (sau dublu-clic)"
+            onClick={ecranComplet}
+          >
+            <Symbol size={20}>fullscreen</Symbol>
+          </ButonEcranComplet>
+        </Show>
       </div>
     </Show>
   );
@@ -233,6 +279,26 @@ export const tile = cva({
       },
     },
   ],
+});
+
+const ButonEcranComplet = styled("button", {
+  base: {
+    gridArea: "1/1",
+    justifySelf: "end",
+    alignSelf: "start",
+    zIndex: 1,
+    margin: "var(--gap-md)",
+    width: "36px",
+    height: "36px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: "none",
+    borderRadius: "10px",
+    background: "rgb(0 0 0 / 60%)",
+    color: "#fff",
+    cursor: "pointer",
+  },
 });
 
 const AvatarOnly = styled("div", {

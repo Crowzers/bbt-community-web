@@ -104,7 +104,12 @@ export const HomeSidebar = (props: Props) => {
               <Trans>Friends</Trans>
               <div style={{ flex: "1 1 auto" }} />
               <Show when={pendingRequests()}>
-                <PendingBadge>{pendingRequests()} requests</PendingBadge>
+                <PendingBadge>
+                  {/* BBT: în română */}
+                  {pendingRequests() === 1
+                    ? "1 cerere"
+                    : `${pendingRequests()} cereri`}
+                </PendingBadge>
               </Show>
             </ButtonTitle>
           </MenuButton>

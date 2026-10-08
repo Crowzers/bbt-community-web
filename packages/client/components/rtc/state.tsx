@@ -37,6 +37,8 @@ import {
 import { VoiceCallCardContext } from "@revolt/ui/components/features/voice/callCard/VoiceCallCard";
 
 import { Device, useDevice } from "@revolt/common";
+
+import { anuntaApelul } from "../../src/bbt/anuntaApel";
 import { InRoom } from "./components/InRoom";
 import { RoomAudioManager } from "./components/RoomAudioManager";
 import { VoiceProcessor } from "./VoiceProcessor";
@@ -98,6 +100,9 @@ class Voice {
   private limits;
   private screenShareTracks: Set<string>;
   private voiceProcessor?: VoiceProcessor;
+
+  /** BBT: sesiunea Stoat curentă, pentru `anuntaApelul` (adminul o verifică la Stoat). */
+  sesiuneBbt?: () => string | undefined;
 
   constructor(
     voiceSettings: VoiceSettings,
@@ -332,6 +337,8 @@ class Voice {
               .map((user) => user.id)
           : undefined;
       auth = await channel.joinCall(selected, true, deSunat);
+      // BBT: și prin notificările BBT, ca să sune și când hub-ul celuilalt e închis.
+      if (deSunat?.length) anuntaApelul(channel, this.sesiuneBbt?.());
     }
 
     await room.connect(auth.url, auth.token, {
@@ -723,6 +730,7 @@ export function VoiceContext(props: { children: JSX.Element }) {
   const sound = useSound();
   const device = useDevice();
   const voice = new Voice(state.voice, modals, sound, device);
+  voice.sesiuneBbt = () => state.auth.getSession()?.token;
 
   return (
     <voiceContext.Provider value={voice}>

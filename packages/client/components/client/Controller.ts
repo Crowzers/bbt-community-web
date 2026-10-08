@@ -7,6 +7,7 @@ import { ModalControllerExtended } from "@revolt/modal";
 import type { State as ApplicationState } from "@revolt/state";
 import type { Session } from "@revolt/state/stores/Auth";
 
+import { rolurileLaIntrare } from "../../src/bbt/rolurileLaIntrare";
 import Instance from "../instance/Instance";
 import { killServiceWorkerSubscription } from "./NotificationsController";
 
@@ -133,6 +134,8 @@ class Lifecycle {
     this.client.events.on("state", this.onState);
     this.client.on("ready", this.onReady);
     this.client.on("policyChanges", this.onPolicyChanges);
+    // BBT: cine intră în server își are rolurile din prima, nu după refresh — src/bbt/rolurileLaIntrare.ts
+    rolurileLaIntrare(this.client);
   }
 
   #enter(nextState: State) {

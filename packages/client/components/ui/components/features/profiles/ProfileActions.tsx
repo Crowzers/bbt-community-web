@@ -74,11 +74,15 @@ export function ProfileActions(props: {
   return (
     <Actions width={props.width}>
       <Show when={props.user.relationship === "None" && !props.user.bot}>
-        <Button onPress={() => props.user.addFriend()}>Add Friend</Button>
+        {/* BBT: în română — interfața e forțată pe română (Locale.ts), iar textele astea nu trec
+            prin cataloage. */}
+        <Button onPress={() => props.user.addFriend()}>
+          Adaugă la prieteni
+        </Button>
       </Show>
       <Show when={props.user.relationship === "Incoming"}>
         <Button onPress={() => props.user.addFriend()}>
-          Accept friend request
+          Acceptă prietenia
         </Button>
         <IconButton onPress={() => props.user.removeFriend()}>
           <MdCancel />
@@ -86,11 +90,11 @@ export function ProfileActions(props: {
       </Show>
       <Show when={props.user.relationship === "Outgoing"}>
         <Button onPress={() => props.user.removeFriend()}>
-          Cancel friend request
+          Anulează cererea
         </Button>
       </Show>
       <Show when={props.user.relationship === "Friend"}>
-        <Button onPress={openDm}>Message</Button>
+        <Button onPress={openDm}>Mesaj</Button>
       </Show>
       <Show when={publicBot()}>
         <Button

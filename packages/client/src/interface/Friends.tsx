@@ -17,6 +17,7 @@ import { styled } from "styled-system/jsx";
 import { UserContextMenu } from "@revolt/app";
 import { useClient } from "@revolt/client";
 import { useModals } from "@revolt/modal";
+import { useNavigate } from "@revolt/routing";
 import {
   Avatar,
   Badge,
@@ -100,7 +101,11 @@ export function Friends() {
     return incoming.length > 99 ? "99+" : incoming.length;
   };
 
-  const [page, setPage] = createSignal("online");
+  // BBT: cine are cereri de prietenie primite aterizează direct pe ele — altfel stăteau în fila
+  // „În așteptare", după o bulină pe care puțini o observă.
+  const [page, setPage] = createSignal(
+    lists().incoming.length > 0 ? "pending" : "online",
+  );
 
   return (
     <Base>
@@ -153,7 +158,8 @@ export function Friends() {
               icon={<Symbol>notifications</Symbol>}
               value="pending"
             >
-              <Trans>Pending</Trans>
+              {/* BBT: în română, fără catalog */}
+              În așteptare
               <Show when={pending()}>
                 <Badge slot="badge" variant="large">
                   {pending()}
@@ -178,26 +184,26 @@ export function Friends() {
               >
                 <Match when={page() === "all"}>
                   <People
-                    title="All"
+                    title="Toți"
                     users={lists().friends}
                     scrollTargetElement={targetSignal}
                   />
                 </Match>
                 <Match when={page() === "pending"}>
                   <People
-                    title="Incoming"
+                    title="Primite"
                     users={lists().incoming}
                     scrollTargetElement={targetSignal}
                   />
                   <People
-                    title="Outgoing"
+                    title="Trimise"
                     users={lists().outgoing}
                     scrollTargetElement={targetSignal}
                   />
                 </Match>
                 <Match when={page() === "blocked"}>
                   <People
-                    title="Blocked"
+                    title="Blocați"
                     users={lists().blocked}
                     scrollTargetElement={targetSignal}
                   />
@@ -226,9 +232,7 @@ function People(props: {
       </ListSubheader>
 
       <Show when={props.users.length === 0}>
-        <ListItem disabled>
-          <Trans>Nobody here right now!</Trans>
-        </ListItem>
+        <ListItem disabled>Nimeni deocamdată.</ListItem>
       </Show>
 
       <VirtualContainer
@@ -304,7 +308,123 @@ function Entry(
           }
         />
         <OverflowingText>{local.user.displayName}</OverflowingText>
+        <span
+          slot="end-icon"
+          style={{ display: "flex", gap: "8px", "align-items": "center" }}
+        >
+          <ActiuniRand user={local.user} />
+        </span>
       </ListItem>
     </a>
+  );
+}
+
+/**
+ * BBT: acțiunile direct pe rând, ca la Discord.
+ *
+ * Plângerea (8 oct 2026): „când vrei să dai accept e un pop-up contraintuitiv — trebuie să apară
+ * butonul de accept la îndemână, nu să dai pe cele 3 puncte". La ei, acceptarea stătea doar în
+ * meniul contextual (clic dreapta / apăsare lungă), iar clicul pe rând deschidea profilul.
+ *
+ * ⚠️ Rândul e un `<a>` cu `onClick` (deschide profilul): butoanele opresc propagarea, altfel o
+ * acceptare ar deschide și profilul peste.
+ */
+function ActiuniRand(props: { user: User }) {
+  const navigate = useNavigate();
+  const [lucrez, setLucrez] = createSignal(false);
+
+  function apasa(e: MouseEvent, actiune: () => Promise<unknown>) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (lucrez()) return;
+    setLucrez(true);
+    actiune()
+      .catch((err) =>
+        console.error("[bbt] prietenia n-a putut fi schimbată", err),
+      )
+      .finally(() => setLucrez(false));
+  }
+
+  return (
+    <Switch>
+      <Match when={props.user.relationship === "Incoming"}>
+        <ButonRand
+          eticheta="Acceptă"
+          plin
+          onClick={(e) => apasa(e, () => props.user.addFriend())}
+        >
+          <Symbol>check</Symbol>
+          Acceptă
+        </ButonRand>
+        <ButonRand
+          eticheta="Refuză"
+          onClick={(e) => apasa(e, () => props.user.removeFriend())}
+        >
+          <Symbol>close</Symbol>
+        </ButonRand>
+      </Match>
+      <Match when={props.user.relationship === "Outgoing"}>
+        <ButonRand
+          eticheta="Anulează cererea"
+          onClick={(e) => apasa(e, () => props.user.removeFriend())}
+        >
+          Anulează
+        </ButonRand>
+      </Match>
+      <Match when={props.user.relationship === "Friend"}>
+        <ButonRand
+          eticheta="Mesaj"
+          onClick={(e) =>
+            apasa(e, () =>
+              props.user.openDM().then((canal) => navigate(canal.path)),
+            )
+          }
+        >
+          <Symbol>chat</Symbol>
+        </ButonRand>
+      </Match>
+      <Match when={props.user.relationship === "Blocked"}>
+        <ButonRand
+          eticheta="Deblochează"
+          onClick={(e) => apasa(e, () => props.user.unblockUser())}
+        >
+          Deblochează
+        </ButonRand>
+      </Match>
+    </Switch>
+  );
+}
+
+function ButonRand(props: {
+  eticheta: string;
+  plin?: boolean;
+  onClick: (e: MouseEvent) => void;
+  children: JSX.Element;
+}) {
+  return (
+    <button
+      aria-label={props.eticheta}
+      title={props.eticheta}
+      onClick={props.onClick}
+      style={{
+        height: "34px",
+        "min-width": "34px",
+        padding: "0 12px",
+        display: "inline-flex",
+        "align-items": "center",
+        "justify-content": "center",
+        gap: "6px",
+        "border-radius": "17px",
+        border: props.plin ? "none" : "1px solid rgb(255 255 255 / 16%)",
+        background: props.plin ? "#fff" : "transparent",
+        color: props.plin ? "#000" : "#fff",
+        "font-size": "13px",
+        "font-weight": 600,
+        cursor: "pointer",
+        "white-space": "nowrap",
+      }}
+    >
+      {props.children}
+    </button>
   );
 }

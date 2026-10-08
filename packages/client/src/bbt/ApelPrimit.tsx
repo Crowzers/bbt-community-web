@@ -5,6 +5,7 @@ import {
   createSignal,
   onCleanup,
 } from "solid-js";
+import { Portal } from "solid-js/web";
 
 import { useClient } from "@revolt/client";
 import { useNavigate } from "@revolt/routing";
@@ -85,65 +86,117 @@ export function ApelPrimit() {
     if (a) setRefuzate((s) => new Set(s).add(a.cheie));
   }
 
+  // ⚠️ În `#floating`, nu pe loc: `#root` are `position: fixed`, deci e propriul context de
+  // stivuire, iar tot ce e înăuntrul lui — oricât de mare z-index-ul — stă SUB `#floating` (cardurile
+  // de profil, meniurile, apelul pe ecran complet). Văzut în proba din 8 oct: un card de profil
+  // rămas deschis acoperea modalul de apel.
   return (
-    <Show when={apel()}>
-      {(a) => (
-        <div
-          role="alertdialog"
-          aria-label="Apel primit"
-          style={{
-            position: "fixed",
-            top: "calc(var(--bbt-ecran-sus, 0px) + env(safe-area-inset-top) + 12px)",
-            left: "50%",
-            transform: "translateX(-50%)",
-            "z-index": 200,
-            width: "min(360px, calc(100vw - 24px))",
-            display: "flex",
-            "align-items": "center",
-            gap: "12px",
-            padding: "12px 14px",
-            background: "#141414",
-            color: "#fff",
-            border: "1px solid rgb(255 255 255 / 12%)",
-            "border-radius": "16px",
-            "box-shadow": "0 16px 48px rgb(0 0 0 / 60%)",
-          }}
-        >
-          <Avatar
-            src={a().apelant?.animatedAvatarURL}
-            fallback={a().apelant?.displayName}
-            fallbackBackground
-            size={44}
-          />
-          <div style={{ flex: 1, "min-width": 0 }}>
+    <Portal mount={document.getElementById("floating") ?? document.body}>
+      <Show when={apel()}>
+        {(a) => (
+          // BBT (8 oct 2026): MODAL în mijlocul ecranului, ca la Discord — cerut explicit („ar trebui
+          // să-i apară pe ecran modal să răspundă"). Prima variantă era o bandă sus, ușor de ratat
+          // lângă bara de sus. Fundalul NU închide apelul la atingere: o atingere rătăcită pe lângă
+          // butoane ar fi refuzat un apel fără să vrei; doar cele două butoane decid.
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              "z-index": 1000,
+              display: "flex",
+              "align-items": "center",
+              "justify-content": "center",
+              padding: "24px",
+              background: "rgb(0 0 0 / 72%)",
+            }}
+          >
             <div
+              role="alertdialog"
+              aria-modal="true"
+              aria-label="Apel primit"
               style={{
-                "font-weight": 700,
-                "font-size": "15px",
-                overflow: "hidden",
-                "text-overflow": "ellipsis",
-                "white-space": "nowrap",
+                width: "min(320px, 100%)",
+                display: "flex",
+                "flex-direction": "column",
+                "align-items": "center",
+                gap: "6px",
+                padding: "32px 24px 28px",
+                background: "#141414",
+                color: "#fff",
+                border: "1px solid rgb(255 255 255 / 12%)",
+                "border-radius": "24px",
+                "box-shadow": "0 24px 64px rgb(0 0 0 / 70%)",
+                "text-align": "center",
               }}
             >
-              {a().apelant?.displayName ?? "Cineva"}
-            </div>
-            <div
-              style={{ "font-size": "12px", color: "rgb(255 255 255 / 60%)" }}
-            >
-              {a().canal.type === "Group"
-                ? `sună grupul ${a().canal.name ?? ""}`
-                : "te sună"}
+              <style>{`
+              @keyframes bbt-apel-unda {
+                0% { transform: scale(1); opacity: .55 }
+                100% { transform: scale(1.55); opacity: 0 }
+              }
+              @media (prefers-reduced-motion: reduce) {
+                .bbt-apel-unda { animation: none !important; opacity: 0 }
+              }
+            `}</style>
+              <div style={{ position: "relative", "margin-bottom": "14px" }}>
+                <span
+                  class="bbt-apel-unda"
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    "border-radius": "50%",
+                    background: "#FFA8CD",
+                    animation: "bbt-apel-unda 1.4s ease-out infinite",
+                  }}
+                />
+                {/* `relative`: altfel unda (absolută) s-ar desena PESTE avatar, nu în spatele lui. */}
+                <div style={{ position: "relative" }}>
+                  <Avatar
+                    src={a().apelant?.animatedAvatarURL}
+                    fallback={a().apelant?.displayName}
+                    fallbackBackground
+                    size={96}
+                  />
+                </div>
+              </div>
+              <div
+                style={{
+                  "font-weight": 700,
+                  "font-size": "20px",
+                  "max-width": "100%",
+                  overflow: "hidden",
+                  "text-overflow": "ellipsis",
+                  "white-space": "nowrap",
+                }}
+              >
+                {a().apelant?.displayName ?? "Cineva"}
+              </div>
+              <div
+                style={{ "font-size": "14px", color: "rgb(255 255 255 / 60%)" }}
+              >
+                {a().canal.type === "Group"
+                  ? `sună grupul ${a().canal.name ?? ""}`
+                  : "te sună…"}
+              </div>
+              <div
+                style={{ display: "flex", gap: "40px", "margin-top": "26px" }}
+              >
+                <ButonApel culoare="#E5484D" eticheta="Refuză" onClick={refuza}>
+                  <Symbol>call_end</Symbol>
+                </ButonApel>
+                <ButonApel
+                  culoare="#30A46C"
+                  eticheta="Răspunde"
+                  onClick={raspunde}
+                >
+                  <Symbol>call</Symbol>
+                </ButonApel>
+              </div>
             </div>
           </div>
-          <ButonApel culoare="#E5484D" eticheta="Refuză" onClick={refuza}>
-            <Symbol>call_end</Symbol>
-          </ButonApel>
-          <ButonApel culoare="#30A46C" eticheta="Răspunde" onClick={raspunde}>
-            <Symbol>call</Symbol>
-          </ButonApel>
-        </div>
-      )}
-    </Show>
+        )}
+      </Show>
+    </Portal>
   );
 }
 
@@ -154,25 +207,36 @@ function ButonApel(props: {
   children: import("solid-js").JSX.Element;
 }) {
   return (
-    <button
-      aria-label={props.eticheta}
-      title={props.eticheta}
-      onClick={props.onClick}
+    <div
       style={{
-        width: "44px",
-        height: "44px",
-        "flex-shrink": 0,
         display: "flex",
+        "flex-direction": "column",
         "align-items": "center",
-        "justify-content": "center",
-        "border-radius": "50%",
-        border: "none",
-        background: props.culoare,
-        color: "#fff",
-        cursor: "pointer",
+        gap: "8px",
       }}
     >
-      {props.children}
-    </button>
+      <button
+        aria-label={props.eticheta}
+        title={props.eticheta}
+        onClick={props.onClick}
+        style={{
+          width: "60px",
+          height: "60px",
+          display: "flex",
+          "align-items": "center",
+          "justify-content": "center",
+          "border-radius": "50%",
+          border: "none",
+          background: props.culoare,
+          color: "#fff",
+          cursor: "pointer",
+        }}
+      >
+        {props.children}
+      </button>
+      <span style={{ "font-size": "12px", color: "rgb(255 255 255 / 70%)" }}>
+        {props.eticheta}
+      </span>
+    </div>
   );
 }

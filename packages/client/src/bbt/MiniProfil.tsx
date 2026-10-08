@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/solid-query";
-import { For, JSX, Match, Show, Switch } from "solid-js";
+import { For, JSX, Match, Show, Switch, createSignal } from "solid-js";
 import type { ServerMember, User } from "stoat.js";
 
 import { UserContextMenu } from "@revolt/app/menus/UserContextMenu";
@@ -311,7 +311,7 @@ export function MiniProfilBBT(props: {
                     <ButonSecundar onClick={editeaza}>Editează</ButonSecundar>
                   }
                 >
-                  <ButonSecundar onClick={mesaj}>Mesaj</ButonSecundar>
+                  <ButonRelatie user={props.user} onMesaj={mesaj} />
                 </Show>
                 {/* Restul acțiunilor Stoat (prieten, blocare, moderare) — meniul lor, neschimbat. */}
                 <IconButton
@@ -338,7 +338,61 @@ export function MiniProfilBBT(props: {
   );
 }
 
-function ButonSecundar(props: { onClick: () => void; children: JSX.Element }) {
+/**
+ * Butonul de lângă „Vezi profilul", după relația cu omul.
+ *
+ * 🔴 În Stoat scrii doar PRIETENILOR (serverul lor refuză conversația altfel — vezi `DeschideDM.tsx`).
+ * „Mesaj" pe un om care nu-ți e prieten „nu face nimic" (8 oct 2026): `openDM` pica, iar promisiunea
+ * căzută nu ajungea nicăieri. Acum butonul e drumul care chiar există: cererea de prietenie, apoi
+ * acceptarea ei, și abia între prieteni „Mesaj". `relationship` e reactiv — când celălalt acceptă,
+ * butonul devine „Mesaj" singur, fără reîncărcare.
+ */
+function ButonRelatie(props: { user: User; onMesaj: () => void }) {
+  const [lucrez, setLucrez] = createSignal(false);
+
+  async function fa(actiune: () => Promise<unknown>) {
+    if (lucrez()) return;
+    setLucrez(true);
+    try {
+      await actiune();
+    } catch (e) {
+      console.error("[bbt] relația n-a putut fi schimbată", e);
+    } finally {
+      setLucrez(false);
+    }
+  }
+
+  return (
+    <Switch>
+      <Match when={props.user.relationship === "Friend" || props.user.bot}>
+        <ButonSecundar onClick={props.onMesaj}>Mesaj</ButonSecundar>
+      </Match>
+      <Match when={props.user.relationship === "Incoming"}>
+        <ButonSecundar plin onClick={() => fa(() => props.user.addFriend())}>
+          Acceptă prietenia
+        </ButonSecundar>
+      </Match>
+      <Match when={props.user.relationship === "Outgoing"}>
+        <ButonSecundar onClick={() => fa(() => props.user.removeFriend())}>
+          Anulează cererea
+        </ButonSecundar>
+      </Match>
+      <Match when={props.user.relationship === "None"}>
+        <ButonSecundar onClick={() => fa(() => props.user.addFriend())}>
+          Adaugă la prieteni
+        </ButonSecundar>
+      </Match>
+      {/* Blocat (de tine sau de el): nimic aici — deblocarea stă în meniul cu trei puncte. */}
+    </Switch>
+  );
+}
+
+function ButonSecundar(props: {
+  onClick: () => void;
+  children: JSX.Element;
+  /** Acțiunea care se așteaptă de la om (acceptarea): albă, ca să nu se piardă lângă roz. */
+  plin?: boolean;
+}) {
   return (
     <button
       onClick={props.onClick}
@@ -346,9 +400,10 @@ function ButonSecundar(props: { onClick: () => void; children: JSX.Element }) {
         height: "36px",
         padding: "0 14px",
         "border-radius": "10px",
-        border: `1px solid ${LINIE}`,
-        background: "transparent",
-        color: "#fff",
+        border: props.plin ? "none" : `1px solid ${LINIE}`,
+        background: props.plin ? "#fff" : "transparent",
+        color: props.plin ? "#000" : "#fff",
+        "white-space": "nowrap",
         "font-size": "13px",
         "font-weight": 600,
         cursor: "pointer",
