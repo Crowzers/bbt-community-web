@@ -572,17 +572,22 @@ export function DateFacturare(props: { p: Participant }) {
         },
       }}
     >
+      {/* ⚠️ Informare, NU avertisment chihlimbar. Adresa se poate scrie și la
+          plată, în formularul Stripe, iar webhook-ul din admin o copiază în
+          profil (`admin/lib/plati/adresaStripe.ts`). Același text ca pe site
+          (`DateFacturareForm.tsx`), cerut de user pe 20 oct 2026. */}
       <Show when={lipsesteAdresa()}>
         <p
           style={{
             margin: "0 0 12px",
-            color: C.chihlimbar,
+            color: C.stins,
             "font-size": "13px",
             "line-height": "1.45",
           }}
         >
-          Fără județ și localitate, factura pleacă fără adresă. Completează-le
-          în Date personale.
+          Adresa pentru factură o poți completa în Date personale sau la plată,
+          în formularul Stripe. Dacă o scrii la plată, o salvăm noi în contul
+          tău.
         </p>
       </Show>
       <Show
