@@ -12,6 +12,7 @@ import { useCont } from "./date";
 import { MyCamps } from "./MyCamps";
 import { MyCourses } from "./MyCourses";
 import { MyWorkshops } from "./MyWorkshops";
+import { Plati } from "./Plati";
 import { C } from "./ui";
 
 /**
@@ -52,7 +53,6 @@ const CONT: Rand[] = [
     pagina: "plati",
     nume: "Plățile mele",
     simbol: "payments",
-    siteUrl: "/dashboard/plati",
   },
   {
     pagina: "wishlist",
@@ -72,6 +72,7 @@ const PAGINI: Record<string, () => JSX.Element> = {
   mycamps: MyCamps,
   workshops: MyWorkshops,
   cursuri: MyCourses,
+  plati: Plati,
 };
 
 /** Paginile deja rescrise în hub. Meniul de cont din `BaraSus` le deschide aici, restul pe site. */

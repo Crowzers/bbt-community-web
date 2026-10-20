@@ -2,6 +2,8 @@ import { For, Show } from "solid-js";
 
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
+import { useNavigate } from "@revolt/routing";
+
 import { BBT_SITE_URL } from "../config";
 
 import { reala, useCont, zi, ziLunga } from "./date";
@@ -56,6 +58,7 @@ const perioada = (start: string, sfarsit: string | null) =>
 
 export function MyCourses() {
   const cont = useCont();
+  const navigate = useNavigate();
   const azi = () => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -173,11 +176,8 @@ export function MyCourses() {
                             {plata.text}
                           </Pastila>
                           <Show when={plata.deAchitat}>
-                            {/* ⚠️ Pe site până la Faza 4 (Plățile mele în hub).
-                                Atunci: `navigate("/cont/plati")`. */}
                             <ButonContur
-                              href={`${BBT_SITE_URL}/dashboard/plati`}
-                              target="_blank"
+                              onClick={() => navigate("/cont/plati")}
                             >
                               Plățile mele
                               <Symbol size={14}>arrow_forward</Symbol>

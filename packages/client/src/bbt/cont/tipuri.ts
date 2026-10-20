@@ -34,11 +34,15 @@ export interface Camp {
 
 export interface Inscriere {
   id: string;
+  numarComanda: string | null;
   nrTranse: number;
   /** Platit | Partial | Anulat | Abandonat | … */
   statusPlata: string;
   penalizareTransa2?: number;
   zileIntarziereTransa2?: number;
+  /** Prelungirea vorbită la telefon. ⚠️ Fără motiv și fără seller: alea rămân în admin. */
+  prelungireTransa2?: { zile: number; scadentaNoua: string } | null;
+  cerereAnulare?: { id: string; status: string } | null;
   plati: Plata[];
   camp: Camp;
 }
@@ -56,12 +60,14 @@ export interface Curs {
 
 export interface InscriereCurs {
   id: string;
+  numarComanda: string | null;
   nrTranse: number;
   statusPlata: string;
   curs: Curs;
   plati: Plata[];
   penalizareTransa2?: number;
   zileIntarziereTransa2?: number;
+  prelungireTransa2?: { zile: number; scadentaNoua: string } | null;
 }
 
 export interface BiletWorkshop {
