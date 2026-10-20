@@ -4,6 +4,8 @@
 // BBT: PRIMUL — iOS 17 n-are API-uri pe care clientul le folosește (unele la pornire). Vezi fișierul.
 import "./bbt/polyfill-safari17";
 import "./sentry";
+// BBT: devreme, ca să nu ratăm `beforeinstallprompt` (Chrome îl trimite o dată). Vezi fișierul.
+import "./bbt/instalare";
 
 import { JSX, onMount } from "solid-js";
 import { render } from "solid-js/web";

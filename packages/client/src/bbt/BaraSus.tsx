@@ -10,6 +10,7 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import Wordmark from "../../public/assets/web/wordmark.svg?component-solid";
 
+import { ButonInstalare } from "./ButonInstalare";
 import { CautareSus, Clopotel } from "./CautareSiAlerte";
 import { BBT_ADMIN_URL, BBT_SITE_URL } from "./config";
 
@@ -29,7 +30,8 @@ import { BBT_ADMIN_URL, BBT_SITE_URL } from "./config";
  * logoul mai mare") față de cei 48 ai primei variante.
  *
  * Căutarea (în canalul deschis) și clopoțelul (mențiuni + mesaje directe necitite) stau lângă cont,
- * ca în pânza TRW — vezi `CautareSiAlerte.tsx` pentru ce pot și ce nu pot face.
+ * ca în pânza TRW — vezi `CautareSiAlerte.tsx` pentru ce pot și ce nu pot face. Lângă ele, chiar
+ * înaintea contului, butonul mare de instalare pe calculator (`ButonInstalare.tsx`, 20 oct 2026).
  *
  * Telefon (`compact`): în capul ecranului cu lista de canale (`src/interface/Sidebar.tsx`).
  */
@@ -200,6 +202,8 @@ export function BaraSus(props: { compact?: boolean }) {
         <Show when={!props.compact}>
           <CautareSus />
           <Clopotel />
+          {/* BBT: „Instalează pe Windows/Mac", lângă cont. Se ascunde singur în rest. */}
+          <ButonInstalare />
         </Show>
       </div>
       <div

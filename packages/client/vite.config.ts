@@ -87,8 +87,10 @@ export default defineConfig({
       },
       manifest: {
         name: "BBT Community",
+        lang: "ro",
         short_name: "BBT",
-        description: "User-first open source chat platform.",
+        // BBT: textul din fereastra de instalare a browserului (butonul din src/bbt/ButonInstalare.tsx).
+        description: "Comunitatea Bean Bag Theory: canale, mesaje și apeluri.",
         categories: ["communication", "chat", "messaging"],
         start_url: base,
         scope: pwaScope,
