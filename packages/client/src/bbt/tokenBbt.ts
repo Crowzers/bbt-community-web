@@ -77,7 +77,9 @@ export async function cerereCont<T>(
     fetch(`${BBT_ADMIN_URL}${cale}`, {
       ...init,
       headers: {
-        ...(init.body ? { "content-type": "application/json" } : {}),
+        // Doar la corp text (JSON). ⚠️ La `FormData` (urcarea unei piese) browserul pune singur
+        // `multipart/form-data` cu `boundary`; un `content-type` scris de noi l-ar strica.
+        ...(typeof init.body === "string" ? { "content-type": "application/json" } : {}),
         ...init.headers,
         Authorization: `Bearer ${token}`,
       },

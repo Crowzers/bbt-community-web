@@ -174,7 +174,7 @@ const routes = () => (
       <Route path="/friends" component={Friends} />
       <Route path="/bbt/dm/:userId" component={DeschideDM} />
       {/* BBT: contul BBT rescris în hub (2026-10-20-hub-standalone-cont-design.md). */}
-      <Route path="/cont/:pagina?" component={ContulMeu} />
+      <Route path="/cont/:pagina?/:id?" component={ContulMeu} />
       <Route path="/server/:server/*">
         <Route path="/channel/:channel/*" component={ChannelPage} />
         <Route path="/*" component={ServerHome} />

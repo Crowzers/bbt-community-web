@@ -139,11 +139,13 @@ import i_trash from "lucide-static/icons/trash.svg?raw";
 import i_trash_2 from "lucide-static/icons/trash-2.svg?raw";
 import i_triangle_alert from "lucide-static/icons/triangle-alert.svg?raw";
 import i_trophy from "lucide-static/icons/trophy.svg?raw";
+import i_upload from "lucide-static/icons/upload.svg?raw";
 import i_user from "lucide-static/icons/user.svg?raw";
 import i_user_minus from "lucide-static/icons/user-minus.svg?raw";
 import i_user_plus from "lucide-static/icons/user-plus.svg?raw";
 import i_users from "lucide-static/icons/users.svg?raw";
 import i_users_round from "lucide-static/icons/users-round.svg?raw";
+import i_utensils from "lucide-static/icons/utensils.svg?raw";
 import i_video from "lucide-static/icons/video.svg?raw";
 import i_volume_2 from "lucide-static/icons/volume-2.svg?raw";
 import i_wallet from "lucide-static/icons/wallet.svg?raw";
@@ -293,11 +295,13 @@ export const SVG_LUCIDE: Record<string, string> = {
   "trash-2": i_trash_2,
   "triangle-alert": i_triangle_alert,
   "trophy": i_trophy,
+  "upload": i_upload,
   "user": i_user,
   "user-minus": i_user_minus,
   "user-plus": i_user_plus,
   "users": i_users,
   "users-round": i_users_round,
+  "utensils": i_utensils,
   "video": i_video,
   "volume-2": i_volume_2,
   "wallet": i_wallet,

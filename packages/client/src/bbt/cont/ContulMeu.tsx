@@ -15,6 +15,7 @@ import { MyCourses } from "./MyCourses";
 import { MyWorkshops } from "./MyWorkshops";
 import { Plati } from "./Plati";
 import { Setari } from "./Setari";
+import { Tabara } from "./tabara/Tabara";
 import { C } from "./ui";
 import { Wishlist } from "./Wishlist";
 
@@ -82,7 +83,7 @@ const PAGINI: Record<string, () => JSX.Element> = {
 export const PAGINI_IN_HUB = new Set(Object.keys(PAGINI));
 
 export function ContulMeu() {
-  const params = useParams<{ pagina?: string }>();
+  const params = useParams<{ pagina?: string; id?: string }>();
   const navigate = useNavigate();
   const { layout } = useDevice();
   const telefon = () => layout() === "phone";
@@ -137,7 +138,10 @@ export function ContulMeu() {
               laApasare={() => state.appDrawer()?.setShown(false)}
             />
           </Show>
-          <Meniu activ={pagina()} lat={telefon()} />
+          <Meniu
+            activ={pagina() === "tabara" ? "mycamps" : pagina()}
+            lat={telefon()}
+          />
         </div>
       </Show>
       <Show when={pagina()}>
@@ -150,10 +154,24 @@ export function ContulMeu() {
           }}
         >
           <Show when={telefon()}>
-            <Inapoi text="Contul meu" laApasare={() => navigate("/cont")} />
+            <Show
+              when={pagina() === "tabara"}
+              fallback={
+                <Inapoi text="Contul meu" laApasare={() => navigate("/cont")} />
+              }
+            >
+              <Inapoi
+                text="My Camps"
+                laApasare={() => navigate("/cont/mycamps")}
+              />
+            </Show>
           </Show>
           <div style={{ "max-width": "1100px" }}>
             <Switch>
+              {/* `/cont/tabara/:id` = pagina unei tabere (Faza 7), sub My Camps. */}
+              <Match when={pagina() === "tabara" && params.id}>
+                <Tabara id={params.id!} />
+              </Match>
               <Match when={PAGINI[pagina()!]}>
                 <Pagina />
               </Match>

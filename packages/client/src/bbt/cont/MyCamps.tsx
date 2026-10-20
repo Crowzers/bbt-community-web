@@ -1,5 +1,6 @@
 import { For, Show } from "solid-js";
 
+import { useNavigate } from "@revolt/routing";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { BBT_SITE_URL } from "../config";
@@ -36,8 +37,7 @@ import {
  * (o comandă făcută din CRM stă cu ambele tranșe „Asteptata", iar fără condiția asta pagina îi
  * oferea a doua rată peste o primă rată neîncasată).
  *
- * ⚠️ Lipsește deocamdată pagina taberei (`/my-camp/[id]`: program, sesiuni, notițe) = Faza 7 din
- * design. Până atunci „Intră în tabără" o deschide pe site, în browser.
+ * „Intră în tabără" deschide pagina taberei din hub (`/cont/tabara/:id`, `tabara/Tabara.tsx`).
  */
 export function MyCamps() {
   const cont = useCont();
@@ -131,6 +131,7 @@ export function Incarcare() {
 }
 
 function CardTabara(props: { ins: Inscriere }) {
+  const navigate = useNavigate();
   const camp = () => props.ins.camp;
   const zile = () => zilePana(camp().dataStart);
   const activa = () => inDesfasurare(camp().dataStart, camp().dataEnd);
@@ -233,9 +234,11 @@ function CardTabara(props: { ins: Inscriere }) {
         </div>
 
         <a
-          href={`${BBT_SITE_URL}/my-camp/${camp().id}`}
-          target="_blank"
-          rel="noopener"
+          href={`/cont/tabara/${camp().id}`}
+          onClick={(e) => {
+            e.preventDefault();
+            navigate(`/cont/tabara/${camp().id}`);
+          }}
           style={{
             display: "flex",
             "align-items": "center",
