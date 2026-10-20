@@ -212,7 +212,20 @@ export function BaraSus(props: { compact?: boolean }) {
         "align-items": "center",
         "justify-content": "space-between",
         gap: "12px",
-        padding: props.compact ? "0 8px 0 14px" : "0 20px 0 18px",
+        // BBT: în aplicația instalată, cu bara de titlu a Windows-ului ascunsă (săgeata din ea,
+        // `display_override: window-controls-overlay` din `vite.config.ts`), bara asta ține loc de
+        // bară de titlu, iar butoanele native (minimizare, mărire, închidere) stau PESTE colțul ei din
+        // dreapta (pe Mac, semafoarele în stânga). Fără spațiul de mai jos, pastila contului intra sub
+        // ele (bug raportat de user, 20 oct 2026). Butoanele native nu pot fi scoase dintr-un PWA.
+        // `titlebar-area-*` există doar cât bara de titlu e ascunsă; altfel valorile de rezervă dau 0.
+        "padding-top": "0",
+        "padding-bottom": "0",
+        "padding-left": `calc(${props.compact ? "14px" : "18px"} + env(titlebar-area-x, 0px))`,
+        "padding-right": `calc(${props.compact ? "8px" : "20px"} + 100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw))`,
+        // Golurile barei mută fereastra, ca o bară de titlu (dublu clic = mărire). Ce se apasă e
+        // `no-drag` mai jos: în zona de tras, Windows nu mai trimite clicuri și nici hover.
+        "-webkit-app-region": "drag",
+        "-webkit-user-select": "none",
         background: "#000",
         "border-bottom": `1px solid ${LINIE}`,
         color: "#fff",
@@ -238,6 +251,7 @@ export function BaraSus(props: { compact?: boolean }) {
           color: "inherit",
           font: "inherit",
           cursor: "pointer",
+          "-webkit-app-region": "no-drag",
         }}
       >
         <Wordmark
@@ -268,6 +282,7 @@ export function BaraSus(props: { compact?: boolean }) {
           "align-items": "center",
           gap: "8px",
           "margin-left": "auto",
+          "-webkit-app-region": "no-drag",
         }}
       >
         <Show when={!props.compact}>
@@ -283,6 +298,7 @@ export function BaraSus(props: { compact?: boolean }) {
           display: "flex",
           "align-items": "center",
           "align-self": "stretch",
+          "-webkit-app-region": "no-drag",
         }}
         onMouseEnter={() => {
           clearTimeout(inchidere);

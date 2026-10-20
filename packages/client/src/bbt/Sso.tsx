@@ -6,6 +6,7 @@ import { useNavigate } from "@revolt/routing";
 import { useState } from "@revolt/state";
 
 import { PanouLogin } from "./PanouLogin";
+import { ZonaDeTras } from "./ZonaDeTras";
 import { BBT_ADMIN_URL } from "./config";
 
 /**
@@ -52,6 +53,7 @@ function Ecran(props: { eroare: string | null; text: string }) {
         "text-align": "center",
       }}
     >
+      <ZonaDeTras />
       <Show
         when={props.eroare}
         fallback={<p style={{ opacity: 0.8 }}>{props.text}</p>}
@@ -226,6 +228,7 @@ export function BbtLogin() {
       when={faraSesiune()}
       fallback={<Ecran eroare={null} text="Se conectează…" />}
     >
+      <ZonaDeTras />
       <PanouLogin />
     </Show>
   );
