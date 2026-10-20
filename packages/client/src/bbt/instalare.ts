@@ -51,8 +51,8 @@ if (typeof window !== "undefined") {
 }
 
 /**
- * Windows sau Mac, după browser. Orice altceva (telefon, tabletă, Linux) = `null`, adică fără buton:
- * pe telefon „instalarea" e altă poveste (aplicațiile din magazine), iar pe Linux userul n-a cerut.
+ * Windows sau Mac, după browser. Telefoanele și tabletele au `sistemTelefon`. Linux = `null`, fără
+ * buton: userul n-a cerut.
  *
  * ⚠️ iPad-ul se dă drept Mac. Safari pe iPad trimite din 2019 același user agent ca pe macOS, ca să
  * primească site-urile de desktop. Singurul semn e ecranul tactil: un Mac n-are `maxTouchPoints`.
@@ -66,6 +66,30 @@ export function sistemDesktop(): Sistem | null {
     return navigator.maxTouchPoints > 1 ? null : "mac";
   }
   return null;
+}
+
+export type Telefon = "iphone" | "ipad" | "android";
+
+/**
+ * Telefonul sau tableta, pentru butonul cu tutorial (cererea userului, 20 oct 2026: „butonul de
+ * instalare să arate un popup tutorial"). Aplicația din magazine nu există încă; până atunci, hub-ul
+ * se pune pe ecranul principal din browser. Pe iPhone e și singurul drum spre notificări.
+ *
+ * ⚠️ iPad-ul care se dă drept Mac (vezi `sistemDesktop`) e prins aici după ecranul tactil.
+ */
+export function sistemTelefon(): Telefon | null {
+  if (typeof navigator === "undefined") return null;
+  const ua = navigator.userAgent;
+  if (/iPhone|iPod/.test(ua)) return "iphone";
+  if (/iPad/.test(ua)) return "ipad";
+  if (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) return "ipad";
+  if (/Android/.test(ua)) return "android";
+  return null;
+}
+
+/** Samsung Internet are meniul jos și alt drum spre ecranul principal decât Chrome. */
+export function esteSamsung(): boolean {
+  return /SamsungBrowser\//.test(navigator.userAgent);
 }
 
 /** Ce browser, doar cât să alegem pașii potriviți când nu putem deschide fereastra direct. */
@@ -131,9 +155,11 @@ export function contInHub(): boolean {
 }
 
 export const instalare = {
-  /** Butonul se arată doar pe Windows/Mac, în browser, cât hub-ul nu rulează deja ca aplicație. */
+  /** Butonul se arată pe Windows/Mac și pe telefon, în browser, cât hub-ul nu e deja aplicație. */
   vizibil: () =>
-    !instalata() && !inAplicatieNativa() && sistemDesktop() !== null,
+    !instalata() &&
+    !inAplicatieNativa() &&
+    (sistemDesktop() !== null || sistemTelefon() !== null),
   /** Browserul ne-a dat voie să deschidem fereastra lui de instalare. */
   directa: () => eveniment() !== null,
   /** Deschide fereastra de instalare a browserului. `false` = n-a fost posibil. */

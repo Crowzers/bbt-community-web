@@ -285,7 +285,8 @@ export function BaraSus(props: { compact?: boolean }) {
           "-webkit-app-region": "no-drag",
         }}
       >
-        <Show when={!props.compact}>
+        {/* Pe telefon, din bara asta rămâne doar butonul de instalare (cu tutorial unde nu se poate direct). */}
+        <Show when={!props.compact} fallback={<ButonInstalare compact />}>
           <CautareSus />
           <Clopotel />
           {/* BBT: „Instalează pe Windows/Mac", lângă cont. Se ascunde singur în rest. */}

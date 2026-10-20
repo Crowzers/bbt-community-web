@@ -9,7 +9,8 @@ import {
 
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
-import { browser, instalare, sistemDesktop } from "./instalare";
+import { TutorialInstalare } from "./TutorialInstalare";
+import { browser, instalare, sistemDesktop, sistemTelefon } from "./instalare";
 
 /**
  * BBT: butonul mare „Instalează pe Windows" / „Instalează pe Mac" din bara de sus, lângă cont
@@ -23,6 +24,10 @@ import { browser, instalare, sistemDesktop } from "./instalare";
  *   omul e într-un tab obișnuit) ⇒ clicul deschide un mic panou cu pașii. Fără panoul ăsta, butonul
  *   ar fi părut stricat exact pentru cine are deja aplicația.
  *
+ * Pe telefon și tabletă (20 oct 2026), aceeași regulă: instalarea directă când browserul o permite
+ * (Chrome pe Android), altfel panoul cu pașii de jos în sus, `TutorialInstalare.tsx`. Pe telefon
+ * butonul stă în bara de sus a listei de canale (`compact`), mai mic.
+ *
  * Roz, fiindcă e o acțiune („roz înseamnă click", regula de pe site), cu text NEGRU (alb pe roz =
  * 1,6:1). Înălțimea 44px, ca o pastilă: cât caseta de cont de lângă (avatar 34 + 2×6 + chenar),
  * ca să stea pe aceeași linie fără să se întindă una pe alta.
@@ -33,10 +38,13 @@ const ROZ_INTENS = "#B85C86";
 const LINIE = "rgba(255,255,255,0.08)";
 const FOAIE = "#141414";
 
-export function ButonInstalare() {
+export function ButonInstalare(props: { compact?: boolean }) {
   const sistem = sistemDesktop();
+  const telefon = sistemTelefon();
   const [pasi, setPasi] = createSignal(false);
+  const [tutorial, setTutorial] = createSignal(false);
   const [lat, setLat] = createSignal(true);
+  const [incape, setIncape] = createSignal(true);
   let cutie: HTMLDivElement | undefined;
 
   onMount(() => {
@@ -46,6 +54,12 @@ export function ButonInstalare() {
     const aplica = () => setLat(mq.matches);
     aplica();
     mq.addEventListener("change", aplica);
+    // Sub 370px (Android-urile de 360) „Instalează" nu mai încape lângă siglă și cont:
+    // rămâne doar iconița.
+    const mqTelefon = window.matchMedia("(min-width: 370px)");
+    const aplicaTelefon = () => setIncape(mqTelefon.matches);
+    aplicaTelefon();
+    mqTelefon.addEventListener("change", aplicaTelefon);
 
     const afara = (e: PointerEvent) => {
       if (cutie && !cutie.contains(e.target as Node)) setPasi(false);
@@ -55,16 +69,25 @@ export function ButonInstalare() {
     document.addEventListener("keydown", esc);
     onCleanup(() => {
       mq.removeEventListener("change", aplica);
+      mqTelefon.removeEventListener("change", aplicaTelefon);
       document.removeEventListener("pointerdown", afara);
       document.removeEventListener("keydown", esc);
     });
   });
 
   const numeSistem = sistem === "mac" ? "Mac" : "Windows";
+  const text = () => {
+    if (telefon) {
+      if (props.compact) return incape() ? "Instalează" : "";
+      return "Instalează aplicația";
+    }
+    return lat() ? `Instalează pe ${numeSistem}` : "Instalează";
+  };
 
   async function apasa() {
     if (instalare.directa() && (await instalare.porneste())) return;
-    setPasi((p) => !p);
+    if (telefon) setTutorial(true);
+    else setPasi((p) => !p);
   }
 
   return (
@@ -77,20 +100,30 @@ export function ButonInstalare() {
           type="button"
           onClick={apasa}
           aria-expanded={instalare.directa() ? undefined : pasi()}
-          title={`Instalează BBT Community pe ${numeSistem}`}
+          aria-label={telefon ? "Instalează BBT Community" : undefined}
+          title={
+            telefon ? undefined : `Instalează BBT Community pe ${numeSistem}`
+          }
           style={{
             display: "flex",
             "align-items": "center",
-            gap: "8px",
-            height: "44px",
-            padding: "0 20px 0 16px",
+            "justify-content": "center",
+            gap: props.compact ? "6px" : "8px",
+            height: props.compact ? "34px" : "44px",
+            "min-width": props.compact ? "34px" : undefined,
+            "box-sizing": "border-box",
+            padding: props.compact
+              ? text()
+                ? "0 14px 0 10px"
+                : "0"
+              : "0 20px 0 16px",
             "border-radius": "999px",
             border: "0",
             background: pasi() ? ROZ_INTENS : ROZ,
             color: "#000",
             cursor: "pointer",
             "font-family": "inherit",
-            "font-size": "14px",
+            "font-size": props.compact ? "13px" : "14px",
             "font-weight": 700,
             "white-space": "nowrap",
           }}
@@ -99,9 +132,16 @@ export function ButonInstalare() {
             (e.currentTarget.style.background = pasi() ? ROZ_INTENS : ROZ)
           }
         >
-          <Symbol size={20}>download</Symbol>
-          {lat() ? `Instalează pe ${numeSistem}` : "Instalează"}
+          <Symbol size={props.compact ? 18 : 20}>download</Symbol>
+          {text()}
         </button>
+
+        <Show when={tutorial() && telefon}>
+          <TutorialInstalare
+            telefon={telefon!}
+            laInchidere={() => setTutorial(false)}
+          />
+        </Show>
 
         <Show when={pasi()}>
           <div
