@@ -4,6 +4,7 @@ import { useClient } from "@revolt/client";
 import { useNavigate } from "@revolt/routing";
 
 import { BBT_SITE_URL } from "./config";
+import { tintaSite } from "./instalare";
 
 /**
  * Pagina de start din BBT Community: duce direct în serverul BBT.
@@ -47,6 +48,8 @@ export function Acasa() {
         </p>
         <a
           href={BBT_SITE_URL}
+          target={tintaSite()}
+          rel="noopener"
           style={{ color: "inherit", "text-decoration": "underline" }}
         >
           Înapoi la BBT

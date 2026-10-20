@@ -35,9 +35,10 @@ import {
 import { VoiceStatus } from "@revolt/ui/components/design/VoiceStatus";
 import { Tooltip } from "@revolt/ui/components/floating";
 
+import { BBT_SITE_URL, ICONITA_BBT } from "../../../bbt/config";
+import { tintaSite } from "../../../bbt/instalare";
 import { UserMenu } from "./UserMenu";
 import { RailEntry, createRailDrag } from "./railDrag";
-import { BBT_SITE_URL, ICONITA_BBT } from "../../../bbt/config";
 
 interface Props {
   /**
@@ -464,8 +465,17 @@ export const ServerList = (props: Props) => {
       </Shadow>
       {/* BBT: drumul înapoi pe site (tabere, cursuri, profil). */}
       <Tooltip placement="right" content="Înapoi la BBT">
-        <a class={entryContainer()} href={BBT_SITE_URL}>
-          <Avatar size={42} fallback={<Symbol fill>arrow_back</Symbol>} interactive />
+        <a
+          class={entryContainer()}
+          href={BBT_SITE_URL}
+          target={tintaSite()}
+          rel="noopener"
+        >
+          <Avatar
+            size={42}
+            fallback={<Symbol fill>arrow_back</Symbol>}
+            interactive
+          />
         </a>
       </Tooltip>
       <Tooltip placement="right" content="Settings">

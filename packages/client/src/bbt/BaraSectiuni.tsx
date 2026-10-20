@@ -5,6 +5,7 @@ import { useLocation, useNavigate, useParams } from "@revolt/routing";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { BBT_SITE_URL } from "./config";
+import { tintaSite } from "./instalare";
 
 /**
  * Bara de secțiuni a BBT Community — meniul principal, la fel oriunde ai fi (modelul TRW: Chat,
@@ -195,6 +196,8 @@ export function BaraSectiuni(props: {
       </Show>
       <a
         href={BBT_SITE_URL}
+        target={tintaSite()}
+        rel="noopener"
         style={{
           ...stilElement(false),
           ...(props.orizontal ? {} : { "margin-bottom": "10px" }),

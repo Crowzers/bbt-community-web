@@ -89,6 +89,16 @@ function inAplicatieNativa() {
   return Boolean(w.bbtDesktop || w.Capacitor?.isNativePlatform?.());
 }
 
+/**
+ * Legătura spre site, după cum rulează hub-ul (cererea userului, 20 oct 2026). În browser, „Site"
+ * duce pe site în același tab, ca până acum. În aplicația instalată, se deschide în browser: altfel
+ * site-ul s-ar fi încărcat ÎN fereastra aplicației, iar omul ar fi rămas pe marketing, fără drum
+ * înapoi în Community.
+ */
+export function tintaSite(): "_blank" | undefined {
+  return instalata() ? "_blank" : undefined;
+}
+
 export const instalare = {
   /** Butonul se arată doar pe Windows/Mac, în browser, cât hub-ul nu rulează deja ca aplicație. */
   vizibil: () =>

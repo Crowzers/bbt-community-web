@@ -5,7 +5,8 @@ import { State, TransitionType } from "@revolt/client/Controller";
 import { useNavigate } from "@revolt/routing";
 import { useState } from "@revolt/state";
 
-import { BBT_ADMIN_URL, BBT_INTRARE } from "./config";
+import { PanouLogin } from "./PanouLogin";
+import { BBT_ADMIN_URL } from "./config";
 
 /**
  * 🔴 **„Logat" la Stoat înseamnă CONECTAT, nu „am o sesiune".** `isLoggedIn` e adevărat doar în
@@ -17,33 +18,12 @@ import { BBT_ADMIN_URL, BBT_INTRARE } from "./config";
  */
 
 /**
- * Plasa de siguranță împotriva oricărei bucle site ↔ Community: la a treia trimitere spre site în
- * două minute, ne oprim și spunem ce se întâmplă, în loc să rotim browserul la nesfârșit.
+ * ⚠️ Până pe 20 oct 2026 aici era o plasă împotriva buclei site ↔ Community (la a treia trimitere
+ * spre site în două minute, ne opream). Bucla era posibilă fiindcă `/login` și `/sso` fără cod
+ * trimiteau SINGURE browserul pe site. Acum nu mai trimite nimic automat pe site: fără sesiune,
+ * omul vede panoul de login din hub (`PanouLogin.tsx`). Site-ul se deschide doar la un clic.
+ * Dacă reintroduci o trimitere automată spre site, pune și plasa înapoi.
  */
-const CHEIE_BUCLA = "bbt-sso-trimiteri";
-const FEREASTRA_MS = 120_000;
-const MAX_TRIMITERI = 3;
-
-function trimiteLaSite(): boolean {
-  let trimiteri: number[] = [];
-  try {
-    trimiteri = JSON.parse(sessionStorage.getItem(CHEIE_BUCLA) ?? "[]");
-  } catch {
-    trimiteri = [];
-  }
-  const acum = Date.now();
-  trimiteri = trimiteri.filter((t) => acum - t < FEREASTRA_MS);
-  if (trimiteri.length >= MAX_TRIMITERI) return false;
-  trimiteri.push(acum);
-  try {
-    sessionStorage.setItem(CHEIE_BUCLA, JSON.stringify(trimiteri));
-  } catch {
-    // fără sessionStorage nu avem plasă — dar nici nu blocăm intrarea din cauza asta
-  }
-  window.location.replace(BBT_INTRARE);
-  return true;
-}
-
 /**
  * Unde intră omul după SSO: `spre` din fragment, pus de admin când linkul de pe site cerea un loc
  * anume (mesajele, conversația cu cineva). Doar formele cunoscute — orice altceva = acasă, ca un
@@ -56,17 +36,6 @@ function citesteDestinatia(fragment: URLSearchParams) {
     ? spre
     : "/";
 }
-
-function uitaTrimiterile() {
-  try {
-    sessionStorage.removeItem(CHEIE_BUCLA);
-  } catch {
-    // nimic de făcut
-  }
-}
-
-const MESAJ_BUCLA =
-  "Nu reușim să te conectăm la Community. Încearcă din nou peste un minut sau scrie-ne la contact@beanbagtheory.ro.";
 
 function Ecran(props: { eroare: string | null; text: string }) {
   return (
@@ -89,8 +58,7 @@ function Ecran(props: { eroare: string | null; text: string }) {
       >
         <p style={{ "max-width": "420px" }}>{props.eroare}</p>
         <a
-          href={BBT_INTRARE}
-          onClick={uitaTrimiterile}
+          href="/login"
           style={{ color: "inherit", "text-decoration": "underline" }}
         >
           Încearcă din nou
@@ -154,7 +122,6 @@ export default function Sso() {
   createEffect(() => {
     if (!astept()) return;
     if (isLoggedIn()) {
-      uitaTrimiterile();
       navigate(destinatie, { replace: true });
     } else if (lifecycle.state() === State.Error) {
       setAstept(false);
@@ -170,8 +137,9 @@ export default function Sso() {
     citesteDestinatia(fragment);
     window.history.replaceState(null, "", "/sso");
 
+    // Fără cod (adresă tastată, semn de carte) = la panoul de login, nu pe site.
     if (!cod) {
-      if (!trimiteLaSite()) setEroare(MESAJ_BUCLA);
+      navigate("/login", { replace: true });
       return;
     }
 
@@ -183,8 +151,8 @@ export default function Sso() {
       });
 
       if (raspuns.status === 401) {
-        // Cod expirat sau deja folosit (ex. pagină reîncărcată): o intrare nouă îl rezolvă singură.
-        if (!trimiteLaSite()) setEroare(MESAJ_BUCLA);
+        // Cod expirat sau deja folosit (ex. pagină reîncărcată): din panou, omul intră din nou.
+        navigate("/login", { replace: true });
         return;
       }
       if (raspuns.status === 403) {
@@ -214,7 +182,6 @@ export default function Sso() {
       if (curenta && isLoggedIn()) {
         if (curenta.userId === s.userId) {
           // Același om, deja conectat: sesiunea nouă e în plus, dar inofensivă. Intră direct.
-          uitaTrimiterile();
           navigate(destinatie, { replace: true });
           return;
         }
@@ -232,30 +199,34 @@ export default function Sso() {
 }
 
 /**
- * Înlocuiește login-ul cu parolă al Stoat: aici nu există parole (conturile sunt create și
- * deschise de podul BBT).
+ * Înlocuiește login-ul cu parolă al Stoat. Nu cere contul Stoat (ascuns, cu parola derivată în
+ * admin), ci contul BBT: `PanouLogin.tsx` (20 oct 2026, cererea userului: hub-ul să meargă singur,
+ * și în browser, și instalat).
  *
- * ⚠️ NU pleacă spre site din prima. Interfața trimite la `/login` și cât timp clientul încă se
- * CONECTEAZĂ cu o sesiune bună (`LoggingIn`, la pornirea aplicației cu o sesiune salvată). Pleacă
- * doar când e limpede că nu există sesiune (`Ready`) sau că cea existentă a picat (`Error`); dacă
- * între timp se conectează, se întoarce în interfață.
+ * ⚠️ Panoul apare doar când e limpede că nu există sesiune (`Ready`) sau că cea existentă a picat
+ * (`Error`). Interfața trimite la `/login` și cât timp clientul încă se CONECTEAZĂ cu o sesiune
+ * bună (`LoggingIn`, la pornirea aplicației cu o sesiune salvată); acolo formularul ar clipi o
+ * clipă peste un om deja logat. Dacă între timp se conectează, se întoarce în interfață.
  */
 export function BbtLogin() {
   const navigate = useNavigate();
   const { lifecycle, isLoggedIn } = useClientLifecycle();
-  const [eroare, setEroare] = createSignal<string | null>(null);
 
   createEffect(() => {
-    if (eroare()) return;
-    if (isLoggedIn()) {
-      navigate("/", { replace: true });
-      return;
-    }
-    const s = lifecycle.state();
-    if (s === State.Ready || s === State.Error) {
-      if (!trimiteLaSite()) setEroare(MESAJ_BUCLA);
-    }
+    if (isLoggedIn()) navigate("/", { replace: true });
   });
 
-  return <Ecran eroare={eroare()} text="Se conectează…" />;
+  const faraSesiune = () => {
+    const s = lifecycle.state();
+    return !isLoggedIn() && (s === State.Ready || s === State.Error);
+  };
+
+  return (
+    <Show
+      when={faraSesiune()}
+      fallback={<Ecran eroare={null} text="Se conectează…" />}
+    >
+      <PanouLogin />
+    </Show>
+  );
 }
