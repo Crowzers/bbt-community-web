@@ -83,6 +83,33 @@ export interface BiletWorkshop {
   };
 }
 
+export interface WishlistItem {
+  campId: string;
+  camp: {
+    id: string;
+    slug?: string;
+    nume: string;
+    dataStart: string;
+    locatie: string;
+    pretTransa1: number;
+    statusPublic?: string;
+  };
+}
+
+/**
+ * ⚠️ Câmpurile sunt INSTANTANEUL de pe act (`titluCurs`, `formator`), nu date citite din curs:
+ * dacă un curs se redenumește, diploma emisă spune tot ce scrie pe PDF.
+ */
+export interface Diploma {
+  cod: string;
+  titluCurs: string;
+  formator: string;
+  dataEmitere: string;
+  prezente: number;
+  intalniriLuate: number;
+  urlPdf: string | null;
+}
+
 export interface Participant {
   id: string;
   numeComplet: string;
@@ -93,4 +120,6 @@ export interface Participant {
   inscrieri?: Inscriere[];
   inscrieriCurs?: InscriereCurs[];
   bileteWorkshop?: BiletWorkshop[];
+  wishlistItems?: WishlistItem[];
+  diplome?: Diploma[];
 }

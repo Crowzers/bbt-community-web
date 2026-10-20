@@ -116,6 +116,7 @@ export function ButonRoz(props: {
   children: JSX.Element;
   onClick?: () => void;
   href?: string;
+  target?: string;
   dezactivat?: boolean;
   lat?: boolean;
 }) {
@@ -152,7 +153,13 @@ export function ButonRoz(props: {
         </button>
       }
     >
-      <a href={props.href} style={stil()} onClick={() => props.onClick?.()}>
+      <a
+        href={props.href}
+        target={props.target}
+        rel={props.target ? "noopener" : undefined}
+        style={stil()}
+        onClick={() => props.onClick?.()}
+      >
         {props.children}
       </a>
     </Show>

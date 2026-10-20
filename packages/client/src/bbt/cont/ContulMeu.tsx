@@ -9,11 +9,13 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 import { BBT_SITE_URL } from "../config";
 
 import { useCont } from "./date";
+import { Diplome } from "./Diplome";
 import { MyCamps } from "./MyCamps";
 import { MyCourses } from "./MyCourses";
 import { MyWorkshops } from "./MyWorkshops";
 import { Plati } from "./Plati";
 import { C } from "./ui";
+import { Wishlist } from "./Wishlist";
 
 /**
  * BBT: „Contul meu" în hub, `/cont/:pagina`. Design: `2026-10-20-hub-standalone-cont-design.md`.
@@ -44,7 +46,6 @@ const ACTIVITATE: Rand[] = [
     pagina: "diplome",
     nume: "Diplomele mele",
     simbol: "workspace_premium",
-    siteUrl: "/dashboard/diplome",
   },
 ];
 
@@ -58,7 +59,6 @@ const CONT: Rand[] = [
     pagina: "wishlist",
     nume: "Wishlist",
     simbol: "favorite",
-    siteUrl: "/dashboard/wishlist",
   },
   {
     pagina: "setari",
@@ -73,6 +73,8 @@ const PAGINI: Record<string, () => JSX.Element> = {
   workshops: MyWorkshops,
   cursuri: MyCourses,
   plati: Plati,
+  wishlist: Wishlist,
+  diplome: Diplome,
 };
 
 /** Paginile deja rescrise în hub. Meniul de cont din `BaraSus` le deschide aici, restul pe site. */
