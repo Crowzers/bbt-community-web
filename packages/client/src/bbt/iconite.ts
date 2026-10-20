@@ -84,6 +84,7 @@ import i_list_ordered from "lucide-static/icons/list-ordered.svg?raw";
 import i_lock from "lucide-static/icons/lock.svg?raw";
 import i_log_out from "lucide-static/icons/log-out.svg?raw";
 import i_mail from "lucide-static/icons/mail.svg?raw";
+import i_map_pin from "lucide-static/icons/map-pin.svg?raw";
 import i_maximize from "lucide-static/icons/maximize.svg?raw";
 import i_maximize_2 from "lucide-static/icons/maximize-2.svg?raw";
 import i_megaphone from "lucide-static/icons/megaphone.svg?raw";
@@ -99,6 +100,7 @@ import i_minimize_2 from "lucide-static/icons/minimize-2.svg?raw";
 import i_minus from "lucide-static/icons/minus.svg?raw";
 import i_monitor from "lucide-static/icons/monitor.svg?raw";
 import i_moon from "lucide-static/icons/moon.svg?raw";
+import i_music from "lucide-static/icons/music.svg?raw";
 import i_notebook_pen from "lucide-static/icons/notebook-pen.svg?raw";
 import i_palette from "lucide-static/icons/palette.svg?raw";
 import i_pencil from "lucide-static/icons/pencil.svg?raw";
@@ -108,6 +110,8 @@ import i_phone_off from "lucide-static/icons/phone-off.svg?raw";
 import i_pin from "lucide-static/icons/pin.svg?raw";
 import i_play from "lucide-static/icons/play.svg?raw";
 import i_plus from "lucide-static/icons/plus.svg?raw";
+import i_qr_code from "lucide-static/icons/qr-code.svg?raw";
+import i_receipt from "lucide-static/icons/receipt.svg?raw";
 import i_rectangle_ellipsis from "lucide-static/icons/rectangle-ellipsis.svg?raw";
 import i_refresh_cw from "lucide-static/icons/refresh-cw.svg?raw";
 import i_reply from "lucide-static/icons/reply.svg?raw";
@@ -128,6 +132,7 @@ import i_square from "lucide-static/icons/square.svg?raw";
 import i_square_check from "lucide-static/icons/square-check.svg?raw";
 import i_star from "lucide-static/icons/star.svg?raw";
 import i_tent from "lucide-static/icons/tent.svg?raw";
+import i_ticket from "lucide-static/icons/ticket.svg?raw";
 import i_timer from "lucide-static/icons/timer.svg?raw";
 import i_timer_off from "lucide-static/icons/timer-off.svg?raw";
 import i_trash from "lucide-static/icons/trash.svg?raw";
@@ -141,6 +146,7 @@ import i_users from "lucide-static/icons/users.svg?raw";
 import i_users_round from "lucide-static/icons/users-round.svg?raw";
 import i_video from "lucide-static/icons/video.svg?raw";
 import i_volume_2 from "lucide-static/icons/volume-2.svg?raw";
+import i_wallet from "lucide-static/icons/wallet.svg?raw";
 import i_webhook from "lucide-static/icons/webhook.svg?raw";
 import i_wrench from "lucide-static/icons/wrench.svg?raw";
 import i_x from "lucide-static/icons/x.svg?raw";
@@ -232,6 +238,7 @@ export const SVG_LUCIDE: Record<string, string> = {
   "lock": i_lock,
   "log-out": i_log_out,
   "mail": i_mail,
+  "map-pin": i_map_pin,
   "maximize": i_maximize,
   "maximize-2": i_maximize_2,
   "megaphone": i_megaphone,
@@ -247,6 +254,7 @@ export const SVG_LUCIDE: Record<string, string> = {
   "minus": i_minus,
   "monitor": i_monitor,
   "moon": i_moon,
+  "music": i_music,
   "notebook-pen": i_notebook_pen,
   "palette": i_palette,
   "pencil": i_pencil,
@@ -256,6 +264,8 @@ export const SVG_LUCIDE: Record<string, string> = {
   "pin": i_pin,
   "play": i_play,
   "plus": i_plus,
+  "qr-code": i_qr_code,
+  "receipt": i_receipt,
   "rectangle-ellipsis": i_rectangle_ellipsis,
   "refresh-cw": i_refresh_cw,
   "reply": i_reply,
@@ -276,6 +286,7 @@ export const SVG_LUCIDE: Record<string, string> = {
   "square-check": i_square_check,
   "star": i_star,
   "tent": i_tent,
+  "ticket": i_ticket,
   "timer": i_timer,
   "timer-off": i_timer_off,
   "trash": i_trash,
@@ -289,6 +300,7 @@ export const SVG_LUCIDE: Record<string, string> = {
   "users-round": i_users_round,
   "video": i_video,
   "volume-2": i_volume_2,
+  "wallet": i_wallet,
   "webhook": i_webhook,
   "wrench": i_wrench,
   "x": i_x,

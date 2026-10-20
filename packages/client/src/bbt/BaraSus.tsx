@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/solid-query";
 
 import { useClient, useClientLifecycle } from "@revolt/client";
 import { useModals } from "@revolt/modal";
+import { useNavigate } from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { Avatar } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
@@ -13,6 +14,8 @@ import Wordmark from "../../public/assets/web/wordmark.svg?component-solid";
 import { ButonInstalare } from "./ButonInstalare";
 import { CautareSus, Clopotel } from "./CautareSiAlerte";
 import { BBT_ADMIN_URL, BBT_SITE_URL } from "./config";
+import { PAGINI_IN_HUB } from "./cont/ContulMeu";
+import { contInHub } from "./instalare";
 
 /**
  * Bara de sus a BBT Community — copia barei din Community-ul vechi
@@ -48,20 +51,55 @@ const LINIE = "rgba(255,255,255,0.08)";
 const FOAIE = "#141414";
 
 /** Aceleași rânduri ca meniul de cont al site-ului (`website/src/lib/dashboardNavItems.ts`). */
+/**
+ * `pagina` = ruta din hub (`/cont/<pagina>`, `cont/ContulMeu.tsx`). Când hub-ul rulează instalat și
+ * pagina e deja rescrisă acolo, rândul o deschide în aplicație; altfel, pagina de pe site.
+ */
 const ACTIVITATE = [
-  { href: "/dashboard/mycamps", nume: "My Camps", simbol: "camping" },
-  { href: "/dashboard/workshops", nume: "My Workshops", simbol: "bolt" },
-  { href: "/dashboard/cursuri", nume: "My Courses", simbol: "school" },
+  {
+    href: "/dashboard/mycamps",
+    pagina: "mycamps",
+    nume: "My Camps",
+    simbol: "camping",
+  },
+  {
+    href: "/dashboard/workshops",
+    pagina: "workshops",
+    nume: "My Workshops",
+    simbol: "bolt",
+  },
+  {
+    href: "/dashboard/cursuri",
+    pagina: "cursuri",
+    nume: "My Courses",
+    simbol: "school",
+  },
   {
     href: "/dashboard/diplome",
+    pagina: "diplome",
     nume: "Diplomele mele",
     simbol: "workspace_premium",
   },
 ];
 const CONT = [
-  { href: "/dashboard/plati", nume: "Plățile mele", simbol: "payments" },
-  { href: "/dashboard/wishlist", nume: "Wishlist", simbol: "favorite" },
-  { href: "/dashboard/setari", nume: "Setări cont", simbol: "settings" },
+  {
+    href: "/dashboard/plati",
+    pagina: "plati",
+    nume: "Plățile mele",
+    simbol: "payments",
+  },
+  {
+    href: "/dashboard/wishlist",
+    pagina: "wishlist",
+    nume: "Wishlist",
+    simbol: "favorite",
+  },
+  {
+    href: "/dashboard/setari",
+    pagina: "setari",
+    nume: "Setări cont",
+    simbol: "settings",
+  },
 ];
 
 export function BaraSus(props: { compact?: boolean }) {
@@ -69,6 +107,7 @@ export function BaraSus(props: { compact?: boolean }) {
   const state = useState();
   const { logout } = useClientLifecycle();
   const { openModal } = useModals();
+  const navigate = useNavigate();
 
   const [meniu, setMeniu] = createSignal(false);
   let inchidere: ReturnType<typeof setTimeout> | undefined;
@@ -126,16 +165,34 @@ export function BaraSus(props: { compact?: boolean }) {
   const Grup = (p: { linkuri: typeof ACTIVITATE }) => (
     <For each={p.linkuri}>
       {(l) => (
-        <a
-          href={`${site()}${l.href}`}
-          target="_blank"
-          rel="noopener"
-          onClick={() => setMeniu(false)}
-          style={randMeniu}
+        <Show
+          when={contInHub() && PAGINI_IN_HUB.has(l.pagina)}
+          fallback={
+            <a
+              href={`${site()}${l.href}`}
+              target="_blank"
+              rel="noopener"
+              onClick={() => setMeniu(false)}
+              style={randMeniu}
+            >
+              <Symbol size={15}>{l.simbol}</Symbol>
+              {l.nume}
+            </a>
+          }
         >
-          <Symbol size={15}>{l.simbol}</Symbol>
-          {l.nume}
-        </a>
+          <a
+            href={`/cont/${l.pagina}`}
+            onClick={(e) => {
+              e.preventDefault();
+              setMeniu(false);
+              navigate(`/cont/${l.pagina}`);
+            }}
+            style={randMeniu}
+          >
+            <Symbol size={15}>{l.simbol}</Symbol>
+            {l.nume}
+          </a>
+        </Show>
       )}
     </For>
   );

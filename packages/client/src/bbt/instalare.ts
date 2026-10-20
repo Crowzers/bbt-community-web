@@ -99,6 +99,25 @@ export function tintaSite(): "_blank" | undefined {
   return instalata() ? "_blank" : undefined;
 }
 
+/**
+ * Contul BBT (My Camps, plăți, setări) se deschide ÎN hub doar când hub-ul rulează instalat
+ * (decizia #6 din `2026-10-20-hub-standalone-cont-design.md`). În browser, site-ul e la un tab
+ * distanță, iar meniul de cont duce acolo, ca până acum.
+ *
+ * ⚠️ În dezvoltare, `localStorage["bbt-ca-aplicatie"] = "1"` face browserul să se poarte ca aplicația
+ * instalată, ca să se poată verifica contul fără instalare. `import.meta.env.DEV` e fals în build,
+ * deci pe producție cheia nu face nimic.
+ */
+export function contInHub(): boolean {
+  if (instalata()) return true;
+  if (!import.meta.env.DEV) return false;
+  try {
+    return localStorage.getItem("bbt-ca-aplicatie") === "1";
+  } catch {
+    return false;
+  }
+}
+
 export const instalare = {
   /** Butonul se arată doar pe Windows/Mac, în browser, cât hub-ul nu rulează deja ca aplicație. */
   vizibil: () =>
