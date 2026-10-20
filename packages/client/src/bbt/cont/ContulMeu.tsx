@@ -14,6 +14,7 @@ import { MyCamps } from "./MyCamps";
 import { MyCourses } from "./MyCourses";
 import { MyWorkshops } from "./MyWorkshops";
 import { Plati } from "./Plati";
+import { Setari } from "./Setari";
 import { C } from "./ui";
 import { Wishlist } from "./Wishlist";
 
@@ -64,7 +65,6 @@ const CONT: Rand[] = [
     pagina: "setari",
     nume: "Setări cont",
     simbol: "settings",
-    siteUrl: "/dashboard/setari",
   },
 ];
 
@@ -75,6 +75,7 @@ const PAGINI: Record<string, () => JSX.Element> = {
   plati: Plati,
   wishlist: Wishlist,
   diplome: Diplome,
+  setari: Setari,
 };
 
 /** Paginile deja rescrise în hub. Meniul de cont din `BaraSus` le deschide aici, restul pe site. */

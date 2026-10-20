@@ -1,4 +1,4 @@
-import { JSX, Show, createSignal } from "solid-js";
+import { For, JSX, Show, createSignal } from "solid-js";
 
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
@@ -114,6 +114,8 @@ export function Pastila(props: {
 /** Buton principal: roz, text negru. `href` = link (deschis în browser dacă e în afara hub-ului). */
 export function ButonRoz(props: {
   children: JSX.Element;
+  /** `submit` în formulare: Enter și clicul trimit formularul, fără cod în plus. */
+  tip?: "button" | "submit";
   onClick?: () => void;
   href?: string;
   target?: string;
@@ -144,7 +146,7 @@ export function ButonRoz(props: {
       when={props.href}
       fallback={
         <button
-          type="button"
+          type={props.tip ?? "button"}
           disabled={props.dezactivat}
           onClick={() => props.onClick?.()}
           style={stil()}
@@ -351,5 +353,235 @@ export function RandInfo(props: { simbol: string; children: JSX.Element }) {
       <Symbol size={14}>{props.simbol}</Symbol>
       {props.children}
     </span>
+  );
+}
+
+/* ── Formulare (Setări cont) ─────────────────────────────────────────────────────────────── */
+
+const stilCamp: JSX.CSSProperties = {
+  width: "100%",
+  height: "44px",
+  padding: "0 12px",
+  "box-sizing": "border-box",
+  "border-radius": "10px",
+  border: `1px solid ${C.linie}`,
+  background: "#0D0D0D",
+  color: C.text,
+  outline: "none",
+  "font-family": "inherit",
+  "font-size": "14.5px",
+};
+
+export function Eticheta2(props: { children: JSX.Element }) {
+  return (
+    <span
+      style={{
+        display: "block",
+        "margin-bottom": "6px",
+        color: C.stins,
+        "font-size": "12.5px",
+        "font-weight": 600,
+      }}
+    >
+      {props.children}
+    </span>
+  );
+}
+
+export function CampText(props: {
+  eticheta: JSX.Element;
+  valoare: string;
+  laSchimbare: (v: string) => void;
+  tip?: string;
+  placeholder?: string;
+  maxim?: number;
+  autocomplete?: string;
+  inputmode?: "numeric" | "tel" | "text";
+  inainte?: string;
+}) {
+  return (
+    <label style={{ display: "block" }}>
+      <Eticheta2>{props.eticheta}</Eticheta2>
+      <Show
+        when={props.inainte}
+        fallback={
+          <input
+            type={props.tip ?? "text"}
+            value={props.valoare}
+            placeholder={props.placeholder}
+            maxLength={props.maxim}
+            autocomplete={props.autocomplete}
+            inputMode={props.inputmode}
+            onInput={(e) => props.laSchimbare(e.currentTarget.value)}
+            style={stilCamp}
+          />
+        }
+      >
+        <div
+          style={{
+            ...stilCamp,
+            display: "flex",
+            "align-items": "center",
+            gap: "2px",
+          }}
+        >
+          <span style={{ color: C.slab }}>{props.inainte}</span>
+          <input
+            value={props.valoare}
+            placeholder={props.placeholder}
+            onInput={(e) => props.laSchimbare(e.currentTarget.value)}
+            style={{
+              "flex-grow": 1,
+              "min-width": 0,
+              height: "100%",
+              border: "0",
+              background: "transparent",
+              color: C.text,
+              outline: "none",
+              "font-family": "inherit",
+              "font-size": "14.5px",
+            }}
+          />
+        </div>
+      </Show>
+    </label>
+  );
+}
+
+export function CampAlege(props: {
+  eticheta: JSX.Element;
+  valoare: string;
+  laSchimbare: (v: string) => void;
+  optiuni: readonly (string | { valoare: string; text: string })[];
+  gol?: string;
+}) {
+  return (
+    <label style={{ display: "block" }}>
+      <Eticheta2>{props.eticheta}</Eticheta2>
+      <select
+        value={props.valoare}
+        onChange={(e) => props.laSchimbare(e.currentTarget.value)}
+        style={{ ...stilCamp, "color-scheme": "dark" }}
+      >
+        <Show when={props.gol}>
+          <option value="">{props.gol}</option>
+        </Show>
+        <For
+          each={props.optiuni as (string | { valoare: string; text: string })[]}
+        >
+          {(o) =>
+            typeof o === "string" ? (
+              <option value={o}>{o}</option>
+            ) : (
+              <option value={o.valoare}>{o.text}</option>
+            )
+          }
+        </For>
+      </select>
+    </label>
+  );
+}
+
+/** Cardul unei secțiuni din Setări: titlu mic sus, acțiune în dreapta (Editează / Anulează). */
+export function Sectiune(props: {
+  titlu: string;
+  actiune?: { text: string; laApasare: () => void };
+  pericol?: boolean;
+  children: JSX.Element;
+}) {
+  return (
+    <div
+      style={{
+        "border-radius": "16px",
+        border: `1px solid ${props.pericol ? "rgba(229,72,77,0.35)" : C.linie}`,
+        background: C.foaie,
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          "align-items": "center",
+          "justify-content": "space-between",
+          gap: "12px",
+          padding: "14px 18px",
+          "border-bottom": `1px solid ${C.linie}`,
+        }}
+      >
+        <Eticheta culoare={props.pericol ? C.rosu : undefined}>
+          {props.titlu}
+        </Eticheta>
+        <Show when={props.actiune}>
+          <button
+            type="button"
+            onClick={() => props.actiune!.laApasare()}
+            style={{
+              border: "0",
+              background: "transparent",
+              color: C.stins,
+              "font-family": "inherit",
+              "font-size": "13px",
+              "font-weight": 600,
+              cursor: "pointer",
+            }}
+          >
+            {props.actiune!.text}
+          </button>
+        </Show>
+      </div>
+      <div style={{ padding: "16px 18px" }}>{props.children}</div>
+    </div>
+  );
+}
+
+/** Rând „etichetă ... valoare" din cardurile de citit (Date personale, Date cont). */
+export function RandValoare(props: {
+  eticheta: string;
+  children: JSX.Element;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        "align-items": "center",
+        "justify-content": "space-between",
+        gap: "16px",
+        padding: "9px 0",
+        "border-top": `1px solid ${C.linie}`,
+      }}
+    >
+      <span style={{ color: C.stins, "font-size": "13px", "flex-shrink": 0 }}>
+        {props.eticheta}
+      </span>
+      <span
+        style={{
+          color: C.text,
+          "font-size": "14px",
+          "text-align": "right",
+          "min-width": 0,
+          "overflow-wrap": "anywhere",
+        }}
+      >
+        {props.children}
+      </span>
+    </div>
+  );
+}
+
+export function MesajSalvare(props: {
+  stare: { tip: "ok" | "err"; text: string } | null;
+}) {
+  return (
+    <Show when={props.stare}>
+      <span
+        role={props.stare!.tip === "err" ? "alert" : "status"}
+        style={{
+          color: props.stare!.tip === "ok" ? C.verde : C.rosu,
+          "font-size": "13px",
+        }}
+      >
+        {props.stare!.text}
+      </span>
+    </Show>
   );
 }

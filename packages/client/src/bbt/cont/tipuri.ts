@@ -117,6 +117,26 @@ export interface Participant {
   username: string | null;
   avatarUrl: string | null;
   phoneVerified: boolean;
+  emailVerified: boolean;
+  // Setări cont (Faza 6). Numele real e despărțit în prenume + nume; `numeComplet` se recompune din ele.
+  prenume: string | null;
+  numeFamilie: string | null;
+  telefon: string | null;
+  dataNasterii: string | null;
+  tara: string | null;
+  oras: string | null;
+  judet: string | null;
+  adresa: string | null;
+  gen: string | null;
+  // Facturarea: la persoană fizică factura merge pe numele și adresa de mai sus
+  // (`admin/lib/fgo.ts:clientFGODinParticipant`); câmpurile de mai jos contează doar la firmă.
+  tipPersoana: string | null;
+  denumireFacturare: string | null;
+  cuiFacturare: string | null;
+  nrRegCom: string | null;
+  adresaFacturare: string | null;
+  judetFacturare: string | null;
+  localitateFacturare: string | null;
   inscrieri?: Inscriere[];
   inscrieriCurs?: InscriereCurs[];
   bileteWorkshop?: BiletWorkshop[];
