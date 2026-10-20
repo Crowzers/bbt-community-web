@@ -100,6 +100,18 @@ export function tintaSite(): "_blank" | undefined {
 }
 
 /**
+ * Iconița de lângă „Site", pe aceeași regulă ca `tintaSite`. În browser săgeata „înapoi" spune
+ * adevărul: te întorci pe site, în același tab. În aplicația instalată nu te întorci nicăieri, ți se
+ * deschide site-ul în browser, deci globul web (cererea userului, 20 oct 2026).
+ *
+ * ⚠️ `public`, nu `language`: în `iconite-harta.json` `language` e iconița de traduceri din Lucide,
+ * iar globul e `public` → `globe`.
+ */
+export function simbolSite(): "public" | "arrow_back" {
+  return instalata() ? "public" : "arrow_back";
+}
+
+/**
  * Contul BBT (My Camps, plăți, setări) se deschide ÎN hub doar când hub-ul rulează instalat
  * (decizia #6 din `2026-10-20-hub-standalone-cont-design.md`). În browser, site-ul e la un tab
  * distanță, iar meniul de cont duce acolo, ca până acum.

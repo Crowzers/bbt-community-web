@@ -218,12 +218,26 @@ export function BaraSus(props: { compact?: boolean }) {
         color: "#fff",
       }}
     >
-      <div
+      {/* BBT: sigla duce mereu în chat, ca butonul Chat din `BaraSectiuni` (cererea userului,
+          20 oct 2026: „e mai natural așa"). Din cont, din mesaje, de oriunde. */}
+      <button
+        type="button"
+        aria-label="BBT Community, înapoi în chat"
+        onClick={() => {
+          const s = client().servers.toList()[0];
+          if (s) navigate(`/server/${s.id}`);
+        }}
         style={{
           display: "flex",
           "align-items": "center",
           gap: "12px",
           "min-width": 0,
+          padding: 0,
+          border: 0,
+          background: "transparent",
+          color: "inherit",
+          font: "inherit",
+          cursor: "pointer",
         }}
       >
         <Wordmark
@@ -245,7 +259,7 @@ export function BaraSus(props: { compact?: boolean }) {
         >
           Community
         </span>
-      </div>
+      </button>
 
       {/* BBT: căutarea în canal și clopoțelul, lângă cont (pânza TRW) — src/bbt/CautareSiAlerte.tsx. */}
       <div

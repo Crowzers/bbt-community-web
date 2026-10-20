@@ -5,7 +5,7 @@ import { useLocation, useNavigate, useParams } from "@revolt/routing";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { BBT_SITE_URL } from "./config";
-import { tintaSite } from "./instalare";
+import { simbolSite, tintaSite } from "./instalare";
 
 /**
  * Bara de secțiuni a BBT Community — meniul principal, la fel oriunde ai fi (modelul TRW: Chat,
@@ -203,7 +203,7 @@ export function BaraSectiuni(props: {
           ...(props.orizontal ? {} : { "margin-bottom": "10px" }),
         }}
       >
-        <Symbol size={props.orizontal ? 22 : 22}>arrow_back</Symbol>
+        <Symbol size={props.orizontal ? 22 : 22}>{simbolSite()}</Symbol>
         <span
           style={{
             "font-size": "11px",

@@ -36,7 +36,7 @@ import { VoiceStatus } from "@revolt/ui/components/design/VoiceStatus";
 import { Tooltip } from "@revolt/ui/components/floating";
 
 import { BBT_SITE_URL, ICONITA_BBT } from "../../../bbt/config";
-import { tintaSite } from "../../../bbt/instalare";
+import { simbolSite, tintaSite } from "../../../bbt/instalare";
 import { UserMenu } from "./UserMenu";
 import { RailEntry, createRailDrag } from "./railDrag";
 
@@ -473,7 +473,7 @@ export const ServerList = (props: Props) => {
         >
           <Avatar
             size={42}
-            fallback={<Symbol fill>arrow_back</Symbol>}
+            fallback={<Symbol fill>{simbolSite()}</Symbol>}
             interactive
           />
         </a>

@@ -104,14 +104,14 @@ export function ContulMeu() {
 
   // Pe desktop `/cont` simplu = My Camps; pe telefon = lista (vezi antetul).
   const pagina = () => params.pagina ?? (telefon() ? undefined : "mycamps");
-  const Pagina = () => {
-    const P = PAGINI[pagina() ?? ""];
-    return (
-      <Show when={P}>
-        <P />
-      </Show>
-    );
-  };
+  // ⚠️ `keyed`, ca pagina să se schimbe la fiecare rând apăsat. Varianta veche citea `pagina()` o
+  // singură dată, la montare, iar `<Match>` de mai jos nu se re-randează cât condiția rămâne
+  // adevărată: din My Camps pe Plăți se schimba adresa și rândul activ, dar conținutul rămânea.
+  const Pagina = () => (
+    <Show when={PAGINI[pagina() ?? ""]} keyed>
+      {(P) => <P />}
+    </Show>
+  );
 
   return (
     <div
