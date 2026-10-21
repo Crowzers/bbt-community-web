@@ -553,17 +553,34 @@ export function Messages(props: Props) {
      * Scroll to the nearest message (to the id) in history
      */
     const scrollToNearestMessage = () => {
-      const index = messagesWithTail().findIndex(
-        (entry) => entry.t === 0 && entry.message.id === messageId,
-      ); // use localeCompare
+      // BBT: id-ul nu e mereu al unui mesaj. Bara „New messages since…" sare la `lastId`, care e
+      // inventat (`ulid(ora ultimului mesaj - 1s)` în TextChannel) când mesajul vine cu aplicația
+      // nefocusată, sau e al unui mesaj șters. `findIndex` dădea -1, `children[-1]` era undefined,
+      // `scrollIntoView` arunca și `setFetching()` nu mai rula: `fetching` rămânea „jump_msg",
+      // ListView2 nu mai cerea nimic și rămâneau doar scheletele (22 oct 2026). Acum: mesajul
+      // exact sau primul de după el (primul necitit), altfel cel mai nou din listă.
+      const entries = messagesWithTail();
+      let index = entries.findIndex(
+        (entry) => entry.t === 0 && entry.message.id >= messageId,
+      );
+      if (index === -1) {
+        index = entries.findLastIndex((entry) => entry.t === 0);
+      }
+      if (index === -1) return;
 
-      listRef()!.children[index + (atStart() ? 1 : 0)].scrollIntoView({
+      listRef()?.children[index + (atStart() ? 1 : 0)]?.scrollIntoView({
         behavior: "smooth",
         block: "center",
       });
     };
 
-    if (messages().find((message) => message.id === messageId)) {
+    // BBT: dacă id-ul cade în mesajele deja încărcate, doar derulăm (și pentru un id inventat).
+    const incarcate = messages();
+    if (
+      incarcate.length &&
+      incarcate[incarcate.length - 1].id <= messageId &&
+      (messageId <= incarcate[0].id || atEnd())
+    ) {
       scrollToNearestMessage();
       return;
     }
@@ -585,22 +602,31 @@ export function Messages(props: Props) {
       // Cancel if we've been pre-empted
       if (preempted()) return;
 
-      // Assume we are somewhere in history
-      // NB. we could be clever here, but best not to be
-      setStart(false);
-      setEnd(false);
+      // BBT: aceeași regulă ca la caseInitialLoad — serverul dă cel mult `limit / 2 + 1` mesaje pe
+      // fiecare parte, deci mai puține = capătul canalului. Înainte se presupunea mereu „în mijlocul
+      // istoriei": într-un canal scurt apăreau schelete sus și jos și bara „Acum vezi mesajele vechi".
+      const peParte = Math.floor(FETCH_LIMIT / 2) + 1;
+      const maiVechi = messages.filter((msg) => msg.id < messageId).length;
+      const maiNoi = messages.length - maiVechi;
+      setStart(maiVechi < peParte);
+      setEnd(
+        maiNoi < peParte ||
+          messages.some((msg) => msg.id === props.channel.lastMessageId),
+      );
 
       // Replace the messages
       setMessagesSafely(messages);
 
       setTimeout(() => {
-        // Scroll to the message
-        scrollToNearestMessage();
-
-        // Mark as fetching has ended
-        setTimeout(() => {
-          setFetching();
-        }, 300 /* probably long enough for scroll to finish */);
+        try {
+          // Scroll to the message
+          scrollToNearestMessage();
+        } finally {
+          // Mark as fetching has ended
+          setTimeout(() => {
+            setFetching();
+          }, 300 /* probably long enough for scroll to finish */);
+        }
       });
     } catch {
       // Keep track of any failures (and allow retry / other actions)
