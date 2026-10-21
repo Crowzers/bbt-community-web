@@ -103,6 +103,7 @@ import i_moon from "lucide-static/icons/moon.svg?raw";
 import i_music from "lucide-static/icons/music.svg?raw";
 import i_notebook_pen from "lucide-static/icons/notebook-pen.svg?raw";
 import i_palette from "lucide-static/icons/palette.svg?raw";
+import i_pause from "lucide-static/icons/pause.svg?raw";
 import i_pencil from "lucide-static/icons/pencil.svg?raw";
 import i_pencil_line from "lucide-static/icons/pencil-line.svg?raw";
 import i_phone from "lucide-static/icons/phone.svg?raw";
@@ -259,6 +260,7 @@ export const SVG_LUCIDE: Record<string, string> = {
   "music": i_music,
   "notebook-pen": i_notebook_pen,
   "palette": i_palette,
+  "pause": i_pause,
   "pencil": i_pencil,
   "pencil-line": i_pencil_line,
   "phone": i_phone,

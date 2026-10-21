@@ -9,6 +9,9 @@ import { useModals } from "@revolt/modal";
 import { Column } from "@revolt/ui/components/layout";
 import { SizedContent, Spoiler } from "@revolt/ui/components/utils";
 
+import { BulaVocal } from "../../../../../../src/bbt/vocal/BulaVocal";
+import { durataVocal } from "../../../../../../src/bbt/vocal/nume";
+
 import { FileInfo } from "./FileInfo";
 import { TextFile } from "./TextFile";
 
@@ -33,6 +36,25 @@ export function Attachment(props: { file: File; message?: Message }) {
 
   return (
     <Switch fallback={`Could not render ${props.file.metadata.type}!`}>
+      {/* BBT: vocalul (după nume, ca în aplicația mobilă) = bulă mică, înaintea oricărui tip de la autumn. */}
+      <Match when={durataVocal(props.file.filename) !== null}>
+        <div
+          use:floating={{
+            contextMenu: () => (
+              <MessageContextMenu
+                message={props.message}
+                reactPicker={reactPicker}
+                file={props.file}
+              />
+            ),
+          }}
+        >
+          <BulaVocal
+            file={props.file}
+            durataMs={durataVocal(props.file.filename)!}
+          />
+        </div>
+      </Match>
       <Match when={props.file.metadata.type === "Image"}>
         <SizedContent
           width={(props.file.metadata as ImageEmbed).width}

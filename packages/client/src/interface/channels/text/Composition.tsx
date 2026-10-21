@@ -32,6 +32,14 @@ import {
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 import { useSearchSpace } from "@revolt/ui/components/utils/autoComplete";
 
+import {
+  BaraVocal,
+  ButonMicrofon,
+  poateInregistraVocal,
+  pornesteVocal,
+  SesiuneVocal,
+} from "../../../bbt/vocal/InregistrareVocal";
+
 interface Props {
   /**
    * Channel to compose for
@@ -327,6 +335,53 @@ export function MessageComposition(props: Props) {
     state.draft.toggleFileSpoiler(fileId);
   }
 
+  // BBT: vocalul. Microfonul stă în locul butonului de trimis cât câmpul e gol (ca la WhatsApp și în aplicația
+  // mobilă), iar cât se înregistrează bara de scris devine bara vocalului.
+  const [vocal, setVocal] = createSignal<SesiuneVocal>();
+  // Componenta rămâne aceeași când schimbi canalul: un vocal început în altă parte se anulează, nu pleacă aici.
+  createEffect(
+    on(
+      () => props.channel.id,
+      () => setVocal(undefined),
+      { defer: true },
+    ),
+  );
+  const aratMicrofon = () =>
+    canUploadFiles() &&
+    poateInregistraVocal() &&
+    !(draft()?.content ?? "").trim() &&
+    !draft()?.files?.length &&
+    !props.channel.userSlowmode() &&
+    !isTimedOut();
+
+  function eroareVocal(mesaj: string) {
+    const error = new Error(mesaj);
+    error.name = "Vocal";
+    openModal({ type: "error2", error });
+  }
+
+  async function incepeVocal() {
+    try {
+      setVocal(await pornesteVocal());
+    } catch {
+      eroareVocal(
+        "Nu avem acces la microfon. Dă-i voie hub-ului din setările browserului și mai încearcă.",
+      );
+    }
+  }
+
+  async function trimiteVocal(fisier: File) {
+    if (fisier.size > limits().file_upload_size_limits.attachments) {
+      return eroareVocal(
+        "Vocalul e prea lung ca să plece. Încearcă unul mai scurt.",
+      );
+    }
+    // Pleacă prin draft, ca orice fișier: răspunsul la care scrii (dacă e unul) merge odată cu vocalul.
+    await state.draft.addFile(props.channel.id, fisier);
+    props.onMessageSend?.();
+    void state.draft.sendDraft(client(), props.channel);
+  }
+
   const searchSpace = useSearchSpace(() => props.channel, client);
 
   return (
@@ -374,90 +429,111 @@ export function MessageComposition(props: Props) {
           );
         }}
       </For>
-      <MessageBox
-        initialValue={initialValue()}
-        nodeReplacement={nodeReplacement()}
-        onSendMessage={() => sendMessage()}
-        onTyping={delayedStopTyping}
-        onEditLastMessage={() => state.draft.setEditingMessage(true)}
-        content={draft()?.content ?? ""}
-        setContent={setContent}
-        actionsStart={
-          <Show
-            when={props.channel.havePermission("UploadFiles")}
-            fallback={<MessageBox.InlineIcon size="short" />}
-          >
-            <MessageBox.InlineIcon>
-              <IconButton onPress={addFile}>
-                <Symbol>add</Symbol>
-              </IconButton>
-            </MessageBox.InlineIcon>
-          </Show>
-        }
-        actionsEnd={
-          <MessageBox.ActionContainer column>
-            <Show when={isAlmostTooLong()}>
-              <MessageBox.FloatingAction
-                size="normal"
-                error={messageLength() > maxMessageLength()}
+      <Show
+        when={vocal()}
+        fallback={
+          <MessageBox
+            initialValue={initialValue()}
+            nodeReplacement={nodeReplacement()}
+            onSendMessage={() => sendMessage()}
+            onTyping={delayedStopTyping}
+            onEditLastMessage={() => state.draft.setEditingMessage(true)}
+            content={draft()?.content ?? ""}
+            setContent={setContent}
+            actionsStart={
+              <Show
+                when={props.channel.havePermission("UploadFiles")}
+                fallback={<MessageBox.InlineIcon size="short" />}
               >
-                {wayTooLong()
-                  ? "Too Long"
-                  : maxMessageLength() - messageLength()}
-              </MessageBox.FloatingAction>
-            </Show>
-            <MessageBox.ActionContainer>
-              <CompositionMediaPicker
-                onMessage={sendMessage}
-                onTextReplacement={(text) => setNodeReplacement([text])}
-                channel={props.channel}
-              >
-                {(triggerProps) => (
-                  <>
-                    {/* BBT: fără butonul GIF (cererea userului, 5 oct 2026). */}
-                    <MessageBox.InlineIcon>
-                      <IconButton onPress={triggerProps.onClickEmoji}>
-                        <Symbol>mood</Symbol>
-                      </IconButton>
-                    </MessageBox.InlineIcon>
-                    <div ref={triggerProps.ref} />
-                  </>
-                )}
-              </CompositionMediaPicker>
-              {/* BBT: butonul de trimis stă ÎN casetă, mereu (pânza TRW) — nu mai depinde de
+                <MessageBox.InlineIcon>
+                  <IconButton onPress={addFile}>
+                    <Symbol>add</Symbol>
+                  </IconButton>
+                </MessageBox.InlineIcon>
+              </Show>
+            }
+            actionsEnd={
+              <MessageBox.ActionContainer column>
+                <Show when={isAlmostTooLong()}>
+                  <MessageBox.FloatingAction
+                    size="normal"
+                    error={messageLength() > maxMessageLength()}
+                  >
+                    {wayTooLong()
+                      ? "Too Long"
+                      : maxMessageLength() - messageLength()}
+                  </MessageBox.FloatingAction>
+                </Show>
+                <MessageBox.ActionContainer>
+                  <CompositionMediaPicker
+                    onMessage={sendMessage}
+                    onTextReplacement={(text) => setNodeReplacement([text])}
+                    channel={props.channel}
+                  >
+                    {(triggerProps) => (
+                      <>
+                        {/* BBT: fără butonul GIF (cererea userului, 5 oct 2026). */}
+                        <MessageBox.InlineIcon>
+                          <IconButton onPress={triggerProps.onClickEmoji}>
+                            <Symbol>mood</Symbol>
+                          </IconButton>
+                        </MessageBox.InlineIcon>
+                        <div ref={triggerProps.ref} />
+                      </>
+                    )}
+                  </CompositionMediaPicker>
+                  {/* BBT: butonul de trimis stă ÎN casetă, mereu (pânza TRW) — nu mai depinde de
                   setarea „show_send_button", pe telefon e singurul mod evident de a trimite. */}
-              <ButonTrimite
-                type="button"
-                aria-label="Trimite"
-                disabled={!canSend()}
-                onClick={() => sendMessage()}
-              >
-                <Symbol size={16}>send</Symbol>
-              </ButonTrimite>
-            </MessageBox.ActionContainer>
-          </MessageBox.ActionContainer>
+                  <Show
+                    when={aratMicrofon()}
+                    fallback={
+                      <ButonTrimite
+                        type="button"
+                        aria-label="Trimite"
+                        disabled={!canSend()}
+                        onClick={() => sendMessage()}
+                      >
+                        <Symbol size={16}>send</Symbol>
+                      </ButonTrimite>
+                    }
+                  >
+                    <ButonMicrofon onClick={() => void incepeVocal()} />
+                  </Show>
+                </MessageBox.ActionContainer>
+              </MessageBox.ActionContainer>
+            }
+            placeholder={
+              // BBT: copy-ul din pânză, în română direct (interfața BBT nu are altă limbă).
+              props.channel.type === "SavedMessages"
+                ? "Scrie o notiță pentru tine"
+                : props.channel.type === "DirectMessage"
+                  ? `Scrie-i lui ${props.channel.recipient?.displayName ?? ""}`
+                  : props.channel.type === "Group"
+                    ? `Scrie în ${props.channel.name}`
+                    : `Scrie în #${props.channel.name}`
+            }
+            sendingAllowed={
+              props.channel.havePermission("SendMessage") && !isTimedOut()
+            }
+            timeoutActive={isTimedOut()}
+            autoCompleteSearchSpace={searchSpace}
+            updateDraftSelection={(start, end) =>
+              state.draft.setSelection(props.channel.id, start, end)
+            }
+            hasActionsAppend={false}
+            actionsAppend={null}
+          />
         }
-        placeholder={
-          // BBT: copy-ul din pânză, în română direct (interfața BBT nu are altă limbă).
-          props.channel.type === "SavedMessages"
-            ? "Scrie o notiță pentru tine"
-            : props.channel.type === "DirectMessage"
-              ? `Scrie-i lui ${props.channel.recipient?.displayName ?? ""}`
-              : props.channel.type === "Group"
-                ? `Scrie în ${props.channel.name}`
-                : `Scrie în #${props.channel.name}`
-        }
-        sendingAllowed={
-          props.channel.havePermission("SendMessage") && !isTimedOut()
-        }
-        timeoutActive={isTimedOut()}
-        autoCompleteSearchSpace={searchSpace}
-        updateDraftSelection={(start, end) =>
-          state.draft.setSelection(props.channel.id, start, end)
-        }
-        hasActionsAppend={false}
-        actionsAppend={null}
-      />
+      >
+        {(sesiune) => (
+          <BaraVocal
+            sesiune={sesiune()}
+            onTrimite={(f) => void trimiteVocal(f)}
+            onEroare={eroareVocal}
+            onInchide={() => setVocal(undefined)}
+          />
+        )}
+      </Show>
       <Show when={canUploadFiles()}>
         <FilePasteCollector onFiles={onFiles} />
         <FileDropAnywhereCollector onFiles={onFiles} />

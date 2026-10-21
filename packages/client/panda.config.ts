@@ -21,6 +21,11 @@ export default defineConfig({
   theme: {
     extend: {
       keyframes: {
+        // BBT: punctul roșu din bara de înregistrare a vocalului (src/bbt/vocal/InregistrareVocal.tsx).
+        bbtVocalPuls: {
+          "0%, 100%": { opacity: 1 },
+          "50%": { opacity: 0.25 },
+        },
         materialPhysicsButtonSelect: {
           "0%": {
             paddingInline: "var(--padding-inline)",
