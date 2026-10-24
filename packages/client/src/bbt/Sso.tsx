@@ -161,6 +161,18 @@ export default function Sso() {
         setEroare("Contul tău BBT nu are acces la Community.");
         return;
       }
+      if (raspuns.status === 503) {
+        // Community închis până la lansare (adminul, `COMMUNITY_INCHIS_PANA_LA_LANSARE`).
+        const corp = (await raspuns.json().catch(() => null)) as {
+          inchis?: boolean;
+        } | null;
+        if (corp?.inchis) {
+          setEroare(
+            "Pregătim lansarea Community. Până atunci, accesul e închis. Anunțăm lansarea în curând.",
+          );
+          return;
+        }
+      }
       if (!raspuns.ok) {
         setEroare(
           "Community nu răspunde acum. Încearcă din nou peste un minut.",

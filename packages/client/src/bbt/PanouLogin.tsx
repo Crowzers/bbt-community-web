@@ -32,7 +32,7 @@ import { BBT_ADMIN_URL, BBT_INTRARE, BBT_SITE_URL } from "./config";
  * greșită. De-aia există „Intră prin beanbagtheory.ro", vechiul drum prin site, care știe Google.
  */
 
-type Ecran = "formular" | "fara-acces" | "indisponibil";
+type Ecran = "formular" | "fara-acces" | "inchis" | "indisponibil";
 
 const LINIE = "rgba(255,255,255,0.08)";
 const FOAIE = "#141414";
@@ -118,7 +118,12 @@ export function PanouLogin() {
         return;
       }
       if (intrare.status === 503) {
-        setEcran("indisponibil");
+        // `inchis` = Community închis până la lansare (adminul, `COMMUNITY_INCHIS_PANA_LA_LANSARE`).
+        const corp = (await intrare.json().catch(() => null)) as {
+          inchis?: boolean;
+        } | null;
+        setParola("");
+        setEcran(corp?.inchis ? "inchis" : "indisponibil");
         return;
       }
       if (!intrare.ok) {
@@ -208,6 +213,15 @@ export function PanouLogin() {
                   setEroare(null);
                 }}
               />
+            </Match>
+            <Match when={ecran() === "inchis"}>
+              <Titlu>Pregătim lansarea Community</Titlu>
+              <Text>
+                Până atunci, accesul e închis. Anunțăm lansarea în curând.
+              </Text>
+              <ButonSecundar onClick={() => setEcran("formular")}>
+                Înapoi
+              </ButonSecundar>
             </Match>
             <Match when={ecran() === "indisponibil"}>
               <Titlu>Community se pregătește</Titlu>
