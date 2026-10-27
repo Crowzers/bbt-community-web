@@ -175,7 +175,8 @@ function EtichetaStatus(props: { status: string }) {
             : C.chihlimbar,
       }}
     >
-      {props.status}
+      {/* „Oferta" e numele din bază: omul a fost înscris fără plată, de admin. Ca pe site (27 oct 2026). */}
+      {props.status === "Oferta" ? "Fără plată" : props.status}
     </span>
   );
 }
@@ -323,6 +324,8 @@ function CardComanda(props: { comanda: Comanda }) {
 const STATUS_TRANSA: Record<string, string> = {
   Asteptata: "În așteptare",
   Platita: "Plătit",
+  // Oferta de 100% aprobată de admin: tranșa nu se mai plătește, deci nu stă „în așteptare".
+  Oferta: "Fără plată",
   Rambursata: "Rambursat",
   RambursataPartial: "Rambursat parțial",
 };
@@ -334,7 +337,7 @@ function RandTransa(props: {
   primul: boolean;
 }) {
   const p = () => props.plata;
-  const platit = () => p().status === "Platita";
+  const platit = () => p().status === "Platita" || p().status === "Oferta";
   const rambursat = () =>
     p().status === "Rambursata" || p().status === "RambursataPartial";
   // O comandă anulată lasă tranșele neplătite pe „Asteptata": nu mai sunt datorate, deci le arătăm

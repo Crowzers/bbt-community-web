@@ -288,7 +288,9 @@ function CardTabara(props: { ins: Inscriere }) {
 
 export function RandPlata(props: { plata: Plata; integrala: boolean }) {
   const p = () => props.plata;
-  const platit = () => p().status === "Platita";
+  // „Oferta" = înscris fără plată de admin (100%): nu e o plată în așteptare. Ca pe site (27 oct 2026).
+  const faraPlata = () => p().status === "Oferta";
+  const platit = () => p().status === "Platita" || faraPlata();
   const rambursat = () =>
     p().status === "Rambursata" || p().status === "RambursataPartial";
   return (
@@ -305,13 +307,15 @@ export function RandPlata(props: { plata: Plata; integrala: boolean }) {
         {lei(p().suma)}
       </span>
       <Pastila fel={platit() ? "ok" : rambursat() ? "neutru" : "asteapta"}>
-        {platit()
-          ? "Plătit"
-          : rambursat()
-            ? "Rambursat"
-            : p().scadentaLa
-              ? `Scadentă ${ziLunga(p().scadentaLa!)}`
-              : "În așteptare"}
+        {faraPlata()
+          ? "Fără plată"
+          : platit()
+            ? "Plătit"
+            : rambursat()
+              ? "Rambursat"
+              : p().scadentaLa
+                ? `Scadentă ${ziLunga(p().scadentaLa!)}`
+                : "În așteptare"}
       </Pastila>
     </div>
   );
