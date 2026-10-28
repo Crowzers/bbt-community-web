@@ -96,7 +96,7 @@ export function PlatesteTransa2(props: {
           Plată întârziată, s-a adăugat o penalizare. Tranșa 2:{" "}
           {lei(props.pret)} + penalizare
           {props.zileIntarziere > 0
-            ? ` (${props.zileIntarziere} ${props.zileIntarziere === 1 ? "zi" : "zile"} × 5%/zi)`
+            ? ` (${props.zileIntarziere} ${props.zileIntarziere === 1 ? "zi" : "zile"} × 1%/zi din tranșă)`
             : ""}
           : <b>{lei(props.penalizare)}</b>
         </p>

@@ -15,7 +15,7 @@ import {
   ziLunga,
   zilePana,
 } from "./date";
-import { PlatesteTransa2 } from "./PlatesteTransa2";
+import { ButonPlata, PlatesteTransa2 } from "./PlatesteTransa2";
 import type { Inscriere, Plata } from "./tipuri";
 import {
   C,
@@ -141,6 +141,17 @@ function CardTabara(props: { ins: Inscriere }) {
     );
   const transa1Platita = () =>
     props.ins.plati.find((p) => p.numarTransa === 1)?.status === "Platita";
+  // Prima rată se plătește și de pe card, nu doar din Plăți (cerut de user pe 28 oct 2026, ca pe site):
+  // după contract comanda stă „Programat" până la scadență, dar serverul primește plata oricând până la start.
+  // ⚠️ Contractul nesemnat oprește butonul: serverul ar refuza plata.
+  const transa1 = () =>
+    props.ins.plati.find(
+      (p) => p.numarTransa === 1 && p.status === "Asteptata",
+    );
+  const poatePlatiTransa1 = () =>
+    !!transa1() &&
+    ["Inscris", "LinkTrimis", "Programat"].includes(props.ins.statusPlata) &&
+    props.ins.contract?.stare !== "Trimis";
 
   return (
     <Card style={{ display: "flex", "flex-direction": "column" }}>
@@ -271,6 +282,13 @@ function CardTabara(props: { ins: Inscriere }) {
               <RandPlata plata={p} integrala={props.ins.nrTranse === 1} />
             )}
           </For>
+          <Show when={poatePlatiTransa1()}>
+            <ButonPlata
+              cale="/api/public/checkout/comanda"
+              corp={{ fel: "camp", comandaId: props.ins.id }}
+              eticheta={`${props.ins.nrTranse === 1 ? "Plătește" : "Plătește tranșa 1"} - ${lei(transa1()!.suma)}`}
+            />
+          </Show>
           <Show when={transa2() && transa1Platita()}>
             <PlatesteTransa2
               comandaId={props.ins.id}

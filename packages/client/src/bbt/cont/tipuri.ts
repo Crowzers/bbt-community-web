@@ -43,6 +43,12 @@ export interface Inscriere {
   /** Prelungirea vorbită la telefon. ⚠️ Fără motiv și fără seller: alea rămân în admin. */
   prelungireTransa2?: { zile: number; scadentaNoua: string } | null;
   cerereAnulare?: { id: string; status: string } | null;
+  /**
+   * Contractul de prestări (doar vânzările prin seller). Aici contează doar `stare`: cât e „Trimis",
+   * serverul refuză plata cu „Semnează întâi contractul", deci butonul de tranșa 1 nu apare.
+   * Forma întreagă e în `website/src/types/participant.ts` (`ContractCont`).
+   */
+  contract?: { stare: "Trimis" | "Semnat" | "Expirat" | "Reziliat" } | null;
   plati: Plata[];
   camp: Camp;
 }
