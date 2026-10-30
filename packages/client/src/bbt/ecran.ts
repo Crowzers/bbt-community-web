@@ -16,7 +16,7 @@
  * 30 oct 2026, iPhone (captura userului): cu tastatura sus, o tragere pe un fir scurt a lăsat o fâșie albă
  * între bara de scris și tastatură, iar tastatura nu se închidea trăgând în jos, ca în aplicație
  * (`keyboardDismissMode="interactive"`). Doar cât e tastatura sus: `overflow: hidden` nu oprește Safari să mute pagina
- * atunci, deci tragerile care nu derulează o listă se opresc aici, iar o tragere în jos închide tastatura.
+ * atunci, deci tragerile care ar ajunge la pagină se opresc aici, iar o tragere în jos închide tastatura.
  */
 
 /** Cât se trage în jos până se închide tastatura: destul cât o atingere tremurată pe un mesaj să n-o închidă. */
@@ -31,15 +31,51 @@ const MS_REMASURARE = 800;
 /** Pe iPhone, scrollTo imediat după `blur` se pierde: pagina se pune la loc abia după ce coboară tastatura. */
 const MS_DUPA_TASTATURA = 350;
 
-/** Dacă sub deget e ceva care chiar are ce derula. Lista scurtă are `overflow` dar nu are ce: acolo se mișca pagina. */
-function areCeDerula(tinta: EventTarget | null) {
-  if (!(tinta instanceof Element)) return false;
+/**
+ * Dacă tragerea ar ajunge la pagină: sub deget nu e nicio listă cu ce derula, sau lista e deja la capăt în sensul
+ * tragerii. ⚠️ Capătul contează: firul stă la ultimul mesaj, iar pe iPhone, trăgând conținutul în sus de acolo, Safari
+ * muta tot pagina (userul, 30 oct: „când ridic de conținut"), oricât `overscroll-behavior` ar avea lista.
+ */
+function ajungeLaPagina(tinta: EventTarget | null, dy: number) {
+  if (!(tinta instanceof Element)) return true;
   for (let e: Element | null = tinta; e; e = e.parentElement) {
-    const y = getComputedStyle(e).overflowY;
-    if ((y === "auto" || y === "scroll") && e.scrollHeight > e.clientHeight + 1)
-      return true;
+    const stil = getComputedStyle(e);
+    const max = e.scrollHeight - e.clientHeight;
+    if ((stil.overflowY !== "auto" && stil.overflowY !== "scroll") || max <= 1)
+      continue;
+    // Firul e `column-reverse`: `scrollTop` e 0 la ultimul mesaj și negativ în sus.
+    const invers = stil.flexDirection === "column-reverse";
+    const pozitie = invers ? max + e.scrollTop : e.scrollTop;
+    return dy > 0 ? pozitie <= 0 : pozitie >= max - 1;
   }
-  return false;
+  return true;
+}
+
+/**
+ * Măsurătorile de pe telefon, la vedere: `hub.beanbagtheory.ro/?ecran`. Pe iPhone nu există consolă fără Mac, iar
+ * fâșia albă de deasupra tastaturii nu se reproduce în browserul de pe calculator. Se scoate după ce e găsită cauza.
+ */
+function arataMasuratorile(vv: VisualViewport) {
+  try {
+    if (location.search.includes("ecran"))
+      sessionStorage.setItem("bbt-ecran", "1");
+    if (!sessionStorage.getItem("bbt-ecran")) return;
+  } catch {
+    return;
+  }
+  const el = document.createElement("div");
+  el.style.cssText =
+    "position:fixed;left:50%;top:4px;transform:translateX(-50%);z-index:99999;padding:4px 8px;border-radius:8px;" +
+    "background:#0A0A0B;color:#fff;font:12px/1.3 monospace;white-space:pre;pointer-events:none";
+  document.body.append(el);
+  const root = document.getElementById("root")!;
+  setInterval(() => {
+    const b = root.getBoundingClientRect();
+    el.textContent =
+      `vv h ${Math.round(vv.height)} sus ${Math.round(vv.offsetTop)} zoom ${vv.scale}\n` +
+      `fereastra h ${innerHeight} scroll ${Math.round(scrollY)}\n` +
+      `root sus ${Math.round(b.top)} h ${Math.round(b.height)}`;
+  }, 200);
 }
 
 export function legaEcranulVizibil() {
@@ -69,7 +105,7 @@ export function legaEcranulVizibil() {
     // ⚠️ Se hotărăște la PRIMA mișcare: iOS ține cont de `preventDefault` doar până pornește derularea.
     if (a.vertical === undefined) {
       a.vertical = Math.abs(dy) >= Math.abs(dx);
-      a.blocata = a.vertical && !areCeDerula(e.target);
+      a.blocata = a.vertical && ajungeLaPagina(e.target, dy);
     }
     if (a.blocata && e.cancelable) e.preventDefault();
 
@@ -126,6 +162,7 @@ export function legaEcranulVizibil() {
   };
 
   aplica();
+  if (vv) arataMasuratorile(vv);
   vv?.addEventListener("resize", aplica);
   vv?.addEventListener("scroll", aplica);
   // ⚠️ Fără `window.scrollTo(0, 0)` la derularea ferestrei: pe iOS s-ar bate cu Safari, care
