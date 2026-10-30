@@ -84,7 +84,11 @@ export const Sidebar = (_props: {
             state.layout.getSectionState(
               LAYOUT_SECTIONS.PRIMARY_SIDEBAR,
               true,
-            ) && !location.pathname.startsWith("/discover")
+            ) &&
+            !location.pathname.startsWith("/discover") &&
+            // BBT: pe desktop contul are meniul lui lângă rail (23b), fără lista de conversații între ele. Pe
+            // telefon lista rămâne: e ecranul de sub cont (SlideDrawer).
+            (telefon() || !location.pathname.startsWith("/cont"))
           }
         >
           <Switch fallback={<Home />}>
