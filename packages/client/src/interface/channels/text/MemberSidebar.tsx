@@ -10,14 +10,7 @@ import { useClient } from "@revolt/client";
 import { createIsTimedOut } from "@revolt/common/lib/createIsTimedOut";
 import { TextWithEmoji } from "@revolt/markdown";
 import { userInformation } from "@revolt/markdown/users";
-import {
-  Avatar,
-  ColouredText,
-  Deferred,
-  Symbol,
-  Tooltip,
-  UserStatus,
-} from "@revolt/ui";
+import { Avatar, Deferred, Symbol, Tooltip, UserStatus } from "@revolt/ui";
 
 interface Props {
   /**
@@ -440,9 +433,9 @@ function Member(props: {
         <span class="text">
           <span class="nume">
             <span>
-              <ColouredText colour={user().colour!}>
-                {user().username}
-              </ColouredText>
+              {/* BBT (21a): numele negre, nu în culoarea rolului (grupa spune deja rolul, iar culorile pale nu
+                  se citeau pe alb). */}
+              {user().username}
             </span>
             <Show when={timedOut() && moderationPerms()}>
               <Tooltip

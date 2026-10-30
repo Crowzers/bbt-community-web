@@ -2,6 +2,7 @@ import { For, Show } from "solid-js";
 
 import { useClient } from "@revolt/client";
 import { useLocation, useNavigate, useParams } from "@revolt/routing";
+import { useState } from "@revolt/state";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { BBT_SITE_URL } from "./config";
@@ -43,6 +44,7 @@ export function BaraSectiuni(props: {
   necititeMesaje: number;
 }) {
   const client = useClient();
+  const state = useState();
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams<{ server?: string }>();
@@ -69,7 +71,12 @@ export function BaraSectiuni(props: {
         (location.pathname.startsWith("/friends") ||
           location.pathname.startsWith("/channel")),
       badge: () => props.necititeMesaje,
-      laApasare: () => navigate("/friends"),
+      // 23a: Mesaje deschide direct ultima conversație, cu lista lângă ea. Fără conversații, lista de prieteni
+      // (în Community scrii doar prietenilor).
+      laApasare: () => {
+        const ultima = state.ordering.orderedConversations(client())[0];
+        navigate(ultima ? `/channel/${ultima.id}` : "/friends");
+      },
     },
     {
       nume: "Experiențe",

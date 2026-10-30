@@ -170,7 +170,9 @@ export function Message(props: Props) {
                 props.message.author?.username ??
                 props.message.username
               }
-              colour={props.message.roleColour!}
+              // BBT (21a, 30 oct 2026): numele au O singură culoare, movul #5C4ADE, nu culoarea rolului din Stoat
+              // (portocaliul și rozul pal ale rolurilor nu se citeau pe alb). Rolul se vede din pastila galbenă.
+              colour="#5C4ADE"
             />
           </div>
         }
@@ -418,7 +420,10 @@ export function Message(props: Props) {
           >
             <div
               style={{
+                // Cât textul: rândul mesajului e coloană flex și altfel întindea bula pe toată lățimea.
                 display: "inline-block",
+                width: "fit-content",
+                "align-self": "flex-start",
                 "max-width": "100%",
                 "box-sizing": "border-box",
                 padding: "10px 14px",

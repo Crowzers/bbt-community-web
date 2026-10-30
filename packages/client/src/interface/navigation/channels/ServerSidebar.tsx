@@ -643,11 +643,12 @@ const RandCanal = styled("a", {
   base: {
     display: "flex",
     alignItems: "center",
-    gap: "8px",
-    height: "28px",
-    padding: "0 8px",
-    borderRadius: "6px",
-    fontSize: "13px",
+    // BBT (21a, 30 oct 2026): rânduri de 40, colțuri de 14, text de 15, pe alb. Până atunci 28 / 6 / 13, pe negru.
+    gap: "10px",
+    height: "40px",
+    padding: "0 12px",
+    borderRadius: "14px",
+    fontSize: "15px",
     color: "#6C6C6D",
     fill: "currentColor",
     textDecoration: "none",
@@ -662,14 +663,15 @@ const RandCanal = styled("a", {
       textOverflow: "ellipsis",
     },
     "& .mentiuni": {
-      minWidth: "16px",
-      height: "16px",
-      padding: "0 4px",
+      minWidth: "20px",
+      height: "20px",
+      padding: "0 6px",
       boxSizing: "border-box",
-      borderRadius: "8px",
-      background: "#E5484D",
+      borderRadius: "999px",
+      // Cifra roz cu text negru, ca în 21a și în lista de mesaje.
+      background: "#FFB3D9",
       color: "#0A0A0B",
-      fontSize: "10px",
+      fontSize: "12px",
       fontWeight: 700,
       display: "flex",
       alignItems: "center",
@@ -691,7 +693,8 @@ const RandCanal = styled("a", {
     activ: {
       true: {
         background: "#F2F2F3 !important",
-        color: "#fff !important",
+        color: "#0A0A0B !important",
+        fontWeight: 700,
       },
     },
     stare: {
