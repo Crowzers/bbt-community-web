@@ -29,7 +29,9 @@ import {
 import { VoiceChannelCallCardMount } from "@revolt/ui/components/features/voice/callCard/VoiceCallCard";
 
 import { BandaFixat } from "../../../bbt/BandaFixat";
+import { FirRaspunsuri } from "../../../bbt/FirRaspunsuri";
 import { cautareCeruta } from "../../../bbt/cautare";
+import { firDeschis, inchideFir } from "../../../bbt/fir";
 import { ChannelHeader } from "../ChannelHeader";
 import { ChannelPageProps } from "../ChannelPage";
 
@@ -179,9 +181,13 @@ export function TextChannel(props: ChannelPageProps) {
   createEffect(
     on(
       () => props.channel.id,
-      () => setSidebarState({ state: "default" }),
+      () => {
+        setSidebarState({ state: "default" });
+        inchideFir();
+      },
     ),
   );
+  onCleanup(inchideFir);
 
   // BBT: căutarea din bara de sus deschide panoul de căutare al canalului (src/bbt/cautare.ts).
   createEffect(
@@ -209,6 +215,9 @@ export function TextChannel(props: ChannelPageProps) {
 
   return (
     <>
+      <Show when={layout() === "phone" && firDeschis()}>
+        <FirRaspunsuri channel={props.channel} />
+      </Show>
       <Header placement="primary">
         <ChannelHeader
           channel={props.channel}
@@ -265,10 +274,18 @@ export function TextChannel(props: ChannelPageProps) {
             atEnd={[atEnd, setEnd]}
           />
 
-          <MessageComposition
-            channel={props.channel}
-            onMessageSend={() => jumpToBottomRef?.()}
-          />
+          {/* Bara de scris e una singură și rămâne peste ecranul firului: pe ea pleacă și răspunsurile. */}
+          <div
+            style={{
+              position: "relative",
+              "z-index": firDeschis() ? 41 : undefined,
+            }}
+          >
+            <MessageComposition
+              channel={props.channel}
+              onMessageSend={() => jumpToBottomRef?.()}
+            />
+          </div>
         </main>
         <Show
           when={

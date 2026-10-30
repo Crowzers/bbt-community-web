@@ -148,7 +148,8 @@
   color: transparent;
 }
 .bbt-bula-autor {
-  margin-bottom: 2px;
+  margin-bottom: 4px;
+  padding-left: 14px;
   line-height: 15px;
 }
 .bbt-bula-ora {
@@ -182,6 +183,17 @@
   top: 14px;
   bottom: auto;
   pointer-events: none;
+}
+
+/* Firul (24b): bulele celorlalți sunt gri pe alb, nu albe pe gri. `!important`: culoarea bulei e inline. */
+.bbt-fir .bbt-bula:not(.bbt-bula-mea) {
+  background: #f2f2f3 !important;
+}
+.bbt-fir-card p {
+  margin: 0;
+}
+.bbt-fir-card .bbt-reactii {
+  margin: 8px 0 0;
 }
 
 /* Reacțiile stau sub bulă, lipite de ea (`RandMesaj.tsx`: `reactii`). */

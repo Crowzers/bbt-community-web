@@ -48,6 +48,7 @@ import {
 } from "../../../menus/UserContextMenu";
 
 import { createIsTimedOut } from "@revolt/common/lib/createIsTimedOut";
+import { PastilaRaspunsuri } from "../../../../../src/bbt/PastilaRaspunsuri";
 import { AvatarOm } from "../../../../../src/bbt/telefon";
 import { EditMessage } from "./EditMessage";
 
@@ -82,6 +83,16 @@ interface Props {
    * Whether this message is a link
    */
   isLink?: boolean | "hide";
+
+  /**
+   * BBT: mesajul stă pe ecranul firului (24b), fără pastila de răspunsuri
+   */
+  inFir?: boolean;
+
+  /**
+   * BBT: mesajul de la care pornește firul, cardul din capul ecranului
+   */
+  cardFir?: boolean;
 }
 
 interface MessageContextShape {
@@ -196,7 +207,15 @@ export function Message(props: Props) {
         ref={msgRef}
         bula={bula()}
         doarMedia={doarMedia()}
-        subBula={<div class="bbt-reactii">{reactii()}</div>}
+        cardFir={props.cardFir}
+        subBula={
+          <>
+            <div class="bbt-reactii">{reactii()}</div>
+            <Show when={!props.inFir && !props.cardFir}>
+              <PastilaRaspunsuri mesajId={props.message.id} />
+            </Show>
+          </>
+        }
         onHover={setIsHovering}
         username={
           <div use:floating={floatingUserMenusFromMessage(props.message)}>
@@ -213,7 +232,7 @@ export function Message(props: Props) {
               colour="#5C4ADE"
               // 15 / 800, ca în 21a; în bulă, 12 / 800, ca în 19b.
               style={{
-                "font-size": bula() ? "12px" : "15px",
+                "font-size": props.cardFir ? "14px" : bula() ? "12px" : "15px",
                 "font-weight": 800,
               }}
             />
@@ -238,7 +257,10 @@ export function Message(props: Props) {
                 />
               }
             >
-              <AvatarOm om={props.message.author} marime={32} />
+              <AvatarOm
+                om={props.message.author}
+                marime={props.cardFir ? 36 : 32}
+              />
             </Show>
           </div>
         }
@@ -261,7 +283,7 @@ export function Message(props: Props) {
         isLink={props.isLink}
         tail={props.tail || state.settings.getValue("appearance:compact_mode")}
         header={
-          <For each={props.message.replyIds}>
+          <For each={props.inFir ? [] : props.message.replyIds}>
             {(reply_id) => {
               /**
                * Signal the actual message

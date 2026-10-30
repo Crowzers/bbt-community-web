@@ -32,6 +32,7 @@ import {
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 import { useSearchSpace } from "@revolt/ui/components/utils/autoComplete";
 
+import { firDeschis } from "../../../bbt/fir";
 import { IconCamera, IconPlus } from "../../../bbt/telefon";
 import {
   BaraVocal,
@@ -195,6 +196,18 @@ export function MessageComposition(props: Props) {
   const delayedStopTyping = debounce(stopTyping, 1000); // eslint-disable-line solid/reactivity
 
   /**
+   * BBT: din fir, orice mesaj pleacă drept răspuns la mesajul de la care a pornit firul (`src/bbt/fir.ts`).
+   */
+  function legaDeFir() {
+    const id = firDeschis();
+    if (id) {
+      state.draft.setDraft(props.channel.id, {
+        replies: [{ id, mention: true }],
+      });
+    }
+  }
+
+  /**
    * Send a message using the current draft
    * @param useContent Content to send
    */
@@ -205,6 +218,7 @@ export function MessageComposition(props: Props) {
       return;
     }
     stopTyping();
+    legaDeFir();
     props.onMessageSend?.();
 
     if (typeof useContent === "string") {
@@ -383,6 +397,7 @@ export function MessageComposition(props: Props) {
     }
     // Pleacă prin draft, ca orice fișier: răspunsul la care scrii (dacă e unul) merge odată cu vocalul.
     await state.draft.addFile(props.channel.id, fisier);
+    legaDeFir();
     props.onMessageSend?.();
     void state.draft.sendDraft(client(), props.channel);
   }
@@ -405,7 +420,7 @@ export function MessageComposition(props: Props) {
         isSpoiler={isSpoiler}
         toggleSpoiler={toggleSpoiler}
       />
-      <For each={draft().replies ?? []}>
+      <For each={firDeschis() ? [] : (draft().replies ?? [])}>
         {(reply) => {
           const message = client()!.messages.get(reply.id);
 
@@ -525,13 +540,15 @@ export function MessageComposition(props: Props) {
             }
             placeholder={
               // BBT: copy-ul din pânză, în română direct (interfața BBT nu are altă limbă).
-              props.channel.type === "SavedMessages"
-                ? "Scrie o notiță pentru tine"
-                : props.channel.type === "DirectMessage"
-                  ? `Scrie-i lui ${props.channel.recipient?.displayName ?? ""}`
-                  : props.channel.type === "Group"
-                    ? `Scrie în ${props.channel.name}`
-                    : `Scrie în #${props.channel.name}`
+              firDeschis()
+                ? "Răspunde în fir…"
+                : props.channel.type === "SavedMessages"
+                  ? "Scrie o notiță pentru tine"
+                  : props.channel.type === "DirectMessage"
+                    ? `Scrie-i lui ${props.channel.recipient?.displayName ?? ""}`
+                    : props.channel.type === "Group"
+                      ? `Scrie în ${props.channel.name}`
+                      : `Scrie în #${props.channel.name}`
             }
             sendingAllowed={
               props.channel.havePermission("SendMessage") && !isTimedOut()

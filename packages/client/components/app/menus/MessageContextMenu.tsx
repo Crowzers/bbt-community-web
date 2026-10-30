@@ -3,6 +3,7 @@ import { Accessor, For, Match, Show, Switch } from "solid-js";
 import { File, ImageEmbed, Message, VideoEmbed, WebsiteEmbed } from "stoat.js";
 
 import { useClient, useUser } from "@revolt/client";
+import { useDevice } from "@revolt/common";
 import { useInstance } from "@revolt/instance";
 import { CustomEmoji, UnicodeEmoji } from "@revolt/markdown/emoji";
 import { useModals } from "@revolt/modal";
@@ -28,6 +29,7 @@ import MdShield from "@material-design-icons/svg/outlined/shield.svg?component-s
 import { Trans, useLingui } from "@lingui/solid/macro";
 import MdSentimentContent from "@material-symbols/svg-400/outlined/sentiment_content.svg?component-solid";
 import { useSnackbar } from "@revolt/ui";
+import { deschideFir } from "../../../src/bbt/fir";
 import {
   ContextMenu,
   ContextMenuButton,
@@ -51,11 +53,14 @@ export function MessageContextMenu(props: {
   const snackbar = useSnackbar();
   const { t } = useLingui();
   const { openModal, showError } = useModals();
+  const { layout } = useDevice();
 
   /**
    * Reply to this message
    */
   function reply() {
+    // BBT: pe telefon, „Răspunde" deschide firul mesajului (24a: răspunsurile nu mai stau în canal).
+    if (layout() === "phone") return deschideFir(props.message!.id);
     state.draft.addReply(props.message!, user()!.id);
   }
 

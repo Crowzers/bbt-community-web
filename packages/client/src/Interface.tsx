@@ -27,6 +27,7 @@ import { LoadingScreen } from "@revolt/ui";
 import { SlideDrawer } from "../components/ui/components/navigation/SlideDrawer";
 import { ApelPrimit } from "./bbt/ApelPrimit";
 import { BaraSus } from "./bbt/BaraSus";
+import { firDeschis } from "./bbt/fir";
 import { PastilaDeJos } from "./bbt/PastilaDeJos";
 import { Sidebar } from "./interface/Sidebar";
 
@@ -82,7 +83,8 @@ const Interface = (props: { children: JSX.Element }) => {
     // BBT: pe telefon, intrarea în aplicație arată lista de canale, nu canalul (vezi SlideDrawer).
     if (cont && !sDrawer) {
       sDrawer = new SlideDrawer(cont, rootRef!, false);
-      sDrawer.poateGlisa = () => location.pathname.includes("/channel/");
+      sDrawer.poateGlisa = () =>
+        location.pathname.includes("/channel/") && !firDeschis();
       sDrawer.faraAnimatie = true;
     }
     //Update on layout change
@@ -203,6 +205,8 @@ const Content = styled("div", {
     display: "flex",
     width: "100%",
     minWidth: 0,
+    // BBT: ancora ecranului de răspunsuri (`bbt/FirRaspunsuri.tsx`).
+    position: "relative",
   },
   variants: {
     sidebar: {

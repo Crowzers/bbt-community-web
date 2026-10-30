@@ -133,6 +133,11 @@ type Props = CommonProps & {
    * BBT: ce stă sub bulă, în afara ei (reacțiile).
    */
   subBula?: JSX.Element;
+
+  /**
+   * BBT: mesajul de la care pornește firul, cardul din capul ecranului de răspunsuri (24b).
+   */
+  cardFir?: boolean;
 };
 
 /**
@@ -359,18 +364,63 @@ const CompactInfo = styled(Row, {
  * ⚠️ Ora stă peste colțul bulei, ca la WhatsApp. Pe ultimul rând de text îi ține locul `--bbt-ora`, un text transparent
  * adăugat după paragraf (`src/bbt/raspuns.css`), ca să nu ceară un rând în plus și să nu se suprapună peste cuvinte.
  */
+function ceasMesaj(props: Props) {
+  if (!(props.timestamp instanceof Date)) return "";
+  const ora = props.timestamp.toLocaleTimeString("ro-RO", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  return props.edited ? `editat ${ora}` : ora;
+}
+
+/** Cardul din 24b: mesajul original, deasupra răspunsurilor: alb cu chenar, avatar 36, nume 14, reacțiile sub text. */
+function CardFir(props: Props) {
+  const { message } = useMessage();
+
+  return (
+    <div
+      id={message?.id}
+      ref={props.ref}
+      class="bbt-fir-card"
+      use:floating={{ contextMenu: props.contextMenu }}
+      style={{
+        display: "flex",
+        gap: "10px",
+        margin: "0 14px",
+        padding: "12px 14px",
+        "border-radius": "24px",
+        border: "1.5px solid #E5E5E5",
+        background: "#FFFFFF",
+        color: "#0A0A0B",
+      }}
+    >
+      <div style={{ "flex-shrink": 0 }}>{props.avatar}</div>
+      <div style={{ flex: 1, "min-width": 0 }}>
+        <div style={{ display: "flex", gap: "8px", "align-items": "baseline" }}>
+          {props.username}
+          <span style={{ "font-size": "11px", color: "rgba(10,10,11,.6)" }}>
+            {ceasMesaj(props)}
+          </span>
+        </div>
+        <div
+          style={{
+            "margin-top": "2px",
+            "font-size": "15px",
+            "font-weight": 500,
+          }}
+        >
+          {props.children}
+        </div>
+        {props.subBula}
+      </div>
+    </div>
+  );
+}
+
 function ContainerBula(props: Props) {
   const { message } = useMessage();
   const mea = () => props.bula === "mea";
-
-  const ceas = () => {
-    if (!(props.timestamp instanceof Date)) return "";
-    const ora = props.timestamp.toLocaleTimeString("ro-RO", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    return props.edited ? `editat ${ora}` : ora;
-  };
+  const ceas = () => ceasMesaj(props);
 
   return (
     <div
@@ -390,7 +440,7 @@ function ContainerBula(props: Props) {
       style={{
         display: "flex",
         "flex-direction": "row",
-        "align-items": "flex-start",
+        "align-items": "flex-end",
         "justify-content": mea() ? "flex-end" : undefined,
         gap: "6px",
         padding: `${props.tail ? 2 : 8}px 8px 0`,
@@ -410,6 +460,10 @@ function ContainerBula(props: Props) {
           "min-width": 0,
         }}
       >
+        {/* Numele stă deasupra bulei, ca în 24a: cererea userului, 31 oct 2026. Până atunci, în bulă (19b). */}
+        <Show when={!mea() && !props.tail}>
+          <div class="bbt-bula-autor">{props.username}</div>
+        </Show>
         <div
           class={`bbt-bula${mea() ? " bbt-bula-mea" : ""}${props.doarMedia ? " bbt-bula-media" : ""}`}
           style={{
@@ -418,15 +472,14 @@ function ContainerBula(props: Props) {
             "min-width": "72px",
             padding: props.doarMedia ? "6px" : "12px 16px",
             "box-sizing": "border-box",
-            "border-radius": mea() ? "26px 26px 8px 26px" : "26px 26px 26px 8px",
+            "border-radius": mea()
+              ? "26px 26px 8px 26px"
+              : "26px 26px 26px 8px",
             background: mea() ? "#FFB3D9" : "#FFFFFF",
             color: "#0A0A0B",
             "--bbt-ora": `"  ${ceas()}"`,
           }}
         >
-          <Show when={!mea() && !props.tail}>
-            <div class="bbt-bula-autor">{props.username}</div>
-          </Show>
           {props.header}
           {props.children}
           <Show when={ceas()}>
@@ -449,7 +502,9 @@ function ContainerBula(props: Props) {
 export function MessageContainer(props: Props) {
   return (
     <Show when={props.bula} fallback={<ContainerLiniar {...props} />}>
-      <ContainerBula {...props} />
+      <Show when={props.cardFir} fallback={<ContainerBula {...props} />}>
+        <CardFir {...props} />
+      </Show>
     </Show>
   );
 }
