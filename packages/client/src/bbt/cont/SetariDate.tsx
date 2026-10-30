@@ -7,8 +7,7 @@ import { cerereCont } from "../tokenBbt";
 import { CHEIE_CONT, useSesiune } from "./date";
 import type { Participant } from "./tipuri";
 import {
-  ButonContur,
-  ButonRoz,
+  Buton,
   C,
   CampAlege,
   CampText,
@@ -309,13 +308,10 @@ export function DatePersonale(props: { p: Participant }) {
                       padding: "0 16px",
                       "border-radius": "999px",
                       border: `1px solid ${f().gen === g ? "transparent" : C.linie}`,
-                      background:
-                        f().gen === g
-                          ? "rgba(255,255,255,0.14)"
-                          : "transparent",
+                      background: f().gen === g ? C.fundal : "transparent",
                       color: f().gen === g ? C.text : C.stins,
                       "font-family": "inherit",
-                      "font-size": "13.5px",
+                      "font-size": "14px",
                       "font-weight": 600,
                       cursor: "pointer",
                     }}
@@ -334,12 +330,13 @@ export function DatePersonale(props: { p: Participant }) {
               "flex-wrap": "wrap",
             }}
           >
-            <ButonRoz
+            <Buton
+              mic
               tip="submit"
               dezactivat={lucrez() || (cereVerificare() && !telVerificat())}
             >
               {lucrez() ? "Se salvează…" : "Salvează"}
-            </ButonRoz>
+            </Buton>
             <MesajSalvare stare={stare()} />
           </div>
         </form>
@@ -408,7 +405,7 @@ function VerificareTelefon(props: {
         padding: "14px",
         "border-radius": "12px",
         border: `1px solid ${C.linie}`,
-        background: "rgba(255,255,255,0.03)",
+        background: C.fundal,
         display: "flex",
         "flex-direction": "column",
         gap: "10px",
@@ -426,17 +423,17 @@ function VerificareTelefon(props: {
               "flex-wrap": "wrap",
             }}
           >
-            <span style={{ color: C.stins, "font-size": "13.5px" }}>
+            <span style={{ color: C.stins, "font-size": "14px" }}>
               Verifică numărul <b style={{ color: C.text }}>{props.telefon}</b>{" "}
               prin SMS ca să poți salva.
             </span>
-            <ButonContur onClick={trimite}>
+            <Buton piele="alb" mic onClick={trimite}>
               {lucrez() ? "Se trimite…" : "Trimite SMS"}
-            </ButonContur>
+            </Buton>
           </div>
         }
       >
-        <span style={{ color: C.stins, "font-size": "13.5px" }}>
+        <span style={{ color: C.stins, "font-size": "14px" }}>
           Scrie codul de 6 cifre trimis pe{" "}
           <b style={{ color: C.text }}>{props.telefon}</b>.
         </span>
@@ -451,12 +448,13 @@ function VerificareTelefon(props: {
               placeholder="123456"
             />
           </div>
-          <ButonRoz
+          <Buton
+            mic
             onClick={verifica}
             dezactivat={lucrez() || cod().length !== 6}
           >
             Verifică
-          </ButonRoz>
+          </Buton>
         </div>
         <button
           type="button"
@@ -471,7 +469,7 @@ function VerificareTelefon(props: {
             background: "transparent",
             color: secunde() > 0 ? C.slab : C.stins,
             "font-family": "inherit",
-            "font-size": "12.5px",
+            "font-size": "14px",
             cursor: secunde() > 0 ? "default" : "pointer",
           }}
         >
@@ -479,7 +477,7 @@ function VerificareTelefon(props: {
         </button>
       </Show>
       <Show when={eroare()}>
-        <span style={{ color: C.rosu, "font-size": "12.5px" }}>{eroare()}</span>
+        <span style={{ color: C.rosu, "font-size": "14px" }}>{eroare()}</span>
       </Show>
     </div>
   );
@@ -581,7 +579,7 @@ export function DateFacturare(props: { p: Participant }) {
           style={{
             margin: "0 0 12px",
             color: C.stins,
-            "font-size": "13px",
+            "font-size": "14px",
             "line-height": "1.45",
           }}
         >
@@ -650,9 +648,7 @@ export function DateFacturare(props: { p: Participant }) {
                     "border-radius": "12px",
                     border: `1px solid ${f().tipPersoana === o.v ? "transparent" : C.linie}`,
                     background:
-                      f().tipPersoana === o.v
-                        ? "rgba(255,255,255,0.14)"
-                        : "transparent",
+                      f().tipPersoana === o.v ? C.fundal : "transparent",
                     color: f().tipPersoana === o.v ? C.text : C.stins,
                     "font-family": "inherit",
                     "font-size": "14px",
@@ -672,7 +668,7 @@ export function DateFacturare(props: { p: Participant }) {
                 style={{
                   margin: 0,
                   color: C.stins,
-                  "font-size": "13.5px",
+                  "font-size": "14px",
                   "line-height": "1.5",
                 }}
               >
@@ -727,9 +723,9 @@ export function DateFacturare(props: { p: Participant }) {
               "flex-wrap": "wrap",
             }}
           >
-            <ButonRoz tip="submit" dezactivat={lucrez()}>
+            <Buton mic tip="submit" dezactivat={lucrez()}>
               {lucrez() ? "Se salvează…" : "Salvează"}
-            </ButonRoz>
+            </Buton>
             <MesajSalvare stare={stare()} />
           </div>
         </form>

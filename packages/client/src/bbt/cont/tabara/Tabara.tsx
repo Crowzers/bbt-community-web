@@ -1,4 +1,4 @@
-import { For, JSX, Match, Show, Switch, createSignal } from "solid-js";
+import { For, JSX, Match, Show, Switch, createSignal, untrack } from "solid-js";
 
 import { useQuery } from "@tanstack/solid-query";
 
@@ -6,21 +6,39 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { BBT_SITE_URL } from "../../config";
 import { cerereCont } from "../../tokenBbt";
-import { useSesiune, ziLunga } from "../date";
-import { Incarcare } from "../MyCamps";
 import {
-  ButonContur,
-  ButonRoz,
+  inDesfasurare,
+  lei,
+  reala,
+  useCont,
+  useExperiente,
+  useSesiune,
+  zi,
+  zilePana,
+} from "../date";
+import { BaraPlata, perioada } from "../Experiente";
+import { ButonPlateste } from "../Plata";
+import type { Experienta, Inscriere } from "../tipuri";
+import {
+  Buton,
   C,
   CampText,
   Card,
+  DE_FONTE,
   Eticheta,
+  Incarcare,
   Mesaj,
   MesajSalvare,
+  Pastila,
   StareGoala,
 } from "../ui";
 
-import { etichetaZi, parseMeniu, parseProgram } from "./continut";
+import {
+  type ProgramZi,
+  etichetaZi,
+  parseMeniu,
+  parseProgram,
+} from "./continut";
 import {
   type Coleg,
   type Piesa,
@@ -31,6 +49,11 @@ import {
 /**
  * BBT: pagina unei tabere în hub, `/cont/tabara/:id`. Copia lui `website/src/app/my-camp/[id]/`
  * (`page.tsx` + `MyCampTabs.tsx`). Design: `2026-10-20-hub-standalone-cont-design.md`, Faza 7.
+ *
+ * 🔥 **Aranjată după 23e** (30 oct 2026): banda roz sus, apoi trei coloane (plata cu actele, programul zilei,
+ * camera), iar dedesubt filele de dinainte. Plata e aceeași ca în Experiențele mele (`participant/experiente`).
+ * Din 23e lipsesc, dinadins: „Acces QR" (taberele n-au bilet), „# 4 canale" (canalele stau în Community),
+ * mentorii numărați și transportul (nu există în date), „Maps" și „Sună hotelul" (camera n-are adresă și telefon).
  *
  * ⚠️ Notițele LIVE ale unei sesiuni rămân pe site, deschise în browser: sunt editare colaborativă
  * (yjs + CodeMirror), un singur scriitor pe `SessionNote.content`. Un `textarea` cu PUT aici ar
@@ -69,11 +92,12 @@ interface Sesiune extends SesiunePentruUrcare {
   participants: { participant: Coleg }[];
 }
 
+// Filele de sub cele trei coloane (23e). „Program" = programul pe zile, meniul și mentorul (fosta filă „Info").
 const FILE = [
-  { id: "info", text: "Info", simbol: "info" },
-  { id: "sesiuni", text: "Sesiuni", simbol: "group" },
-  { id: "playlist", text: "Playlist", simbol: "music_note" },
-  { id: "camera", text: "Camera", simbol: "home" },
+  { id: "program", text: "Program & masă" },
+  { id: "sesiuni", text: "Sesiuni" },
+  { id: "playlist", text: "Playlist" },
+  { id: "camera", text: "Camera" },
 ] as const;
 type Fila = (typeof FILE)[number]["id"];
 
@@ -93,6 +117,8 @@ const ziScurta = (iso: string) =>
 
 export function Tabara(props: { id: string }) {
   const sesiune = useSesiune();
+  const cont = useCont();
+  const experiente = useExperiente();
   const cere =
     <T,>(cale: string) =>
     () =>
@@ -120,7 +146,23 @@ export function Tabara(props: { id: string }) {
     ),
     retry: 1,
   }));
-  const [fila, setFila] = createSignal<Fila>("info");
+  const [fila, setFila] = createSignal<Fila>("program");
+  let file: HTMLDivElement | undefined;
+  const mergiLa = (f: Fila) => {
+    setFila(f);
+    file?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  // Plata vine din Experiențele mele (aceeași regulă de bani), documentele din `/me` (contractul și facturile).
+  const experienta = () =>
+    [
+      ...(experiente.data?.active ?? []),
+      ...(experiente.data?.trecute ?? []),
+    ].find((e) => e.fel === "camp" && e.id === props.id);
+  const inscriere = () =>
+    (cont.data?.inscrieri ?? []).find(
+      (i) => i.camp.id === props.id && reala(i.statusPlata),
+    );
 
   return (
     <Switch>
@@ -135,66 +177,91 @@ export function Tabara(props: { id: string }) {
       <Match when={info.data}>
         {(d) => (
           <div
-            style={{
-              "max-width": "760px",
-              display: "flex",
-              "flex-direction": "column",
-              gap: "16px",
-            }}
+            style={{ display: "flex", "flex-direction": "column", gap: "16px" }}
           >
-            <Card style={{ padding: "18px 20px" }}>
-              <Eticheta culoare={C.camps}>Tabără</Eticheta>
-              <h1
-                style={{
-                  margin: "4px 0 6px",
-                  color: C.text,
-                  "font-size": "22px",
-                  "font-weight": 700,
-                }}
-              >
-                {d().camp.nume}
-              </h1>
-              <div
-                style={{
-                  display: "flex",
-                  "flex-wrap": "wrap",
-                  gap: "4px 16px",
-                  color: C.stins,
-                  "font-size": "13.5px",
-                }}
-              >
-                <span
-                  style={{
-                    display: "inline-flex",
-                    "align-items": "center",
-                    gap: "6px",
-                  }}
-                >
-                  <Symbol size={14}>location_on</Symbol>
+            {/* Banda roz din 23e: când, unde, cine. */}
+            <div
+              style={{
+                display: "flex",
+                "align-items": "flex-end",
+                "justify-content": "space-between",
+                gap: "16px",
+                "flex-wrap": "wrap",
+                padding: "26px 28px",
+                "border-radius": "28px",
+                background: C.roz,
+              }}
+            >
+              <div style={{ "min-width": 0 }}>
+                <Eticheta culoare={C.text}>
+                  {perioada(d().camp.dataStart, d().camp.dataEnd)} ·{" "}
                   {d().camp.locatie}
-                </span>
-                <span
+                </Eticheta>
+                <h1
                   style={{
-                    display: "inline-flex",
-                    "align-items": "center",
-                    gap: "6px",
+                    ...DE_FONTE,
+                    margin: "8px 0 14px",
+                    "font-size": "52px",
+                    "line-height": "1",
                   }}
                 >
-                  <Symbol size={14}>calendar_month</Symbol>
-                  {ziLunga(d().camp.dataStart)} - {ziLunga(d().camp.dataEnd)}
-                </span>
+                  {d().camp.nume}
+                </h1>
+                <Show when={d().participanti.length}>
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      padding: "6px 14px",
+                      "border-radius": "999px",
+                      background: C.rozDeschis,
+                      "font-size": "14px",
+                      "font-weight": 600,
+                    }}
+                  >
+                    {d().participanti.length} participanți
+                  </span>
+                </Show>
               </div>
-            </Card>
+              <Show
+                when={inDesfasurare(d().camp.dataStart, d().camp.dataEnd)}
+                fallback={
+                  <Show when={zilePana(d().camp.dataStart) > 0}>
+                    <Pastila fel="asteapta">
+                      {zilePana(d().camp.dataStart) === 1
+                        ? "mâine"
+                        : `în ${zilePana(d().camp.dataStart)} zile`}
+                    </Pastila>
+                  </Show>
+                }
+              >
+                <Pastila fel="neutru">În desfășurare</Pastila>
+              </Show>
+            </div>
 
             <div
+              style={{
+                display: "grid",
+                "grid-template-columns": "repeat(auto-fit, minmax(260px, 1fr))",
+                gap: "16px",
+                "align-items": "start",
+              }}
+            >
+              <PlataSiDocumente
+                experienta={experienta()}
+                inscriere={inscriere()}
+              />
+              <ProgramAzi d={d()} laToate={() => mergiLa("program")} />
+              <CameraPeScurt d={d()} laDetalii={() => mergiLa("camera")} />
+            </div>
+
+            <div
+              ref={file}
               role="tablist"
               style={{
                 display: "flex",
-                gap: "4px",
-                padding: "4px",
-                "border-radius": "14px",
-                background: C.foaie,
-                border: `1px solid ${C.linie}`,
+                gap: "8px",
+                "flex-wrap": "wrap",
+                "margin-top": "12px",
               }}
             >
               <For each={FILE}>
@@ -205,64 +272,351 @@ export function Tabara(props: { id: string }) {
                     aria-selected={fila() === f.id}
                     onClick={() => setFila(f.id)}
                     style={{
-                      flex: 1,
-                      display: "flex",
-                      "align-items": "center",
-                      "justify-content": "center",
-                      gap: "6px",
-                      height: "38px",
-                      "border-radius": "10px",
+                      height: "40px",
+                      padding: "0 18px",
+                      "border-radius": "999px",
                       border: "0",
-                      background:
-                        fila() === f.id
-                          ? "rgba(255,255,255,0.1)"
-                          : "transparent",
-                      color: fila() === f.id ? C.text : C.stins,
+                      background: fila() === f.id ? C.negru : C.foaie,
+                      color: fila() === f.id ? C.peNegru : C.stins,
                       "font-family": "inherit",
-                      "font-size": "13.5px",
-                      "font-weight": 600,
+                      "font-size": "14px",
+                      "font-weight": 700,
                       cursor: "pointer",
                     }}
                   >
-                    <Symbol size={15}>{f.simbol}</Symbol>
                     {f.text}
                   </button>
                 )}
               </For>
             </div>
 
-            <Switch>
-              <Match when={fila() === "info"}>
-                <FilaInfo id={props.id} d={d()} />
-              </Match>
-              <Match when={fila() === "sesiuni"}>
-                <FilaSesiuni
-                  id={props.id}
-                  sesiuni={sesiuni.data ?? []}
-                  incarc={sesiuni.isLoading}
-                  notita={notita.data?.content ?? ""}
-                />
-              </Match>
-              <Match when={fila() === "playlist"}>
-                <Show when={!playlist.isLoading} fallback={<Incarcare />}>
-                  <Playlist
-                    campId={props.id}
-                    dataEnd={d().camp.dataEnd}
-                    initiale={playlist.data ?? []}
+            <div style={{ "max-width": "760px" }}>
+              <Switch>
+                <Match when={fila() === "program"}>
+                  <FilaInfo id={props.id} d={d()} />
+                </Match>
+                <Match when={fila() === "sesiuni"}>
+                  <FilaSesiuni
+                    id={props.id}
                     sesiuni={sesiuni.data ?? []}
-                    colegi={d().participanti}
-                    euId={d().currentParticipantId}
+                    incarc={sesiuni.isLoading}
+                    notita={notita.data?.content ?? ""}
                   />
-                </Show>
-              </Match>
-              <Match when={fila() === "camera"}>
-                <FilaCamera d={d()} />
-              </Match>
-            </Switch>
+                </Match>
+                <Match when={fila() === "playlist"}>
+                  <Show when={!playlist.isLoading} fallback={<Incarcare />}>
+                    <Playlist
+                      campId={props.id}
+                      dataEnd={d().camp.dataEnd}
+                      initiale={playlist.data ?? []}
+                      sesiuni={sesiuni.data ?? []}
+                      colegi={d().participanti}
+                      euId={d().currentParticipantId}
+                    />
+                  </Show>
+                </Match>
+                <Match when={fila() === "camera"}>
+                  <FilaCamera d={d()} />
+                </Match>
+              </Switch>
+            </div>
           </div>
         )}
       </Match>
     </Switch>
+  );
+}
+
+/** Coloana stângă din 23e: rata de plătit și actele (contractul, facturile). */
+function PlataSiDocumente(props: {
+  experienta?: Experienta;
+  inscriere?: Inscriere;
+}) {
+  const pr = () => props.experienta?.progres ?? null;
+  const facturi = () =>
+    (props.inscriere?.plati ?? []).filter((p) => p.fgoFacturaLink);
+  const contract = () => props.inscriere?.contract ?? null;
+  const semnat = () =>
+    contract()?.stare === "Semnat" && contract()?.link ? contract()! : null;
+  return (
+    <Card
+      style={{
+        padding: "20px 22px",
+        display: "flex",
+        "flex-direction": "column",
+        gap: "12px",
+      }}
+    >
+      <Show when={pr()}>
+        {(p) => (
+          <>
+            <div
+              style={{
+                display: "flex",
+                "justify-content": "space-between",
+                gap: "10px",
+              }}
+            >
+              <Eticheta>
+                {p().nrTranse === 1
+                  ? "Plată integrală"
+                  : `Plată · ${p().nrTranse} rate`}
+              </Eticheta>
+              <span style={{ "font-size": "14px", "font-weight": 700 }}>
+                {p().platit.toLocaleString("ro-RO")} / {lei(p().total)}
+              </span>
+            </div>
+            <BaraPlata platit={p().platit} total={p().total} />
+            <Show
+              when={props.experienta?.plata}
+              fallback={
+                <p
+                  style={{ margin: 0, "font-size": "16px", "font-weight": 700 }}
+                >
+                  Plătit integral
+                </p>
+              }
+            >
+              {(pl) => (
+                <div
+                  style={{
+                    display: "flex",
+                    "flex-direction": "column",
+                    gap: "10px",
+                    "align-items": "flex-start",
+                  }}
+                >
+                  <div>
+                    <p
+                      style={{
+                        ...DE_FONTE,
+                        margin: 0,
+                        "font-size": "24px",
+                        color: pl().intarziat ? C.rosu : C.text,
+                      }}
+                    >
+                      {pl().actiune === "contract"
+                        ? "Contract de semnat"
+                        : pl().actiune === "integral"
+                          ? lei(pl().suma)
+                          : `Rata ${pl().numarTransa} · ${lei(pl().suma)}`}
+                    </p>
+                    <Show when={pl().scadentaLa && pl().actiune !== "contract"}>
+                      <p
+                        style={{
+                          margin: "2px 0 0",
+                          color: C.stins,
+                          "font-size": "14px",
+                        }}
+                      >
+                        {pl().intarziat ? "întârziată, scadentă " : "scadentă "}
+                        {zi(pl().scadentaLa!)}
+                      </p>
+                    </Show>
+                  </div>
+                  <ButonPlateste mic plata={pl()} progres={p()} />
+                </div>
+              )}
+            </Show>
+          </>
+        )}
+      </Show>
+
+      <div style={{ "margin-top": pr() ? "8px" : "0" }}>
+        <Eticheta>Documente</Eticheta>
+      </div>
+      <Show
+        when={semnat() || facturi().length}
+        fallback={
+          <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
+            Contractul și facturile apar aici după semnare și plată.
+          </p>
+        }
+      >
+        {/* Contractul semnat se deschide pe site, cu „Descarcă" (`/contract/<token>`); facturile, la FGO. */}
+        <Show when={semnat()}>
+          {(c) => (
+            <RandDocument
+              href={`${BBT_SITE_URL}${c().link}`}
+              text={`Contract semnat nr. ${c().numar}`}
+            />
+          )}
+        </Show>
+        <For each={facturi()}>
+          {(f) => (
+            <RandDocument
+              href={f.fgoFacturaLink!}
+              text={`Factură ${props.inscriere!.nrTranse === 1 ? "" : `rata ${f.numarTransa} `}${f.fgoFacturaSerie ?? ""}-${f.fgoFacturaNumar ?? ""}`}
+            />
+          )}
+        </For>
+      </Show>
+    </Card>
+  );
+}
+
+function RandDocument(props: { href: string; text: string }) {
+  return (
+    <a
+      href={props.href}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: "flex",
+        "align-items": "center",
+        "justify-content": "space-between",
+        gap: "10px",
+        color: C.text,
+        "font-size": "14px",
+        "font-weight": 600,
+        "text-decoration": "none",
+      }}
+    >
+      {props.text}
+      <Symbol size={18}>download</Symbol>
+    </a>
+  );
+}
+
+/** Ziua din program care ține azi (1-based); înainte de tabără, prima; după, ultima. */
+function ziuaDeAzi(dataStart: string, nrZile: number): number {
+  const z = 1 - zilePana(dataStart);
+  return Math.min(Math.max(z, 1), Math.max(nrZile, 1));
+}
+
+/** Ziua de azi din program (sau prima zi, înainte de tabără), cu „Toate zilele ›" spre fila Program (23e). */
+function ProgramAzi(props: { d: InfoTabara; laToate: () => void }) {
+  const program = () => parseProgram(props.d.camp.programGeneral);
+  const ziua = () => ziuaDeAzi(props.d.camp.dataStart, program()?.length ?? 0);
+  const intrari = () =>
+    [...(program()?.find((z) => z.ziua === ziua())?.intrari ?? [])].sort(
+      (a, b) => a.ora.localeCompare(b.ora),
+    );
+  return (
+    <Card style={{ padding: "20px 22px" }}>
+      <div
+        style={{
+          display: "flex",
+          "justify-content": "space-between",
+          gap: "10px",
+          "margin-bottom": "10px",
+        }}
+      >
+        <Eticheta>
+          Program
+          <Show when={program()?.length}>
+            {" "}
+            · {etichetaZi(props.d.camp.dataStart, ziua()).split(" - ")[1]}
+          </Show>
+        </Eticheta>
+        <button
+          type="button"
+          onClick={() => props.laToate()}
+          style={{
+            padding: 0,
+            border: 0,
+            background: "transparent",
+            color: C.text,
+            "font-family": "inherit",
+            "font-size": "14px",
+            "font-weight": 700,
+            cursor: "pointer",
+          }}
+        >
+          Toate zilele ›
+        </button>
+      </div>
+      <Show
+        when={intrari().length}
+        fallback={
+          <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
+            Programul apare aici imediat ce e gata.
+          </p>
+        }
+      >
+        <For each={intrari()}>
+          {(i) => (
+            <div
+              style={{
+                display: "flex",
+                gap: "14px",
+                padding: "8px 0",
+                "border-top": `1px solid ${C.linie}`,
+              }}
+            >
+              <span
+                style={{
+                  width: "46px",
+                  "flex-shrink": 0,
+                  "font-size": "14px",
+                  "font-weight": 700,
+                  "font-variant-numeric": "tabular-nums",
+                }}
+              >
+                {i.ora || "-"}
+              </span>
+              <span style={{ "font-size": "14px" }}>{i.titlu}</span>
+            </div>
+          )}
+        </For>
+      </Show>
+    </Card>
+  );
+}
+
+/** Coloana dreaptă din 23e: camera. Transportul din machetă nu există încă în date, deci lipsește. */
+function CameraPeScurt(props: { d: InfoTabara; laDetalii: () => void }) {
+  const colegi = () =>
+    (props.d.room?.assignments ?? [])
+      .filter((a) => a.participant.id !== props.d.currentParticipantId)
+      .map((a) => a.participant.numeComplet);
+  return (
+    <Card
+      style={{
+        padding: "20px 22px",
+        display: "flex",
+        "flex-direction": "column",
+        gap: "8px",
+      }}
+    >
+      <Eticheta>Cazare</Eticheta>
+      <Show
+        when={props.d.room}
+        fallback={
+          <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
+            Repartizarea camerelor se anunță aici.
+          </p>
+        }
+      >
+        {(camera) => (
+          <>
+            <p style={{ ...DE_FONTE, margin: 0, "font-size": "24px" }}>
+              Camera {camera().numar}
+            </p>
+            <Show when={camera().cladire || camera().etaj != null}>
+              <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
+                {[
+                  camera().cladire,
+                  camera().etaj != null ? `etajul ${camera().etaj}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            </Show>
+            <Show when={colegi().length}>
+              <p style={{ margin: 0, "font-size": "14px" }}>
+                cu {colegi().join(", ")}
+              </p>
+            </Show>
+            <div style={{ "margin-top": "6px" }}>
+              <Buton piele="alb" mic onClick={() => props.laDetalii()}>
+                Detalii cameră
+              </Buton>
+            </div>
+          </>
+        )}
+      </Show>
+    </Card>
   );
 }
 
@@ -351,7 +705,7 @@ function FilaInfo(props: { id: string; d: InfoTabara }) {
         </Bloc>
       </Show>
       <Show when={c().programGeneral}>
-        <Bloc titlu="Program general">
+        <Bloc titlu="Program">
           {/* Taberele vechi au text liber, nu JSON: atunci se afișează textul, ca pe site. */}
           <Show
             when={program()?.length}
@@ -368,47 +722,7 @@ function FilaInfo(props: { id: string; d: InfoTabara }) {
               </p>
             }
           >
-            <For each={program()!}>
-              {(z) => (
-                <div style={{ "margin-bottom": "12px" }}>
-                  <p
-                    style={{
-                      margin: "0 0 4px",
-                      color: C.text,
-                      "font-weight": 600,
-                      "font-size": "13.5px",
-                    }}
-                  >
-                    {etichetaZi(c().dataStart, z.ziua)}
-                  </p>
-                  <For
-                    each={[...z.intrari].sort((a, b) =>
-                      a.ora.localeCompare(b.ora),
-                    )}
-                  >
-                    {(i) => (
-                      <div style={linieRand}>
-                        <span
-                          style={{
-                            width: "48px",
-                            "flex-shrink": 0,
-                            color: C.slab,
-                            "font-size": "12.5px",
-                            "font-weight": 700,
-                            "font-variant-numeric": "tabular-nums",
-                          }}
-                        >
-                          {i.ora || "-"}
-                        </span>
-                        <span style={{ color: C.stins, "font-size": "14px" }}>
-                          {i.titlu}
-                        </span>
-                      </div>
-                    )}
-                  </For>
-                </div>
-              )}
-            </For>
+            <ProgramPeZile dataStart={c().dataStart} zile={program()!} />
           </Show>
         </Bloc>
       </Show>
@@ -437,7 +751,7 @@ function FilaInfo(props: { id: string; d: InfoTabara }) {
                       margin: "0 0 4px",
                       color: C.text,
                       "font-weight": 600,
-                      "font-size": "13.5px",
+                      "font-size": "14px",
                     }}
                   >
                     {etichetaZi(c().dataStart, z.ziua)}
@@ -450,7 +764,7 @@ function FilaInfo(props: { id: string; d: InfoTabara }) {
                             width: "84px",
                             "flex-shrink": 0,
                             color: C.slab,
-                            "font-size": "12.5px",
+                            "font-size": "14px",
                             "font-weight": 600,
                           }}
                         >
@@ -471,12 +785,82 @@ function FilaInfo(props: { id: string; d: InfoTabara }) {
       <PreferinteMasa id={props.id} initial={props.d.mealPreference} />
       <Show when={!c().programGeneral && !c().mentorNume}>
         <StareGoala
-          simbol="info"
           titlu="Detaliile vin curând"
           text="Programul și mentorul taberei apar aici imediat ce sunt gata."
         />
       </Show>
     </div>
+  );
+}
+
+/**
+ * Programul pe zile, cu câte o pastilă pe zi (22a, „Toate zilele ›" din 23e). Se deschide pe ziua de azi; înainte de
+ * tabără, pe prima. Până pe 30 oct toate zilele stăteau una sub alta, iar ziua de azi trebuia căutată.
+ */
+function ProgramPeZile(props: { dataStart: string; zile: ProgramZi[] }) {
+  const [ziua, setZiua] = createSignal(
+    untrack(() => ziuaDeAzi(props.dataStart, props.zile.length)),
+  );
+  const intrari = () =>
+    [...(props.zile.find((z) => z.ziua === ziua())?.intrari ?? [])].sort(
+      (a, b) => a.ora.localeCompare(b.ora),
+    );
+  return (
+    <>
+      <div
+        style={{
+          display: "flex",
+          gap: "6px",
+          "flex-wrap": "wrap",
+          "margin-bottom": "12px",
+        }}
+      >
+        <For each={props.zile}>
+          {(z) => (
+            <button
+              type="button"
+              aria-pressed={ziua() === z.ziua}
+              onClick={() => setZiua(z.ziua)}
+              style={{
+                height: "36px",
+                padding: "0 14px",
+                "border-radius": "999px",
+                border: "0",
+                background: ziua() === z.ziua ? C.negru : C.fundal,
+                color: ziua() === z.ziua ? C.peNegru : C.text,
+                "font-family": "inherit",
+                "font-size": "14px",
+                "font-weight": 600,
+                cursor: "pointer",
+              }}
+            >
+              {etichetaZi(props.dataStart, z.ziua).split(" - ")[1]}
+            </button>
+          )}
+        </For>
+      </div>
+      <For each={intrari()}>
+        {(i) => (
+          <div style={linieRand}>
+            <span
+              style={{
+                width: "48px",
+                "flex-shrink": 0,
+                color: C.text,
+                "font-size": "14px",
+                "font-weight": 700,
+                "font-variant-numeric": "tabular-nums",
+              }}
+            >
+              {i.ora || "-"}
+            </span>
+            <span style={{ color: C.text, "font-size": "14px" }}>
+              {i.titlu}
+            </span>
+          </div>
+        )}
+      </For>
+    </>
   );
 }
 
@@ -536,7 +920,7 @@ function PreferinteMasa(props: {
             background: "transparent",
             color: C.stins,
             "font-family": "inherit",
-            "font-size": "13px",
+            "font-size": "14px",
             "font-weight": 600,
             cursor: "pointer",
           }}
@@ -608,9 +992,9 @@ function PreferinteMasa(props: {
           <div
             style={{ display: "flex", "align-items": "center", gap: "12px" }}
           >
-            <ButonRoz tip="submit" dezactivat={lucrez()}>
+            <Buton mic tip="submit" dezactivat={lucrez()}>
               {lucrez() ? "Se salvează…" : "Salvează"}
-            </ButonRoz>
+            </Buton>
             <MesajSalvare stare={stare()} />
           </div>
         </form>
@@ -632,7 +1016,6 @@ function FilaSesiuni(props: {
           when={props.sesiuni.length}
           fallback={
             <StareGoala
-              simbol="group"
               titlu="Nicio sesiune încă"
               text="Sesiunile tale apar după ce se publică programul."
             />
@@ -664,7 +1047,7 @@ function FilaSesiuni(props: {
                         style={{
                           margin: "2px 0 0",
                           color: C.slab,
-                          "font-size": "12.5px",
+                          "font-size": "14px",
                         }}
                       >
                         cu {s.formator!.nume}
@@ -676,9 +1059,9 @@ function FilaSesiuni(props: {
                       "align-self": "flex-start",
                       padding: "3px 10px",
                       "border-radius": "999px",
-                      background: "rgba(255,255,255,0.06)",
+                      background: C.fundal,
                       color: C.stins,
-                      "font-size": "12px",
+                      "font-size": "14px",
                       "font-weight": 600,
                     }}
                   >
@@ -691,7 +1074,7 @@ function FilaSesiuni(props: {
                     "flex-wrap": "wrap",
                     gap: "4px 14px",
                     color: C.stins,
-                    "font-size": "13px",
+                    "font-size": "14px",
                   }}
                 >
                   <span
@@ -722,7 +1105,7 @@ function FilaSesiuni(props: {
                       style={{
                         margin: "0 0 6px",
                         color: C.slab,
-                        "font-size": "12px",
+                        "font-size": "14px",
                       }}
                     >
                       Colegii din studio
@@ -740,9 +1123,9 @@ function FilaSesiuni(props: {
                             style={{
                               padding: "3px 10px",
                               "border-radius": "999px",
-                              background: "rgba(255,255,255,0.06)",
+                              background: C.fundal,
                               color: C.stins,
-                              "font-size": "12.5px",
+                              "font-size": "14px",
                             }}
                           >
                             {p.numeComplet.split(" ")[0]}
@@ -772,7 +1155,7 @@ function FilaSesiuni(props: {
                       "justify-content": "space-between",
                       gap: "8px",
                       color: C.camps,
-                      "font-size": "12.5px",
+                      "font-size": "14px",
                       "font-weight": 600,
                     }}
                   >
@@ -797,7 +1180,7 @@ function FilaSesiuni(props: {
                         overflow: "hidden",
                         "margin-top": "6px",
                         color: C.stins,
-                        "font-size": "13.5px",
+                        "font-size": "14px",
                         "white-space": "pre-line",
                       }}
                     >
@@ -860,7 +1243,7 @@ function NotitaPrivata(props: { id: string; initial: string }) {
               background: "transparent",
               color: C.stins,
               "font-family": "inherit",
-              "font-size": "13px",
+              "font-size": "14px",
               "font-weight": 600,
               cursor: "pointer",
             }}
@@ -906,7 +1289,7 @@ function NotitaPrivata(props: { id: string; initial: string }) {
             padding: "10px 12px",
             "border-radius": "10px",
             border: `1px solid ${C.linie}`,
-            background: "#0D0D0D",
+            background: C.foaieTare,
             color: C.text,
             "font-family": "inherit",
             "font-size": "14px",
@@ -922,10 +1305,12 @@ function NotitaPrivata(props: { id: string; initial: string }) {
             "margin-top": "10px",
           }}
         >
-          <ButonRoz onClick={salveaza} dezactivat={lucrez()}>
+          <Buton mic onClick={salveaza} dezactivat={lucrez()}>
             {lucrez() ? "Se salvează…" : "Salvează"}
-          </ButonRoz>
-          <ButonContur onClick={() => setEditez(false)}>Renunță</ButonContur>
+          </Buton>
+          <Buton piele="alb" mic onClick={() => setEditez(false)}>
+            Renunță
+          </Buton>
           <MesajSalvare stare={stare()} />
         </div>
       </Show>
@@ -939,7 +1324,6 @@ function FilaCamera(props: { d: InfoTabara }) {
       when={props.d.room}
       fallback={
         <StareGoala
-          simbol="home"
           titlu="Camera vine curând"
           text="Repartizarea camerelor se anunță aici."
         />
@@ -969,7 +1353,7 @@ function FilaCamera(props: { d: InfoTabara }) {
               >
                 {r().numar}
               </div>
-              <div style={{ color: C.stins, "font-size": "13.5px" }}>
+              <div style={{ color: C.stins, "font-size": "14px" }}>
                 <Show when={r().cladire}>
                   <p style={{ margin: 0, color: C.text, "font-weight": 600 }}>
                     {r().cladire}
@@ -978,7 +1362,7 @@ function FilaCamera(props: { d: InfoTabara }) {
                 <Show when={r().etaj != null}>
                   <p style={{ margin: 0 }}>Etaj {r().etaj}</p>
                 </Show>
-                <p style={{ margin: 0, color: C.slab, "font-size": "12.5px" }}>
+                <p style={{ margin: 0, color: C.slab, "font-size": "14px" }}>
                   Capacitate: {r().capacitate} persoane
                 </p>
               </div>
@@ -1007,7 +1391,7 @@ function FilaCamera(props: { d: InfoTabara }) {
                           width: "34px",
                           height: "34px",
                           "border-radius": "10px",
-                          background: "rgba(255,255,255,0.08)",
+                          background: C.fundal,
                           color: C.text,
                           display: "flex",
                           "align-items": "center",
@@ -1033,7 +1417,7 @@ function FilaCamera(props: { d: InfoTabara }) {
                             style={{
                               margin: 0,
                               color: C.slab,
-                              "font-size": "12px",
+                              "font-size": "14px",
                             }}
                           >
                             {p.roles.join(", ")}

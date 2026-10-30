@@ -1,0 +1,13 @@
+/*
+ * BBT: De Fonte pentru titlurile contului (macheta 23, 30 oct 2026). Restul hub-ului rămâne pe Inter.
+ *
+ * ⚠️ Fișierul „-RO", nu cel de pe site: varianta site-ului n-are ș/ț cu virgulă și le desenează cu fontul de rezervă
+ * („Experiențele" ieșea cu un ț străin). E același fișier ca în aplicația de telefon (`mobil/assets/fonte/`).
+ * O singură grosime (DemiGras); fără `font-synthesis`, ca browserul să n-o îngroașe fals.
+ */
+@font-face {
+  font-family: "De Fonte BBT";
+  src: url("/assets/fonts/DeFontePlus-DemiGras-RO.ttf") format("truetype");
+  font-weight: 400 900;
+  font-display: swap;
+}

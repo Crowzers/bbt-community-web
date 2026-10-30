@@ -5,7 +5,7 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 import { cerereCont } from "../../tokenBbt";
 import { useSesiune } from "../date";
 import {
-  ButonRoz,
+  Buton,
   C,
   CampAlege,
   CampText,
@@ -113,7 +113,6 @@ export function Playlist(props: {
         when={piese().length}
         fallback={
           <StareGoala
-            simbol="music_note"
             titlu="Nicio piesă încă"
             text="Piesele din studio apar aici, cu voturile lor."
           />
@@ -236,7 +235,7 @@ function CardPiesa(props: {
               "border-radius": "999px",
               background: C.camps,
               color: "#000",
-              "font-size": "11.5px",
+              "font-size": "14px",
               "font-weight": 700,
             }}
           >
@@ -250,7 +249,7 @@ function CardPiesa(props: {
           "flex-wrap": "wrap",
           gap: "4px 12px",
           color: C.slab,
-          "font-size": "12.5px",
+          "font-size": "14px",
         }}
       >
         <Show when={p().studio != null}>
@@ -278,7 +277,7 @@ function CardPiesa(props: {
                   "align-items": "center",
                   gap: "6px",
                   color: C.stins,
-                  "font-size": "12.5px",
+                  "font-size": "14px",
                 }}
               >
                 {prenume(m.numeComplet)}
@@ -295,7 +294,7 @@ function CardPiesa(props: {
         controls
         preload="none"
         src={p().url}
-        style={{ width: "100%", height: "36px", "color-scheme": "dark" }}
+        style={{ width: "100%", height: "36px", "color-scheme": "light" }}
       />
       <div
         style={{
@@ -309,7 +308,7 @@ function CardPiesa(props: {
         <Show
           when={!p().esteEchipaMea}
           fallback={
-            <span style={{ color: C.slab, "font-size": "12.5px" }}>
+            <span style={{ color: C.slab, "font-size": "14px" }}>
               Piesa la care ai contribuit: nu o poți vota
             </span>
           }
@@ -318,7 +317,7 @@ function CardPiesa(props: {
             when={!props.votareInchisa}
             fallback={
               <Show when={p().votulMeu}>
-                <span style={{ color: C.stins, "font-size": "12.5px" }}>
+                <span style={{ color: C.stins, "font-size": "14px" }}>
                   Ai votat piesa asta ca Banger
                 </span>
               </Show>
@@ -341,10 +340,10 @@ function CardPiesa(props: {
                 padding: "0 14px",
                 "border-radius": "999px",
                 border: "0",
-                background: p().votulMeu ? C.camps : "rgba(255,255,255,0.08)",
+                background: p().votulMeu ? C.camps : C.fundal,
                 color: p().votulMeu ? "#000" : C.text,
                 "font-family": "inherit",
-                "font-size": "13px",
+                "font-size": "14px",
                 "font-weight": 700,
                 cursor: "pointer",
                 opacity: lucrez() ? 0.5 : 1,
@@ -376,7 +375,7 @@ function CardPiesa(props: {
                 background: "transparent",
                 color: C.stins,
                 "font-family": "inherit",
-                "font-size": "12.5px",
+                "font-size": "14px",
                 cursor: "pointer",
               }}
             >
@@ -401,7 +400,7 @@ function CardPiesa(props: {
               background: "transparent",
               color: p().amDatLike ? C.rosu : C.stins,
               "font-family": "inherit",
-              "font-size": "13px",
+              "font-size": "14px",
               "font-weight": 600,
               cursor: "pointer",
             }}
@@ -431,8 +430,8 @@ function InsignaBanger(props: { nr: number }) {
   const t = () => tierPentruNumar(props.nr);
   const stil = () =>
     ({
-      none: { bg: "rgba(255,255,255,0.08)", text: C.stins },
-      bronze: { bg: "#CD7F32", text: "#fff" },
+      none: { bg: C.fundal, text: C.stins },
+      bronze: { bg: "#CD7F32", text: C.peNegru },
       silver: { bg: "#C0C0C0", text: "#000" },
       diamond: {
         bg: "linear-gradient(to right, #3AA0FF, #00E5D0)",
@@ -449,7 +448,7 @@ function InsignaBanger(props: { nr: number }) {
         "border-radius": "999px",
         background: stil().bg,
         color: stil().text,
-        "font-size": "11px",
+        "font-size": "14px",
         "font-weight": 700,
       }}
     >
@@ -531,9 +530,9 @@ function UrcaPiesa(props: {
       when={deschis()}
       fallback={
         <div>
-          <ButonRoz onClick={() => setDeschis(true)}>
+          <Buton mic onClick={() => setDeschis(true)}>
             <Symbol size={15}>upload</Symbol> Adaugă piesă
-          </ButonRoz>
+          </Buton>
         </div>
       }
     >
@@ -563,7 +562,7 @@ function UrcaPiesa(props: {
               style={{
                 color: C.stins,
                 "font-family": "inherit",
-                "font-size": "13px",
+                "font-size": "14px",
               }}
             />
             <Show when={fisier()}>
@@ -572,7 +571,7 @@ function UrcaPiesa(props: {
                   display: "block",
                   "margin-top": "4px",
                   color: C.slab,
-                  "font-size": "12px",
+                  "font-size": "14px",
                 }}
               >
                 {fisier()!.name} · {(fisier()!.size / 1024 / 1024).toFixed(1)}{" "}
@@ -602,7 +601,7 @@ function UrcaPiesa(props: {
                   padding: "6px",
                   "border-radius": "10px",
                   border: `1px solid ${C.linie}`,
-                  background: "#0D0D0D",
+                  background: C.foaieTare,
                 }}
               >
                 <For each={props.colegi}>
@@ -627,11 +626,11 @@ function UrcaPiesa(props: {
                           )
                         }
                       />
-                      <span style={{ color: C.text, "font-size": "13.5px" }}>
+                      <span style={{ color: C.text, "font-size": "14px" }}>
                         {c.numeComplet}
                       </span>
                       <Show when={c.roles.length}>
-                        <span style={{ color: C.slab, "font-size": "12px" }}>
+                        <span style={{ color: C.slab, "font-size": "14px" }}>
                           {c.roles.join(", ")}
                         </span>
                       </Show>
@@ -642,14 +641,14 @@ function UrcaPiesa(props: {
             </div>
           </Show>
           <Show when={eroare()}>
-            <span style={{ color: C.rosu, "font-size": "12.5px" }}>
+            <span style={{ color: C.rosu, "font-size": "14px" }}>
               {eroare()}
             </span>
           </Show>
           <div style={{ display: "flex", gap: "8px" }}>
-            <ButonRoz tip="submit" dezactivat={lucrez()}>
+            <Buton mic tip="submit" dezactivat={lucrez()}>
               {lucrez() ? "Se urcă…" : "Adaugă"}
-            </ButonRoz>
+            </Buton>
             <button
               type="button"
               onClick={() => setDeschis(false)}

@@ -15,6 +15,8 @@ export interface Plata {
   /** Asteptata | Platita | Rambursata | RambursataPartial */
   status: string;
   scadentaLa: string | null;
+  /** Când s-a plătit. Lipsește la un admin mai vechi decât 30 oct 2026 (ruta `/me` l-a primit atunci). */
+  platitaLa?: string | null;
   sumaRambursata: number | null;
   fgoFacturaNumar: string | null;
   fgoFacturaSerie: string | null;
@@ -48,7 +50,12 @@ export interface Inscriere {
    * serverul refuză plata cu „Semnează întâi contractul", deci butonul de tranșa 1 nu apare.
    * Forma întreagă e în `website/src/types/participant.ts` (`ContractCont`).
    */
-  contract?: { stare: "Trimis" | "Semnat" | "Expirat" | "Reziliat" } | null;
+  contract?: {
+    stare: "Trimis" | "Semnat" | "Expirat" | "Reziliat";
+    numar: number;
+    /** Calea de pe site a contractului (semnare sau PDF-ul semnat). `null` = îl semnează părintele sau firma. */
+    link: string | null;
+  } | null;
   plati: Plata[];
   camp: Camp;
 }
@@ -89,19 +96,6 @@ export interface BiletWorkshop {
   };
 }
 
-export interface WishlistItem {
-  campId: string;
-  camp: {
-    id: string;
-    slug?: string;
-    nume: string;
-    dataStart: string;
-    locatie: string;
-    pretTransa1: number;
-    statusPublic?: string;
-  };
-}
-
 /**
  * ⚠️ Câmpurile sunt INSTANTANEUL de pe act (`titluCurs`, `formator`), nu date citite din curs:
  * dacă un curs se redenumește, diploma emisă spune tot ce scrie pe PDF.
@@ -122,6 +116,13 @@ export interface Participant {
   email: string;
   username: string | null;
   avatarUrl: string | null;
+  // Profilul public (23f). `numeAfisat` = numele de scenă; `null` = se arată numele real.
+  numeAfisat: string | null;
+  bio: string | null;
+  mainRole: string | null;
+  musicGenres: string[];
+  /** Rețea → adresă (`instagram`, `spotify`, `soundcloud`…), curățate de admin la salvare. */
+  socialLinks: Record<string, string> | null;
   phoneVerified: boolean;
   emailVerified: boolean;
   // Setări cont (Faza 6). Numele real e despărțit în prenume + nume; `numeComplet` se recompune din ele.
@@ -146,6 +147,54 @@ export interface Participant {
   inscrieri?: Inscriere[];
   inscrieriCurs?: InscriereCurs[];
   bileteWorkshop?: BiletWorkshop[];
-  wishlistItems?: WishlistItem[];
   diplome?: Diploma[];
+}
+
+/**
+ * „Experiențele mele" (23b), din `GET /api/public/participant/experiente`.
+ *
+ * ⚠️ COPIA tipurilor `Experienta` / `PlataExperienta` din `admin/lib/reguli/experiente.ts` (la fel ca
+ * `mobil/src/bbt/cont.ts`). Datele vin ca text ISO, nu `Date`. Dacă regula își schimbă forma, se schimbă în toate trei.
+ */
+export interface PlataExperienta {
+  fel: "camp" | "curs";
+  comandaId: string;
+  titlu: string;
+  /** Cu penalizarea inclusă: cifra din buton și suma din Stripe sunt aceeași. */
+  suma: number;
+  /** 1 sau 2; la plata integrală, 1. */
+  numarTransa: number;
+  scadentaLa: string | null;
+  intarziat: boolean;
+  /** `contract` = întâi semnătura, plata vine după. */
+  actiune: "transa1" | "integral" | "transa2" | "contract";
+  /** Doar la `contract`: calea de pe site unde semnezi. `null` = semnează părintele sau firma, de pe emailul lor. */
+  linkContract: string | null;
+  semnatar: "tu" | "parinte" | "firma" | null;
+}
+
+export interface Experienta {
+  fel: "camp" | "curs" | "workshop";
+  /** Id-ul evenimentului (camp, curs, workshop). */
+  id: string;
+  comandaId: string | null;
+  titlu: string;
+  locatie: string | null;
+  afisUrl: string | null;
+  dataStart: string;
+  dataEnd: string | null;
+  /** Evenimentul ține azi (ziua românească). */
+  azi: boolean;
+  /** Zile până la start; 0 sau negativ când a început. */
+  zilePanaLa: number;
+  plata: PlataExperienta | null;
+  progres: { platit: number; total: number; nrTranse: number } | null;
+  /** Codul biletului de workshop; taberele n-au bilet. */
+  qr: string | null;
+  areDiploma: boolean;
+}
+
+export interface Experiente {
+  active: Experienta[];
+  trecute: Experienta[];
 }

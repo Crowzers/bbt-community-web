@@ -6,6 +6,7 @@ import "./bbt/polyfill-safari17";
 import "./sentry";
 // BBT: devreme, ca să nu ratăm `beforeinstallprompt` (Chrome îl trimite o dată). Vezi fișierul.
 import "./bbt/instalare";
+import "./bbt/fonte.css";
 
 import { JSX, onMount } from "solid-js";
 import { render } from "solid-js/web";

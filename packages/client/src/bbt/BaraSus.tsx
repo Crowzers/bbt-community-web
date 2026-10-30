@@ -14,8 +14,6 @@ import Wordmark from "../../public/assets/web/wordmark.svg?component-solid";
 import { ButonInstalare } from "./ButonInstalare";
 import { CautareSus, Clopotel } from "./CautareSiAlerte";
 import { BBT_ADMIN_URL, BBT_SITE_URL } from "./config";
-import { PAGINI_IN_HUB } from "./cont/ContulMeu";
-import { contInHub } from "./instalare";
 
 /**
  * Bara de sus a BBT Community — copia barei din Community-ul vechi
@@ -26,8 +24,8 @@ import { contInHub } from "./instalare";
  * - Stânga: sigla BBT completă, albă, 30px, + „COMMUNITY" (15px, majuscule, spațiere 0.18em).
  * - Dreapta: caseta de cont — avatar 34px, nume, sub el „Artist verificat" (verde) sau
  *   „Completează profilul" (chihlimbar), exact regula de pe site (telefon confirmat). La hover
- *   (desktop) sau atingere, meniul de cont al site-ului: aceleași linkuri ca `MeniuCont`
- *   (`dashboardNavItems`), deschise pe site, plus ce ține de Community (setările lui, ieșirea).
+ *   (desktop) sau atingere, meniul de cont: rândurile contului din hub (`cont/ContulMeu.tsx`),
+ *   plus ce ține de Community (setările lui, ieșirea).
  *
  * Înălțimea e 64px, nu 72 ca pe site: compromisul cerut („foarte puțin mai mari, cât să încapă
  * logoul mai mare") față de cei 48 ai primei variante.
@@ -50,56 +48,27 @@ type ProfilEu = {
 const LINIE = "rgba(255,255,255,0.08)";
 const FOAIE = "#141414";
 
-/** Aceleași rânduri ca meniul de cont al site-ului (`website/src/lib/dashboardNavItems.ts`). */
 /**
- * `pagina` = ruta din hub (`/cont/<pagina>`, `cont/ContulMeu.tsx`). Când hub-ul rulează instalat și
- * pagina e deja rescrisă acolo, rândul o deschide în aplicație; altfel, pagina de pe site.
+ * Rândurile contului, aceleași ca meniul din stânga al contului (`cont/ContulMeu.tsx`, 23 din 30 oct 2026), deschise
+ * în hub. `pagina` = ruta `/cont/<pagina>`.
+ *
+ * ⚠️ Până pe 30 oct se deschideau în hub DOAR în aplicația instalată, iar în browser pe site (decizia #6 din
+ * `2026-10-20-hub-standalone-cont-design.md`). Userul a cerut contul în hub și pe web („hai să facem așa și pe web"),
+ * deci nu mai există ramura spre site.
  */
 const ACTIVITATE = [
   {
-    href: "/dashboard/mycamps",
-    pagina: "mycamps",
-    nume: "My Camps",
-    simbol: "camping",
+    pagina: "experiente",
+    nume: "Experiențele mele",
+    simbol: "confirmation_number",
   },
-  {
-    href: "/dashboard/workshops",
-    pagina: "workshops",
-    nume: "My Workshops",
-    simbol: "bolt",
-  },
-  {
-    href: "/dashboard/cursuri",
-    pagina: "cursuri",
-    nume: "My Courses",
-    simbol: "school",
-  },
-  {
-    href: "/dashboard/diplome",
-    pagina: "diplome",
-    nume: "Diplomele mele",
-    simbol: "workspace_premium",
-  },
+  { pagina: "diplome", nume: "Diplome", simbol: "workspace_premium" },
+  { pagina: "plati", nume: "Plăți", simbol: "payments" },
 ];
 const CONT = [
-  {
-    href: "/dashboard/plati",
-    pagina: "plati",
-    nume: "Plățile mele",
-    simbol: "payments",
-  },
-  {
-    href: "/dashboard/wishlist",
-    pagina: "wishlist",
-    nume: "Wishlist",
-    simbol: "favorite",
-  },
-  {
-    href: "/dashboard/setari",
-    pagina: "setari",
-    nume: "Setări cont",
-    simbol: "settings",
-  },
+  { pagina: "profil", nume: "Profil public", simbol: "person" },
+  { pagina: "date", nume: "Date personale", simbol: "badge" },
+  { pagina: "notificari", nume: "Notificări", simbol: "notifications" },
 ];
 
 export function BaraSus(props: { compact?: boolean }) {
@@ -165,34 +134,18 @@ export function BaraSus(props: { compact?: boolean }) {
   const Grup = (p: { linkuri: typeof ACTIVITATE }) => (
     <For each={p.linkuri}>
       {(l) => (
-        <Show
-          when={contInHub() && PAGINI_IN_HUB.has(l.pagina)}
-          fallback={
-            <a
-              href={`${site()}${l.href}`}
-              target="_blank"
-              rel="noopener"
-              onClick={() => setMeniu(false)}
-              style={randMeniu}
-            >
-              <Symbol size={15}>{l.simbol}</Symbol>
-              {l.nume}
-            </a>
-          }
+        <a
+          href={`/cont/${l.pagina}`}
+          onClick={(e) => {
+            e.preventDefault();
+            setMeniu(false);
+            navigate(`/cont/${l.pagina}`);
+          }}
+          style={randMeniu}
         >
-          <a
-            href={`/cont/${l.pagina}`}
-            onClick={(e) => {
-              e.preventDefault();
-              setMeniu(false);
-              navigate(`/cont/${l.pagina}`);
-            }}
-            style={randMeniu}
-          >
-            <Symbol size={15}>{l.simbol}</Symbol>
-            {l.nume}
-          </a>
-        </Show>
+          <Symbol size={15}>{l.simbol}</Symbol>
+          {l.nume}
+        </a>
       )}
     </For>
   );

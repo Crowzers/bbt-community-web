@@ -1,5 +1,4 @@
 import { For, Show, createSignal, onCleanup, onMount } from "solid-js";
-import { Portal } from "solid-js/web";
 
 import { useQueryClient } from "@tanstack/solid-query";
 
@@ -7,21 +6,52 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { cerereCont } from "../tokenBbt";
 
-import { CHEIE_CONT, lei, useCont, useSesiune, ziLunga } from "./date";
-import { Incarcare } from "./MyCamps";
-import { ButonPlata, PlatesteTransa2 } from "./PlatesteTransa2";
-import type { Inscriere, InscriereCurs, Plata } from "./tipuri";
-import { C, Card, Mesaj, StareGoala, TitluPagina } from "./ui";
+import {
+  CHEIE_CONT,
+  lei,
+  useCont,
+  useExperiente,
+  useSesiune,
+  zi,
+  ziCuAn,
+  ziLunga,
+} from "./date";
+import { ButonPlateste } from "./Plata";
+import type {
+  Inscriere,
+  InscriereCurs,
+  Plata,
+  PlataExperienta,
+} from "./tipuri";
+import {
+  Buton,
+  C,
+  DE_FONTE,
+  Eticheta,
+  Fereastra,
+  Incarcare,
+  Mesaj,
+  Pastila,
+  StareGoala,
+  TitluPagina,
+} from "./ui";
 
 /**
- * BBT: „Plățile mele" în hub. Copia lui `website/src/app/dashboard/plati/page.tsx` +
- * `BlocTranse.tsx` + `MeniuInscriere.tsx`.
+ * BBT: „Plăți" în hub (23d, 30 oct 2026): sus cât ai de plătit și cât ai plătit, dedesubt toate tranzacțiile, cu
+ * factura fiecăreia. Până atunci, copia lui `website/src/app/dashboard/plati/page.tsx` (câte un card pe comandă).
  *
- * ⚠️ Totul vine din UN singur răspuns `/me` (`useCont`), pentru ambele produse: două cereri ar fi
- * două momente diferite, deci un total de sus care poate să nu se potrivească cu rândurile.
+ * Ce e altfel decât în 23d, dinadins:
+ * - Fără cardul „Card salvat" și fără „Schimbă cardul": plata trece prin pagina Stripe, fără card ținut de noi
+ *   (alegerea userului, 30 oct; vezi `Plata.tsx`).
+ * - „Plătit în total", nu „Plătit în 2026": un an în titlu ar fi ascuns banii de anul trecut fără să spună.
+ * - Sub tranzacții rămân comenzile, cu ce nu încape într-un rând: prelungirea scadenței și cererea de anulare.
  *
- * ⚠️ Cursurile n-au meniul de anulare, ca pe site: ruta cererii cere un `inscriereId` de TABĂRĂ și
- * ar da 404 pe un id de curs. Anularea unui curs se cere pe email.
+ * ⚠️ Totul vine din UN singur răspuns `/me` (`useCont`), pentru ambele produse: două cereri ar fi două momente
+ * diferite, deci un total de sus care poate să nu se potrivească cu rândurile. Butonul „Plătește" vine din
+ * `participant/experiente`, ca suma și ruta lui să fie exact cele din Experiențele mele.
+ *
+ * ⚠️ Cursurile n-au meniul de anulare, ca pe site: ruta cererii cere un `inscriereId` de TABĂRĂ și ar da 404 pe un
+ * id de curs. Anularea unui curs se cere pe email.
  */
 
 type Comanda = {
@@ -87,17 +117,55 @@ function restant(c: Comanda): number {
   return neplatit + (t2 ? (c.penalizareTransa2 ?? 0) : 0);
 }
 
+type Tranzactie = { comanda: Comanda; plata: Plata; data: string | null };
+
 export function Plati() {
   const cont = useCont();
+  const experiente = useExperiente();
   const comenzi = () => [
     ...(cont.data?.inscrieri ?? []).map(dinTabara),
     ...(cont.data?.inscrieriCurs ?? []).map(dinCurs),
   ];
   const total = () => comenzi().reduce((t, c) => t + restant(c), 0);
+  const platit = () =>
+    comenzi()
+      .flatMap((c) => c.plati)
+      .filter((p) => p.status === "Platita")
+      .reduce((s, p) => s + p.suma, 0);
+  const cuPlati = () =>
+    comenzi().filter((c) => c.plati.some((p) => p.status === "Platita")).length;
+
+  // Plățile care se pot face acum, după comandă: aceleași ca butoanele din Experiențele mele.
+  const deFacut = () => {
+    const m = new Map<string, PlataExperienta>();
+    for (const e of experiente.data?.active ?? []) {
+      if (e.plata) m.set(e.plata.comandaId, e.plata);
+    }
+    return m;
+  };
+  const urmatoarea = () =>
+    [...deFacut().values()].sort((a, b) =>
+      (a.scadentaLa ?? "9").localeCompare(b.scadentaLa ?? "9"),
+    )[0];
+
+  // Cea mai nouă sus: o plată făcută după data ei, una de făcut după scadență. Fără dată, la coadă.
+  const tranzactii = (): Tranzactie[] =>
+    comenzi()
+      .flatMap((c) =>
+        c.plati.map((p) => ({
+          comanda: c,
+          plata: p,
+          data:
+            p.status === "Asteptata"
+              ? p.scadentaLa
+              : (p.platitaLa ?? p.scadentaLa),
+        })),
+      )
+      .sort((a, b) => (b.data ?? "").localeCompare(a.data ?? ""));
 
   return (
     <>
-      <TitluPagina>Plățile mele</TitluPagina>
+      <TitluPagina>Plăți</TitluPagina>
       <Show when={cont.isError}>
         <Mesaj fel="eroare">
           Nu am putut încărca plățile tale. Încearcă din nou peste un minut.
@@ -108,43 +176,68 @@ export function Plati() {
           when={comenzi().length}
           fallback={
             <StareGoala
-              simbol="payments"
-              titlu="Nicio plată înregistrată"
-              text="Plățile pentru tabere și cursuri apar aici."
+              titlu="Nicio plată încă"
+              text="Plățile pentru tabere și cursuri apar aici, cu factura fiecăreia."
             />
           }
         >
-          <div style={{ "margin-bottom": "24px" }}>
-            <p style={{ margin: 0, color: C.stins, "font-size": "13.5px" }}>
-              Total de plată
-            </p>
-            <p
-              style={{
-                margin: "4px 0 0",
-                "font-size": "44px",
-                "line-height": "48px",
-                "font-weight": 700,
-                color: C.text,
-              }}
-            >
-              {lei(total())}
-            </p>
-            <Show when={total() === 0}>
-              <p
-                style={{
-                  margin: "6px 0 0",
-                  color: C.stins,
-                  "font-size": "14px",
-                }}
-              >
-                Ești la zi, nu ai nimic de plătit.
-              </p>
-            </Show>
+          <div
+            style={{
+              display: "grid",
+              "grid-template-columns": "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: "12px",
+              "margin-bottom": "28px",
+            }}
+          >
+            <Rezumat
+              eticheta="De plătit"
+              suma={total()}
+              fundal={total() > 0 ? C.galbenDeschis : C.foaie}
+              sub={
+                total() === 0
+                  ? "Ești la zi."
+                  : urmatoarea()
+                    ? `${urmatoarea()!.actiune === "integral" ? "Plata integrală" : `Rata ${urmatoarea()!.numarTransa}`}${urmatoarea()!.scadentaLa ? ` · ${zi(urmatoarea()!.scadentaLa!)}` : ""}`
+                    : ""
+              }
+            />
+            <Rezumat
+              eticheta="Plătit în total"
+              suma={platit()}
+              fundal={C.foaie}
+              sub={`${cuPlati()} ${cuPlati() === 1 ? "experiență" : "experiențe"}`}
+            />
+          </div>
+
+          <div style={{ "margin-bottom": "10px" }}>
+            <Eticheta>Toate tranzacțiile</Eticheta>
           </div>
           <div
-            style={{ display: "flex", "flex-direction": "column", gap: "14px" }}
+            style={{
+              "border-radius": "24px",
+              background: C.foaie,
+              padding: "6px 20px",
+              "margin-bottom": "28px",
+            }}
           >
-            <For each={comenzi()}>{(c) => <CardComanda comanda={c} />}</For>
+            <For each={tranzactii()}>
+              {(t, i) => (
+                <RandTranzactie
+                  t={t}
+                  primul={i() === 0}
+                  deFacut={deFacut().get(t.comanda.id)}
+                />
+              )}
+            </For>
+          </div>
+
+          <div style={{ "margin-bottom": "10px" }}>
+            <Eticheta>Comenzile tale</Eticheta>
+          </div>
+          <div
+            style={{ display: "flex", "flex-direction": "column", gap: "10px" }}
+          >
+            <For each={comenzi()}>{(c) => <RandComanda comanda={c} />}</For>
           </div>
         </Show>
       </Show>
@@ -152,84 +245,182 @@ export function Plati() {
   );
 }
 
-function EtichetaStatus(props: { status: string }) {
-  const achitat = () =>
-    ["Achitat", "Achitat 2/2", "Oferta"].includes(props.status);
+function Rezumat(props: {
+  eticheta: string;
+  suma: number;
+  sub: string;
+  fundal: string;
+}) {
   return (
-    <span
+    <div
       style={{
-        padding: "3px 10px",
-        "border-radius": "999px",
-        "font-size": "12px",
-        "font-weight": 600,
-        "white-space": "nowrap",
-        background: achitat()
-          ? "rgba(91,208,138,0.12)"
-          : inactiva(props.status)
-            ? "rgba(255,255,255,0.06)"
-            : "rgba(224,168,84,0.14)",
-        color: achitat()
-          ? C.verde
-          : inactiva(props.status)
-            ? C.slab
-            : C.chihlimbar,
+        padding: "20px 22px",
+        "border-radius": "24px",
+        background: props.fundal,
       }}
     >
-      {/* „Oferta" e numele din bază: omul a fost înscris fără plată, de admin. Ca pe site (27 oct 2026). */}
-      {props.status === "Oferta" ? "Fără plată" : props.status}
-    </span>
+      <Eticheta culoare={C.text}>{props.eticheta}</Eticheta>
+      <p
+        style={{
+          ...DE_FONTE,
+          margin: "6px 0 2px",
+          "font-size": "34px",
+          "line-height": "1.1",
+        }}
+      >
+        {lei(props.suma)}
+      </p>
+      <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
+        {props.sub}
+      </p>
+    </div>
   );
 }
 
-function CardComanda(props: { comanda: Comanda }) {
-  const c = () => props.comanda;
-  const t1 = () => c().plati.find((p) => p.numarTransa === 1);
-  const t2Neplatita = () =>
-    c().plati.some((p) => p.numarTransa === 2 && p.status === "Asteptata");
-  // 🔴 Tranșa 2 DOAR după ce prima e plătită: o comandă din CRM stă cu ambele pe „Asteptata".
-  // `=== "Platita"` strict: o tranșă 1 rambursată = comandă desfăcută, nu una gata de rata a doua.
-  const t1Platita = () => t1()?.status === "Platita";
-  // Comanda deschisă de seller/admin (audit 3 oct 2026, G22): prima rată se plătește de aici.
-  const deschisa = () =>
-    ["Inscris", "LinkTrimis", "Programat"].includes(c().statusPlata);
+const STATUS_TRANSA: Record<string, string> = {
+  Asteptata: "Urmează",
+  Platita: "Plătit",
+  // Oferta de 100% aprobată de admin: tranșa nu se mai plătește, deci nu stă „în așteptare".
+  Oferta: "Fără plată",
+  Rambursata: "Rambursat",
+  RambursataPartial: "Rambursat parțial",
+};
+
+function RandTranzactie(props: {
+  t: Tranzactie;
+  primul: boolean;
+  deFacut?: PlataExperienta;
+}) {
+  const c = () => props.t.comanda;
+  const p = () => props.t.plata;
+  // O comandă anulată lasă tranșele neplătite pe „Asteptata": nu mai sunt datorate, deci le arătăm
+  // anulate, nu „urmează".
+  const anulata = () => inactiva(c().statusPlata) && p().status === "Asteptata";
+  const platit = () => p().status === "Platita" || p().status === "Oferta";
+  // Butonul doar pe rândul ratei pe care o cere serverul acum (nu pe tranșa 2 cât tranșa 1 e neplătită).
+  const plateste = () =>
+    props.deFacut && props.deFacut.numarTransa === p().numarTransa && !anulata()
+      ? props.deFacut
+      : undefined;
 
   return (
-    <Card style={{ padding: "18px" }}>
+    <div
+      style={{
+        display: "grid",
+        "grid-template-columns": "110px minmax(0, 1fr) auto auto 40px",
+        "align-items": "center",
+        gap: "14px",
+        padding: "14px 0",
+        "border-top": props.primul ? "0" : `1px solid ${C.linie}`,
+      }}
+    >
+      <span style={{ color: C.stins, "font-size": "14px" }}>
+        {props.t.data ? ziCuAn(props.t.data) : ""}
+      </span>
+      <span
+        style={{
+          "font-size": "16px",
+          "font-weight": 600,
+          "min-width": 0,
+          overflow: "hidden",
+          "text-overflow": "ellipsis",
+          "white-space": "nowrap",
+        }}
+      >
+        {c().titlu} ·{" "}
+        {c().nrTranse === 1 ? "Plată integrală" : `Rata ${p().numarTransa}`}
+        <Show when={(p().sumaRambursata ?? 0) > 0}>
+          <span style={{ color: C.stins, "font-weight": 400 }}>
+            {" "}
+            · rambursat {lei(p().sumaRambursata ?? 0)}
+          </span>
+        </Show>
+      </span>
+      <span
+        style={{
+          "font-size": "16px",
+          "font-weight": 700,
+          "white-space": "nowrap",
+        }}
+      >
+        {lei(p().suma)}
+      </span>
+      <Show
+        when={plateste()}
+        fallback={
+          <Pastila
+            fel={
+              anulata()
+                ? "neutru"
+                : platit()
+                  ? "ok"
+                  : p().status === "Asteptata"
+                    ? "asteapta"
+                    : "neutru"
+            }
+          >
+            {anulata()
+              ? c().statusPlata
+              : (STATUS_TRANSA[p().status] ?? p().status)}
+          </Pastila>
+        }
+      >
+        {(pl) => <ButonPlateste mic plata={pl()} />}
+      </Show>
+      <Show when={p().fgoFacturaLink} fallback={<span />}>
+        <a
+          href={p().fgoFacturaLink!}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={`Factura ${p().fgoFacturaSerie ?? ""}-${p().fgoFacturaNumar ?? ""}`}
+          aria-label="Descarcă factura"
+          style={{
+            width: "38px",
+            height: "38px",
+            display: "flex",
+            "align-items": "center",
+            "justify-content": "center",
+            "border-radius": "999px",
+            background: C.fundal,
+            color: C.text,
+          }}
+        >
+          <Symbol size={18}>download</Symbol>
+        </a>
+      </Show>
+    </div>
+  );
+}
+
+function RandComanda(props: { comanda: Comanda }) {
+  const c = () => props.comanda;
+  const t2Neplatita = () =>
+    c().plati.some((p) => p.numarTransa === 2 && p.status === "Asteptata");
+  const achitat = () =>
+    ["Achitat", "Achitat 2/2", "Oferta"].includes(c().statusPlata);
+
+  return (
+    <div
+      style={{
+        padding: "16px 20px",
+        "border-radius": "20px",
+        background: C.foaie,
+      }}
+    >
       <div
         style={{
           display: "flex",
-          "align-items": "flex-start",
+          "align-items": "center",
           "justify-content": "space-between",
           gap: "12px",
-          "margin-bottom": "12px",
         }}
       >
         <div style={{ "min-width": 0 }}>
-          <Show when={c().numarComanda}>
-            <p
-              style={{
-                margin: "0 0 2px",
-                color: C.slab,
-                "font-size": "12px",
-                "font-family": "monospace",
-              }}
-            >
-              {c().numarComanda}
-            </p>
-          </Show>
-          <p
-            style={{
-              margin: 0,
-              color: C.text,
-              "font-size": "15.5px",
-              "font-weight": 600,
-            }}
-          >
+          <p style={{ margin: 0, "font-size": "16px", "font-weight": 700 }}>
             {c().titlu}
           </p>
-          <p
-            style={{ margin: "2px 0 0", color: C.stins, "font-size": "12.5px" }}
-          >
+          <p style={{ margin: "2px 0 0", color: C.stins, "font-size": "14px" }}>
+            {c().numarComanda ? `${c().numarComanda} · ` : ""}
             {c().subtitlu}
           </p>
         </div>
@@ -241,7 +432,18 @@ function CardComanda(props: { comanda: Comanda }) {
             "flex-shrink": 0,
           }}
         >
-          <EtichetaStatus status={c().statusPlata} />
+          <Pastila
+            fel={
+              achitat()
+                ? "ok"
+                : inactiva(c().statusPlata)
+                  ? "neutru"
+                  : "asteapta"
+            }
+          >
+            {/* „Oferta" e numele din bază: omul a fost înscris fără plată, de admin. Ca pe site (27 oct 2026). */}
+            {c().statusPlata === "Oferta" ? "Fără plată" : c().statusPlata}
+          </Pastila>
           <Show when={c().produs === "camp" && !inactiva(c().statusPlata)}>
             <MeniuAnulare
               inscriereId={c().id}
@@ -251,23 +453,6 @@ function CardComanda(props: { comanda: Comanda }) {
         </div>
       </div>
 
-      <div style={{ display: "flex", "flex-direction": "column" }}>
-        <For each={c().plati}>
-          {(p, i) => (
-            <RandTransa
-              plata={p}
-              eticheta={
-                c().nrTranse === 1
-                  ? "Plată integrală"
-                  : `Tranșa ${p.numarTransa}`
-              }
-              statusComanda={c().statusPlata}
-              primul={i() === 0}
-            />
-          )}
-        </For>
-      </div>
-
       {/* Prelungirea vorbită la telefon, scrisă pe ecran: omul care a sunat ca să nu primească
           penalizare trebuie să VADĂ că a primit-o. ⚠️ Fără motiv și fără numele sellerului. */}
       <Show
@@ -275,14 +460,13 @@ function CardComanda(props: { comanda: Comanda }) {
           c().prelungireTransa2 && !inactiva(c().statusPlata) && t2Neplatita()
         }
       >
-        <div
+        <p
           style={{
-            margin: "10px 0 0",
+            margin: "12px 0 0",
             padding: "12px 14px",
-            "border-radius": "12px",
-            background: "rgba(91,208,138,0.1)",
-            color: C.verde,
-            "font-size": "13.5px",
+            "border-radius": "14px",
+            background: C.verdeDeschis,
+            "font-size": "14px",
             "line-height": "1.45",
           }}
         >
@@ -293,164 +477,34 @@ function CardComanda(props: { comanda: Comanda }) {
           </b>{" "}
           Noua scadență e {ziLunga(c().prelungireTransa2!.scadentaNoua)}. Până
           atunci nu se aplică nicio penalizare.
-        </div>
+        </p>
       </Show>
 
-      <Show when={deschisa() && t1()?.status === "Asteptata"}>
-        <div style={{ "margin-top": "12px" }}>
-          <ButonPlata
-            cale="/api/public/checkout/comanda"
-            corp={{ fel: c().produs, comandaId: c().id }}
-            eticheta={`${c().nrTranse === 1 ? "Plătește" : "Plătește tranșa 1"} - ${lei(t1()!.suma)}`}
-          />
-        </div>
-      </Show>
-
-      <Show when={!inactiva(c().statusPlata) && t2Neplatita() && t1Platita()}>
-        <div style={{ "margin-top": "12px" }}>
-          <PlatesteTransa2
-            comandaId={c().id}
-            produs={c().produs}
-            pret={c().plati.find((p) => p.numarTransa === 2)!.suma}
-            penalizare={c().penalizareTransa2 ?? 0}
-            zileIntarziere={c().zileIntarziereTransa2 ?? 0}
-          />
-        </div>
-      </Show>
-    </Card>
-  );
-}
-
-const STATUS_TRANSA: Record<string, string> = {
-  Asteptata: "În așteptare",
-  Platita: "Plătit",
-  // Oferta de 100% aprobată de admin: tranșa nu se mai plătește, deci nu stă „în așteptare".
-  Oferta: "Fără plată",
-  Rambursata: "Rambursat",
-  RambursataPartial: "Rambursat parțial",
-};
-
-function RandTransa(props: {
-  plata: Plata;
-  eticheta: string;
-  statusComanda: string;
-  primul: boolean;
-}) {
-  const p = () => props.plata;
-  const platit = () => p().status === "Platita" || p().status === "Oferta";
-  const rambursat = () =>
-    p().status === "Rambursata" || p().status === "RambursataPartial";
-  // O comandă anulată lasă tranșele neplătite pe „Asteptata": nu mai sunt datorate, deci le arătăm
-  // anulate, nu „în așteptare" cu scadență.
-  const anulata = () =>
-    inactiva(props.statusComanda) && p().status === "Asteptata";
-  const culoare = () =>
-    anulata()
-      ? C.slab
-      : platit()
-        ? C.verde
-        : rambursat()
-          ? C.stins
-          : C.chihlimbar;
-  const simbol = () =>
-    anulata()
-      ? "block"
-      : platit()
-        ? "check_circle"
-        : rambursat()
-          ? "refresh"
-          : "schedule";
-
-  return (
-    <div
-      style={{
-        padding: "10px 0",
-        "border-top": props.primul ? "0" : `1px solid ${C.linie}`,
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          "align-items": "center",
-          "justify-content": "space-between",
-          gap: "10px",
-        }}
+      {/* Penalizarea arătată ÎNAINTE de clic: serverul o adaugă la Stripe oricum (bug-ul reparat pe site pe 19 sept). */}
+      <Show
+        when={
+          (c().penalizareTransa2 ?? 0) > 0 &&
+          !inactiva(c().statusPlata) &&
+          t2Neplatita()
+        }
       >
-        <div style={{ display: "flex", "align-items": "center", gap: "10px" }}>
-          <span style={{ color: culoare(), display: "flex" }}>
-            <Symbol size={18}>{simbol()}</Symbol>
-          </span>
-          <div>
-            <p
-              style={{
-                margin: 0,
-                color: C.text,
-                "font-size": "14.5px",
-                "font-weight": 500,
-              }}
-            >
-              {props.eticheta}
-            </p>
-            <Show
-              when={!anulata() && p().status === "Asteptata" && p().scadentaLa}
-            >
-              <p
-                style={{ margin: 0, color: C.chihlimbar, "font-size": "12px" }}
-              >
-                Scadentă: {ziLunga(p().scadentaLa!)}
-              </p>
-            </Show>
-            <Show when={rambursat() && (p().sumaRambursata ?? 0) > 0}>
-              <p style={{ margin: 0, color: C.stins, "font-size": "12px" }}>
-                Rambursat: {lei(p().sumaRambursata ?? 0)}
-              </p>
-            </Show>
-          </div>
-        </div>
-        <div style={{ "text-align": "right" }}>
-          <p
-            style={{
-              margin: 0,
-              color: C.text,
-              "font-size": "14.5px",
-              "font-weight": 500,
-            }}
-          >
-            {lei(p().suma)}
-          </p>
-          <p
-            style={{
-              margin: 0,
-              color: culoare(),
-              "font-size": "12px",
-              "font-weight": 600,
-            }}
-          >
-            {anulata()
-              ? props.statusComanda
-              : (STATUS_TRANSA[p().status] ?? p().status)}
-          </p>
-        </div>
-      </div>
-      <Show when={p().fgoFacturaLink}>
-        <a
-          href={p().fgoFacturaLink!}
-          target="_blank"
-          rel="noopener noreferrer"
+        <p
           style={{
-            display: "inline-flex",
-            "align-items": "center",
-            gap: "6px",
-            "margin-top": "6px",
-            "padding-left": "28px",
-            color: C.stins,
-            "font-size": "12.5px",
-            "text-decoration": "none",
+            margin: "12px 0 0",
+            padding: "12px 14px",
+            "border-radius": "14px",
+            background: "rgba(202,26,56,0.08)",
+            color: C.rosu,
+            "font-size": "14px",
+            "line-height": "1.45",
           }}
         >
-          <Symbol size={13}>receipt_long</Symbol> Factură {p().fgoFacturaSerie}-
-          {p().fgoFacturaNumar}
-        </a>
+          Plată întârziată, s-a adăugat o penalizare
+          {(c().zileIntarziereTransa2 ?? 0) > 0
+            ? ` (${c().zileIntarziereTransa2} ${c().zileIntarziereTransa2 === 1 ? "zi" : "zile"} × 1%/zi din tranșă)`
+            : ""}
+          : <b>{lei(c().penalizareTransa2 ?? 0)}</b>
+        </p>
       </Show>
     </div>
   );
@@ -459,9 +513,6 @@ function RandTransa(props: {
 /**
  * Meniul discret (⋮) cu cererea de anulare: ascunsă dinadins, ca să nu fie prima acțiune la
  * îndemână (design 2026-07-20). După o respingere se poate cere din nou (audit 3 oct 2026, G24).
- *
- * ⚠️ Fereastra cererii e în `Portal`, pe `body`: pe telefon contul stă într-un SlideDrawer mutat
- * cu `transform`, iar un `position: fixed` dinăuntru s-ar fi poziționat față de drawer, nu de ecran.
  */
 function MeniuAnulare(props: { inscriereId: string; statusCerere?: string }) {
   const sesiune = useSesiune();
@@ -517,14 +568,14 @@ function MeniuAnulare(props: { inscriereId: string; statusCerere?: string }) {
         aria-label="Opțiuni înscriere"
         onClick={() => setMeniu((m) => !m)}
         style={{
-          width: "30px",
-          height: "30px",
+          width: "36px",
+          height: "36px",
           display: "flex",
           "align-items": "center",
           "justify-content": "center",
           "border-radius": "999px",
           border: "0",
-          background: meniu() ? "rgba(255,255,255,0.08)" : "transparent",
+          background: meniu() ? C.fundal : "transparent",
           color: C.stins,
           cursor: "pointer",
         }}
@@ -536,23 +587,23 @@ function MeniuAnulare(props: { inscriereId: string; statusCerere?: string }) {
           style={{
             position: "absolute",
             right: 0,
-            top: "34px",
+            top: "40px",
             "z-index": 10,
-            width: "230px",
+            width: "250px",
             padding: "6px 0",
-            "border-radius": "12px",
+            "border-radius": "16px",
             border: `1px solid ${C.linie}`,
-            background: C.foaieTare,
-            "box-shadow": "0 16px 48px rgba(0,0,0,0.6)",
+            background: C.fundal,
+            "box-shadow": "0 16px 48px rgba(10,10,11,0.14)",
           }}
         >
           <Show when={trimisa()}>
             <p
               style={{
                 margin: 0,
-                padding: "8px 12px",
+                padding: "8px 14px",
                 color: C.stins,
-                "font-size": "12.5px",
+                "font-size": "14px",
               }}
             >
               {textStare()}
@@ -570,12 +621,13 @@ function MeniuAnulare(props: { inscriereId: string; statusCerere?: string }) {
                 "align-items": "center",
                 gap: "8px",
                 width: "100%",
-                padding: "10px 12px",
+                padding: "10px 14px",
                 border: "0",
                 background: "transparent",
                 color: C.rosu,
                 "font-family": "inherit",
-                "font-size": "13.5px",
+                "font-size": "14px",
+                "font-weight": 600,
                 "text-align": "left",
                 cursor: "pointer",
               }}
@@ -590,131 +642,76 @@ function MeniuAnulare(props: { inscriereId: string; statusCerere?: string }) {
       </Show>
 
       <Show when={formular()}>
-        <Portal>
-          <div
-            onClick={() => setFormular(false)}
+        <Fereastra
+          titlu="Cerere de anulare"
+          laInchidere={() => setFormular(false)}
+          latime={440}
+        >
+          <p
             style={{
-              position: "fixed",
-              inset: 0,
-              "z-index": 1000,
-              display: "flex",
-              "align-items": "center",
-              "justify-content": "center",
-              padding: "16px",
-              background: "rgba(0,0,0,0.6)",
+              margin: "0 0 12px",
+              color: C.stins,
+              "font-size": "16px",
+              "line-height": "1.45",
             }}
           >
-            <div
-              role="dialog"
-              aria-label="Cerere de anulare"
-              onClick={(e) => e.stopPropagation()}
+            Te contactează echipa noastră ca să stabilim ce rambursare se
+            aplică.
+          </p>
+          <textarea
+            rows={3}
+            placeholder="Motiv (opțional)"
+            value={motiv()}
+            onInput={(e) => setMotiv(e.currentTarget.value)}
+            style={{
+              width: "100%",
+              "box-sizing": "border-box",
+              padding: "12px 16px",
+              "border-radius": "14px",
+              border: "0",
+              background: C.foaieTare,
+              color: C.text,
+              "font-family": "inherit",
+              "font-size": "16px",
+              resize: "none",
+              outline: "none",
+            }}
+          />
+          <Show when={eroare()}>
+            <p
+              role="alert"
+              style={{ margin: "8px 0 0", color: C.rosu, "font-size": "14px" }}
+            >
+              {eroare()}
+            </p>
+          </Show>
+          <div style={{ display: "flex", gap: "8px", "margin-top": "16px" }}>
+            <Buton piele="alb" lat onClick={() => setFormular(false)}>
+              Renunță
+            </Buton>
+            {/* Roșu, nu negru: e o acțiune care desface ceva. */}
+            <button
+              type="button"
+              disabled={lucrez()}
+              onClick={trimite}
               style={{
-                width: "100%",
-                "max-width": "420px",
-                padding: "20px",
-                "border-radius": "16px",
-                border: `1px solid ${C.linie}`,
-                background: C.foaie,
-                color: C.text,
+                flex: 1,
+                height: "46px",
+                "border-radius": "999px",
+                border: "0",
+                background: C.rosu,
+                color: C.peNegru,
                 "font-family": "inherit",
+                "font-size": "16px",
+                "font-weight": 700,
+                cursor: lucrez() ? "default" : "pointer",
+                opacity: lucrez() ? 0.6 : 1,
               }}
             >
-              <p
-                style={{
-                  margin: 0,
-                  "font-weight": 700,
-                  "font-size": "16px",
-                  color: C.rosu,
-                }}
-              >
-                Cerere de anulare
-              </p>
-              <p
-                style={{
-                  margin: "6px 0 12px",
-                  color: C.stins,
-                  "font-size": "13px",
-                  "line-height": "1.45",
-                }}
-              >
-                Te contactează echipa noastră ca să stabilim ce rambursare se
-                aplică.
-              </p>
-              <textarea
-                rows={3}
-                placeholder="Motiv (opțional)"
-                value={motiv()}
-                onInput={(e) => setMotiv(e.currentTarget.value)}
-                style={{
-                  width: "100%",
-                  "box-sizing": "border-box",
-                  padding: "10px 12px",
-                  "border-radius": "10px",
-                  border: `1px solid ${C.linie}`,
-                  background: "#0D0D0D",
-                  color: C.text,
-                  "font-family": "inherit",
-                  "font-size": "14px",
-                  resize: "none",
-                  outline: "none",
-                }}
-              />
-              <Show when={eroare()}>
-                <p
-                  style={{
-                    margin: "8px 0 0",
-                    color: C.rosu,
-                    "font-size": "12.5px",
-                  }}
-                >
-                  {eroare()}
-                </p>
-              </Show>
-              <div
-                style={{ display: "flex", gap: "8px", "margin-top": "14px" }}
-              >
-                <button
-                  type="button"
-                  onClick={() => setFormular(false)}
-                  style={{
-                    flex: 1,
-                    height: "40px",
-                    "border-radius": "999px",
-                    border: `1px solid ${C.linie}`,
-                    background: "transparent",
-                    color: C.text,
-                    "font-family": "inherit",
-                    "font-size": "14px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Renunță
-                </button>
-                {/* Roșu, nu roz: e o acțiune care desface ceva. Rozul rămâne pentru „mergi mai departe". */}
-                <button
-                  type="button"
-                  disabled={lucrez()}
-                  onClick={trimite}
-                  style={{
-                    flex: 1,
-                    height: "40px",
-                    "border-radius": "999px",
-                    border: "0",
-                    background: "#E5484D",
-                    color: "#fff",
-                    "font-family": "inherit",
-                    "font-size": "14px",
-                    "font-weight": 700,
-                    cursor: lucrez() ? "default" : "pointer",
-                    opacity: lucrez() ? 0.6 : 1,
-                  }}
-                >
-                  {lucrez() ? "Se trimite…" : "Trimite cererea"}
-                </button>
-              </div>
-            </div>
+              {lucrez() ? "Se trimite…" : "Trimite cererea"}
+            </button>
           </div>
-        </Portal>
+        </Fereastra>
       </Show>
     </div>
   );

@@ -1,22 +1,24 @@
-import { Show, createSignal, untrack } from "solid-js";
+import { For, Show, createSignal, untrack } from "solid-js";
 
-import { useQueryClient } from "@tanstack/solid-query";
+import { useQuery, useQueryClient } from "@tanstack/solid-query";
 
 import { useClientLifecycle } from "@revolt/client";
 import { useModals } from "@revolt/modal";
+import { Avatar } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
+import { BBT_ADMIN_URL, BBT_SITE_URL } from "../config";
 import { cerereCont, uitaTokenBbt } from "../tokenBbt";
 
 import { CHEIE_CONT, useCont, useSesiune } from "./date";
-import { Incarcare } from "./MyCamps";
 import { DateFacturare, DatePersonale } from "./SetariDate";
 import type { Participant } from "./tipuri";
 import {
-  ButonContur,
-  ButonRoz,
+  Buton,
   C,
   CampText,
+  DE_FONTE,
+  Incarcare,
   Mesaj,
   MesajSalvare,
   RandValoare,
@@ -25,24 +27,31 @@ import {
 } from "./ui";
 
 /**
- * BBT: „Setări cont" în hub. Copia lui `website/src/app/dashboard/setari/page.tsx` și a
- * formularelor de lângă ea.
+ * BBT: setările contului în hub, desfăcute în trei pagini (23f, 30 oct 2026): Profil public (ce văd ceilalți),
+ * Date personale (ce trebuie pe contract și pe factură, plus parola) și Notificări. Până atunci erau o singură
+ * pagină, „Setări cont", copia lui `website/src/app/dashboard/setari/page.tsx`; macheta le-a despărțit ca nimeni
+ * să nu caute CNP-ul lângă poza de profil.
  *
  * Ce e altfel decât pe site, dinadins:
- * - Notificările deschid setările Community (`settings → notifications`), nu butonul de push al
- *   site-ului: în hub, notificările vin de la Community, cu setările lor.
+ * - Notificările deschid setările Community (`settings → notifications`), nu butonul de push al site-ului: în hub,
+ *   notificările vin de la Community, cu setările lor.
  * - Parola se schimbă AICI, nu pe `/schimba-parola`: e același `auth/change-password`.
  * - „Deconectează de pe toate dispozitivele" închide și sesiunile din Community: o face adminul,
  *   în `deconecteazaDeTot` (`admin/lib/stoat/sesiuni.ts`), deci la fel și de pe site.
  */
-export function Setari() {
+
+type Stare = { tip: "ok" | "err"; text: string } | null;
+
+/** Pagina cu datele contului încărcate; formularele se remontează doar la ALT cont (vezi `keyed`). */
+function CuCont(props: {
+  children: (p: Participant) => import("solid-js").JSX.Element;
+}) {
   const cont = useCont();
   return (
     <>
-      <TitluPagina>Setări cont</TitluPagina>
       <Show when={cont.isError}>
         <Mesaj fel="eroare">
-          Nu am putut încărca setările tale. Încearcă din nou peste un minut.
+          Nu am putut încărca datele tale. Încearcă din nou peste un minut.
         </Mesaj>
       </Show>
       <Show
@@ -58,62 +67,108 @@ export function Setari() {
             dinainte). ⚠️ Nu pe `cont.data`: obiectul se schimbă la fiecare `/me` recitit după o
             salvare, iar remontarea ștergea „Salvat." și ce scria omul în celelalte formulare. */}
         <Show when={cont.data?.id} keyed>
-          {(_id) => {
-            return (
-              <div
-                style={{
-                  display: "flex",
-                  "flex-direction": "column",
-                  gap: "14px",
-                  "max-width": "760px",
-                }}
-              >
-                <NumeSiUsername p={cont.data!} />
-                <Notificari />
-                <DatePersonale p={cont.data!} />
-                <DateFacturare p={cont.data!} />
-                <DateCont p={cont.data!} />
-                <ZonaDeRisc />
-              </div>
-            );
-          }}
+          {(_id) => props.children(cont.data!)}
         </Show>
       </Show>
     </>
   );
 }
 
-type Stare = { tip: "ok" | "err"; text: string } | null;
+const coloana = {
+  display: "flex",
+  "flex-direction": "column",
+  gap: "14px",
+  "max-width": "760px",
+} as const;
+
+/* ── Profil public (23f) ─────────────────────────────────────────────────────────────────── */
+
+/** Rețelele din 23f. Celelalte pe care le știe adminul (YouTube, TikTok, site) rămân cum sunt, nu se șterg la salvare. */
+const RETELE = [
+  {
+    cheie: "spotify",
+    nume: "Spotify",
+    exemplu: "https://open.spotify.com/artist/…",
+  },
+  {
+    cheie: "soundcloud",
+    nume: "SoundCloud",
+    exemplu: "https://soundcloud.com/…",
+  },
+  { cheie: "instagram", nume: "Instagram", exemplu: "https://instagram.com/…" },
+] as const;
 
 /**
- * Numele real (apare pe factură) și adresa profilului. ⚠️ Schimbarea username-ului rupe URL-ul
- * profilului și orice link dat mai departe, de-aia avertismentul apare cât timp e schimbat.
+ * Numele rolurilor și genurilor („sound_engineer" → „Sound Engineer"). În bază stau slug-urile; lista cu nume e în
+ * admin, aceeași pe care o citesc onboardingul site-ului și aplicația de telefon.
  */
-function NumeSiUsername(props: { p: Participant }) {
-  // Valorile de pornire, citite O dată: formularul se remontează la alt cont (`<Show keyed>`
-  // din `Setari`), iar cât editezi, câmpurile sunt ale tale, nu ale ultimului răspuns `/me`.
+function useEtichete() {
+  return useQuery(() => ({
+    queryKey: ["bbt-etichete-profil"],
+    staleTime: Infinity,
+    retry: 1,
+    queryFn: async () => {
+      const lista = async (cale: string) => {
+        const r = await fetch(`${BBT_ADMIN_URL}${cale}`);
+        const d = (await r.json().catch(() => null)) as
+          | { slug: string; label: string }[]
+          | null;
+        return Object.fromEntries(
+          (Array.isArray(d) ? d : []).map((x) => [x.slug, x.label]),
+        ) as Record<string, string>;
+      };
+      const [roluri, genuri] = await Promise.all([
+        lista("/api/public/roluri"),
+        lista("/api/public/genuri"),
+      ]);
+      return { roluri, genuri };
+    },
+  }));
+}
+
+export function ProfilPublic() {
+  return <CuCont>{(p) => <FormularProfil p={p} />}</CuCont>;
+}
+
+function FormularProfil(props: { p: Participant }) {
+  // Valorile de pornire, citite O dată: cât editezi, câmpurile sunt ale tale, nu ale ultimului răspuns `/me`.
   const p0 = untrack(() => props.p);
   const sesiune = useSesiune();
   const qc = useQueryClient();
-  const [prenume, setPrenume] = createSignal(p0.prenume ?? "");
-  const [nume, setNume] = createSignal(p0.numeFamilie ?? "");
+  const etichete = useEtichete();
+  const [numeScena, setNumeScena] = createSignal(p0.numeAfisat ?? "");
   const [username, setUsername] = createSignal(p0.username ?? "");
+  const [bio, setBio] = createSignal(p0.bio ?? "");
+  const [retele, setRetele] = createSignal<Record<string, string>>({
+    ...(p0.socialLinks ?? {}),
+  });
   const [lucrez, setLucrez] = createSignal(false);
   const [stare, setStare] = createSignal<Stare>(null);
   const schimbat = () =>
     username().trim().toLowerCase() !== (p0.username ?? "");
 
-  async function salveaza(e: SubmitEvent) {
-    e.preventDefault();
+  const rol = () =>
+    props.p.mainRole
+      ? (etichete.data?.roluri[props.p.mainRole] ?? props.p.mainRole)
+      : null;
+  const genuri = () =>
+    (props.p.musicGenres ?? [])
+      .map((g) => etichete.data?.genuri[g] ?? g)
+      .join(", ");
+
+  async function salveaza(e?: SubmitEvent) {
+    e?.preventDefault();
     setLucrez(true);
     setStare(null);
     try {
       await cerereCont(sesiune(), "/api/public/participant/profile", {
         method: "PUT",
         body: JSON.stringify({
-          prenume: prenume(),
-          numeFamilie: nume(),
+          numeAfisat: numeScena(),
           username: username().trim().toLowerCase(),
+          bio: bio(),
+          // Rețelele golite se trimit ca text gol: adminul le șterge.
+          socialLinks: retele(),
         }),
       });
       await qc.invalidateQueries({ queryKey: CHEIE_CONT });
@@ -132,7 +187,369 @@ function NumeSiUsername(props: { p: Participant }) {
   }
 
   return (
-    <Sectiune titlu="Nume și adresă de profil">
+    <>
+      <TitluPagina
+        dreapta={
+          <div
+            style={{ display: "flex", "align-items": "center", gap: "12px" }}
+          >
+            <MesajSalvare stare={stare()} />
+            <Buton mic onClick={() => void salveaza()} dezactivat={lucrez()}>
+              {lucrez() ? "Se salvează…" : "Salvează"}
+            </Buton>
+          </div>
+        }
+      >
+        Profil public
+      </TitluPagina>
+      <div style={coloana}>
+        <div
+          style={{
+            display: "flex",
+            "align-items": "center",
+            gap: "18px",
+            padding: "22px",
+            "border-radius": "24px",
+            background: C.foaie,
+            "flex-wrap": "wrap",
+          }}
+        >
+          <SchimbaPoza p={props.p} />
+          <div style={{ "min-width": 0, "flex-grow": 1 }}>
+            <p
+              style={{
+                ...DE_FONTE,
+                margin: 0,
+                "font-size": "28px",
+                "line-height": "1.1",
+              }}
+            >
+              {props.p.numeAfisat ?? props.p.numeComplet}
+            </p>
+            <p
+              style={{ margin: "4px 0 0", color: C.stins, "font-size": "14px" }}
+            >
+              {[rol(), genuri(), props.p.oras].filter(Boolean).join(" · ")}
+            </p>
+            <Show when={props.p.phoneVerified}>
+              <span
+                style={{
+                  display: "inline-flex",
+                  "margin-top": "8px",
+                  padding: "4px 10px",
+                  "border-radius": "999px",
+                  background: C.verdeDeschis,
+                  "font-size": "14px",
+                  "font-weight": 700,
+                }}
+              >
+                ✓ Artist verificat
+              </span>
+            </Show>
+          </div>
+          <Show when={props.p.username}>
+            <Buton
+              piele="alb"
+              mic
+              href={`${BBT_SITE_URL}/u/${props.p.username}`}
+              target="_blank"
+            >
+              Vezi profilul ↗
+            </Buton>
+          </Show>
+        </div>
+        <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
+          Așa te văd ceilalți membri. Numele real, CNP-ul și adresa sunt în Date
+          personale.
+        </p>
+        <form
+          onSubmit={salveaza}
+          style={{
+            display: "flex",
+            "flex-direction": "column",
+            gap: "16px",
+            padding: "22px",
+            "border-radius": "24px",
+            background: C.foaie,
+          }}
+        >
+          <CampText
+            eticheta="Nume de scenă"
+            valoare={numeScena()}
+            laSchimbare={setNumeScena}
+            maxim={40}
+            placeholder={props.p.numeComplet}
+          />
+          <div>
+            <CampText
+              eticheta="Adresa profilului"
+              inainte="/u/"
+              valoare={username()}
+              laSchimbare={(v) => setUsername(v.toLowerCase())}
+              placeholder="numele.tau"
+            />
+            <p
+              style={{
+                margin: "6px 0 0",
+                color: schimbat() ? C.chihlimbar : C.slab,
+                "font-size": "14px",
+              }}
+            >
+              {schimbat()
+                ? "Dacă schimbi adresa, linkurile vechi spre profilul tău nu mai merg."
+                : "Litere mici, cifre, punct și underscore. Între 3 și 30 de caractere."}
+            </p>
+          </div>
+          {/* Rolul și genurile se aleg la înscriere și n-au încă un editor nici pe site; aici doar se văd. */}
+          <Show when={rol() || genuri()}>
+            <div
+              style={{
+                display: "grid",
+                "grid-template-columns": "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: "14px",
+              }}
+            >
+              <Show when={rol()}>
+                <ValoareFixa eticheta="Rol" valoare={rol()!} />
+              </Show>
+              <Show when={genuri()}>
+                <ValoareFixa eticheta="Genuri" valoare={genuri()} />
+              </Show>
+            </div>
+          </Show>
+          <CampText
+            eticheta="Despre tine"
+            randuri={3}
+            maxim={300}
+            valoare={bio()}
+            laSchimbare={setBio}
+            placeholder="Două rânduri despre ce faci și ce cauți."
+          />
+          <For each={RETELE}>
+            {(r) => (
+              <CampText
+                eticheta={r.nume}
+                tip="url"
+                inputmode="url"
+                valoare={retele()[r.cheie] ?? ""}
+                laSchimbare={(v) => setRetele((x) => ({ ...x, [r.cheie]: v }))}
+                placeholder={r.exemplu}
+              />
+            )}
+          </For>
+          {/* Enter dintr-un câmp salvează, ca butonul din titlu. */}
+          <button type="submit" hidden />
+        </form>
+      </div>
+    </>
+  );
+}
+
+function ValoareFixa(props: { eticheta: string; valoare: string }) {
+  return (
+    <div>
+      <span
+        style={{
+          display: "block",
+          "margin-bottom": "6px",
+          color: C.stins,
+          "font-size": "12px",
+          "font-weight": 700,
+          "letter-spacing": "0.06em",
+          "text-transform": "uppercase",
+        }}
+      >
+        {props.eticheta}
+      </span>
+      <div
+        style={{
+          display: "flex",
+          "align-items": "center",
+          height: "48px",
+          padding: "0 16px",
+          "border-radius": "14px",
+          background: C.fundal,
+          "font-size": "16px",
+        }}
+      >
+        {props.valoare}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Poza de profil, schimbată din hub. Aceeași rută ca pe site și în aplicația de telefon (`participant/avatar`):
+ * adminul o pune în cont și o trimite și în Community, deci avatarul din bara de sus se schimbă singur.
+ *
+ * ⚠️ Ruta primește cel mult 400 000 de caractere (~300 KB): poza se taie pătrat și se micșorează la 300 × 300
+ * înainte, ca pe site.
+ */
+function SchimbaPoza(props: { p: Participant }) {
+  const sesiune = useSesiune();
+  const qc = useQueryClient();
+  const [lucrez, setLucrez] = createSignal(false);
+  const [eroare, setEroare] = createSignal("");
+  let fisier: HTMLInputElement | undefined;
+
+  async function urca(f: File) {
+    setEroare("");
+    setLucrez(true);
+    try {
+      const dataUrl = await micsoreaza(f);
+      await cerereCont(sesiune(), "/api/public/participant/avatar", {
+        method: "POST",
+        body: JSON.stringify({ dataUrl }),
+      });
+      await qc.invalidateQueries({ queryKey: CHEIE_CONT });
+    } catch (e) {
+      setEroare(
+        e instanceof Error && e.message !== "Cererea n-a mers."
+          ? e.message
+          : "Poza nu s-a schimbat. Încearcă din nou.",
+      );
+    } finally {
+      setLucrez(false);
+      if (fisier) fisier.value = "";
+    }
+  }
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        "flex-direction": "column",
+        "align-items": "center",
+        gap: "8px",
+      }}
+    >
+      <Avatar
+        src={props.p.avatarUrl ?? undefined}
+        fallback={props.p.numeAfisat ?? props.p.numeComplet}
+        fallbackBackground
+        size={84}
+      />
+      <input
+        ref={fisier}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(e) => {
+          const f = e.currentTarget.files?.[0];
+          if (f) void urca(f);
+        }}
+      />
+      <Buton
+        piele="alb"
+        mic
+        onClick={() => fisier?.click()}
+        dezactivat={lucrez()}
+      >
+        {lucrez() ? "Se urcă…" : "Schimbă poza"}
+      </Buton>
+      <Show when={eroare()}>
+        <p
+          role="alert"
+          style={{
+            margin: 0,
+            color: C.rosu,
+            "font-size": "14px",
+            "max-width": "180px",
+            "text-align": "center",
+          }}
+        >
+          {eroare()}
+        </p>
+      </Show>
+    </div>
+  );
+}
+
+/** Taie poza pătrat din mijloc și o micșorează la 300 × 300, JPEG. */
+async function micsoreaza(f: File): Promise<string> {
+  const bitmap = await createImageBitmap(f).catch(() => {
+    throw new Error("Fișierul ăsta nu e o poză pe care s-o putem citi.");
+  });
+  const latura = Math.min(bitmap.width, bitmap.height);
+  const panza = document.createElement("canvas");
+  panza.width = 300;
+  panza.height = 300;
+  const ctx = panza.getContext("2d")!;
+  ctx.drawImage(
+    bitmap,
+    (bitmap.width - latura) / 2,
+    (bitmap.height - latura) / 2,
+    latura,
+    latura,
+    0,
+    0,
+    300,
+    300,
+  );
+  bitmap.close();
+  return panza.toDataURL("image/jpeg", 0.85);
+}
+
+/* ── Date personale ──────────────────────────────────────────────────────────────────────── */
+
+export function DatePersonaleCont() {
+  return (
+    <>
+      <TitluPagina>Date personale</TitluPagina>
+      <CuCont>
+        {(p) => (
+          <div style={coloana}>
+            <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
+              Ce trece pe contract și pe factură. Nu apare pe profilul public.
+            </p>
+            <NumeReal p={p} />
+            <DatePersonale p={p} />
+            <DateFacturare p={p} />
+            <DateCont p={p} />
+            <ZonaDeRisc />
+          </div>
+        )}
+      </CuCont>
+    </>
+  );
+}
+
+/** Numele real (apare pe factură). Numele de scenă și adresa profilului stau în Profil public. */
+function NumeReal(props: { p: Participant }) {
+  const p0 = untrack(() => props.p);
+  const sesiune = useSesiune();
+  const qc = useQueryClient();
+  const [prenume, setPrenume] = createSignal(p0.prenume ?? "");
+  const [nume, setNume] = createSignal(p0.numeFamilie ?? "");
+  const [lucrez, setLucrez] = createSignal(false);
+  const [stare, setStare] = createSignal<Stare>(null);
+
+  async function salveaza(e: SubmitEvent) {
+    e.preventDefault();
+    setLucrez(true);
+    setStare(null);
+    try {
+      await cerereCont(sesiune(), "/api/public/participant/profile", {
+        method: "PUT",
+        body: JSON.stringify({ prenume: prenume(), numeFamilie: nume() }),
+      });
+      await qc.invalidateQueries({ queryKey: CHEIE_CONT });
+      setStare({ tip: "ok", text: "Salvat." });
+    } catch (err) {
+      setStare({
+        tip: "err",
+        text:
+          err instanceof Error && err.message !== "Cererea n-a mers."
+            ? err.message
+            : "Nu am putut salva.",
+      });
+    } finally {
+      setLucrez(false);
+    }
+  }
+
+  return (
+    <Sectiune titlu="Numele real">
       <form
         onSubmit={salveaza}
         style={{ display: "flex", "flex-direction": "column", gap: "14px" }}
@@ -159,34 +576,10 @@ function NumeSiUsername(props: { p: Participant }) {
             placeholder="Popescu"
           />
         </div>
-        <p style={{ margin: "-6px 0 0", color: C.slab, "font-size": "12.5px" }}>
-          Numele real, cum apare pe factură. Pe profilul public apare numele tău
-          de scenă.
-        </p>
-        <div>
-          <CampText
-            eticheta="Adresa profilului"
-            inainte="/u/"
-            valoare={username()}
-            laSchimbare={(v) => setUsername(v.toLowerCase())}
-            placeholder="numele.tau"
-          />
-          <p
-            style={{
-              margin: "6px 0 0",
-              color: schimbat() ? C.chihlimbar : C.slab,
-              "font-size": "12.5px",
-            }}
-          >
-            {schimbat()
-              ? "Dacă schimbi adresa, linkurile vechi spre profilul tău nu mai merg."
-              : "Litere mici, cifre, punct și underscore. Între 3 și 30 de caractere."}
-          </p>
-        </div>
         <div style={{ display: "flex", "align-items": "center", gap: "12px" }}>
-          <ButonRoz tip="submit" dezactivat={lucrez()}>
+          <Buton tip="submit" mic dezactivat={lucrez()}>
             {lucrez() ? "Se salvează…" : "Salvează"}
-          </ButonRoz>
+          </Buton>
           <MesajSalvare stare={stare()} />
         </div>
       </form>
@@ -194,37 +587,55 @@ function NumeSiUsername(props: { p: Participant }) {
   );
 }
 
-function Notificari() {
+/* ── Notificări ──────────────────────────────────────────────────────────────────────────── */
+
+export function NotificariCont() {
   const { openModal } = useModals();
   return (
-    <Sectiune titlu="Notificări">
-      <div
-        style={{
-          display: "flex",
-          "align-items": "center",
-          "justify-content": "space-between",
-          gap: "12px",
-          "flex-wrap": "wrap",
-        }}
-      >
-        <span style={{ color: C.stins, "font-size": "13.5px" }}>
-          Ce notificări primești de la Community, pe dispozitivul ăsta.
-        </span>
-        <ButonContur
-          onClick={() =>
-            openModal({
-              type: "settings",
-              config: "user",
-              context: { page: "notifications" },
-            })
-          }
-        >
-          <Symbol size={15}>notifications</Symbol> Setări notificări
-        </ButonContur>
+    <>
+      <TitluPagina>Notificări</TitluPagina>
+      <div style={coloana}>
+        <Sectiune titlu="Community">
+          <div
+            style={{
+              display: "flex",
+              "align-items": "center",
+              "justify-content": "space-between",
+              gap: "12px",
+              "flex-wrap": "wrap",
+            }}
+          >
+            <span
+              style={{
+                color: C.stins,
+                "font-size": "16px",
+                "line-height": "1.45",
+              }}
+            >
+              Mesaje, mențiuni și canale: ce notificări primești de la
+              Community, pe dispozitivul ăsta.
+            </span>
+            <Buton
+              piele="alb"
+              mic
+              onClick={() =>
+                openModal({
+                  type: "settings",
+                  config: "user",
+                  context: { page: "notifications" },
+                })
+              }
+            >
+              <Symbol size={15}>notifications</Symbol> Setări notificări
+            </Buton>
+          </div>
+        </Sectiune>
       </div>
-    </Sectiune>
+    </>
   );
 }
+
+/* ── Date cont, parolă, zona de risc ─────────────────────────────────────────────────────── */
 
 function DateCont(props: { p: Participant }) {
   const [parola, setParola] = createSignal(false);
@@ -261,7 +672,7 @@ function DateCont(props: { p: Participant }) {
               background: "transparent",
               color: C.text,
               "font-family": "inherit",
-              "font-size": "13.5px",
+              "font-size": "14px",
               "font-weight": 600,
               cursor: "pointer",
             }}
@@ -363,10 +774,12 @@ function SchimbaParola(props: { laGata: () => void }) {
           "flex-wrap": "wrap",
         }}
       >
-        <ButonRoz tip="submit" dezactivat={lucrez() || !veche() || !noua()}>
+        <Buton tip="submit" mic dezactivat={lucrez() || !veche() || !noua()}>
           {lucrez() ? "Se schimbă…" : "Schimbă parola"}
-        </ButonRoz>
-        <ButonContur onClick={props.laGata}>Renunță</ButonContur>
+        </Buton>
+        <Buton piele="alb" mic onClick={props.laGata}>
+          Renunță
+        </Buton>
         <MesajSalvare stare={stare()} />
       </div>
     </form>
@@ -437,8 +850,8 @@ function ZonaDeRisc() {
               style={{
                 ...stilRosu,
                 border: "0",
-                background: "#E5484D",
-                color: "#fff",
+                background: C.rosu,
+                color: C.peNegru,
               }}
             >
               <Symbol size={15}>block</Symbol> Dezactivează contul
@@ -454,7 +867,7 @@ function ZonaDeRisc() {
               margin: 0,
               color: C.text,
               "font-weight": 700,
-              "font-size": "14.5px",
+              "font-size": "16px",
             }}
           >
             {confirm() === "peste-tot"
@@ -465,7 +878,7 @@ function ZonaDeRisc() {
             style={{
               margin: 0,
               color: C.stins,
-              "font-size": "13.5px",
+              "font-size": "14px",
               "line-height": "1.5",
             }}
           >
@@ -474,7 +887,9 @@ function ZonaDeRisc() {
               : "Ieși de peste tot și nu mai poți intra până nu îl reactivezi. Te poți răzgândi oricând: când încerci să intri pe site, îți oferim reactivarea. Datele rămân neatinse."}
           </p>
           <div style={{ display: "flex", gap: "8px", "flex-wrap": "wrap" }}>
-            <ButonContur onClick={() => setConfirm(null)}>Renunță</ButonContur>
+            <Buton piele="alb" mic onClick={() => setConfirm(null)}>
+              Renunță
+            </Buton>
             <button
               type="button"
               disabled={lucrez()}
@@ -488,8 +903,8 @@ function ZonaDeRisc() {
               style={{
                 ...stilRosu,
                 border: "0",
-                background: "#E5484D",
-                color: "#fff",
+                background: C.rosu,
+                color: C.peNegru,
                 opacity: lucrez() ? 0.6 : 1,
               }}
             >

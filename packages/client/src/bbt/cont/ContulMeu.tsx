@@ -1,86 +1,76 @@
-import { For, JSX, Match, Show, Switch, createEffect, on } from "solid-js";
+import {
+  For,
+  JSX,
+  Match,
+  Show,
+  Switch,
+  createEffect,
+  createSignal,
+  on,
+} from "solid-js";
 
+import { useClientLifecycle } from "@revolt/client";
 import { useDevice } from "@revolt/common";
 import { useNavigate, useParams } from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { Avatar } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
-import { BBT_SITE_URL } from "../config";
-
-import { useCont } from "./date";
+import { useCont, useExperiente } from "./date";
 import { Diplome } from "./Diplome";
-import { MyCamps } from "./MyCamps";
-import { MyCourses } from "./MyCourses";
-import { MyWorkshops } from "./MyWorkshops";
+import { Experiente } from "./Experiente";
 import { Plati } from "./Plati";
-import { Setari } from "./Setari";
+import { DatePersonaleCont, NotificariCont, ProfilPublic } from "./Setari";
 import { Tabara } from "./tabara/Tabara";
-import { C } from "./ui";
-import { Wishlist } from "./Wishlist";
+import { Buton, C, Fereastra } from "./ui";
 
 /**
- * BBT: „Contul meu" în hub, `/cont/:pagina`. Design: `2026-10-20-hub-standalone-cont-design.md`.
+ * BBT: „Contul meu" în hub, `/cont/:pagina`. Design: `2026-10-20-hub-standalone-cont-design.md` + macheta 23
+ * (30 oct 2026).
  *
- * Aceleași rânduri și aceeași ordine ca meniul de cont al site-ului
- * (`website/src/lib/dashboardNavItems.ts`): omul care știe site-ul nu trebuie să caute nimic.
+ * 🔥 **Meniul din 23**, nu cel al site-ului: My Camps, My Workshops și My Courses au devenit un singur „Experiențele
+ * mele" (același card pentru toate, ca în aplicația de telefon); „Setări cont" s-a desfăcut în Profil public / Date
+ * personale / Notificări, ca nimeni să nu caute CNP-ul lângă poza de profil. Wishlist a ieșit: nu se cumpără din hub,
+ * deci lista de dorințe stă pe site.
  *
- * Paginile încă nerescrise în hub (`siteUrl` pe rând) se deschid pe site, în browser, cu săgeata
- * de „pleacă din aplicație" lângă ele. Ies din listă pe măsură ce fazele din design le aduc aici.
+ * ⚠️ Adresele vechi (`/cont/mycamps`, `/cont/setari`…) duc în pagina nouă care le-a luat locul: cineva le are în
+ * istoric sau într-un link primit.
  *
- * Telefon: `/cont` = lista, `/cont/<pagina>` = pagina cu „înapoi" sus. Desktop: meniul stă mereu
- * în stânga, iar `/cont` simplu deschide My Camps, ca dashboardul site-ului.
+ * Telefon: `/cont` = lista, `/cont/<pagina>` = pagina cu „înapoi" sus. Desktop: meniul stă mereu în stânga, iar
+ * `/cont` simplu deschide Experiențele mele.
  */
 
-type Rand = {
-  pagina: string;
-  nume: string;
-  simbol: string;
-  /** Încă nerescrisă în hub: pagina de pe site, deschisă în browser. */
-  siteUrl?: string;
-};
+type Rand = { pagina: string; nume: string };
 
 const ACTIVITATE: Rand[] = [
-  { pagina: "mycamps", nume: "My Camps", simbol: "camping" },
-  { pagina: "workshops", nume: "My Workshops", simbol: "bolt" },
-  { pagina: "cursuri", nume: "My Courses", simbol: "school" },
-  {
-    pagina: "diplome",
-    nume: "Diplomele mele",
-    simbol: "workspace_premium",
-  },
+  { pagina: "experiente", nume: "Experiențele mele" },
+  { pagina: "diplome", nume: "Diplome" },
+  { pagina: "plati", nume: "Plăți" },
 ];
 
 const CONT: Rand[] = [
-  {
-    pagina: "plati",
-    nume: "Plățile mele",
-    simbol: "payments",
-  },
-  {
-    pagina: "wishlist",
-    nume: "Wishlist",
-    simbol: "favorite",
-  },
-  {
-    pagina: "setari",
-    nume: "Setări cont",
-    simbol: "settings",
-  },
+  { pagina: "profil", nume: "Profil public" },
+  { pagina: "date", nume: "Date personale" },
+  { pagina: "notificari", nume: "Notificări" },
 ];
 
 const PAGINI: Record<string, () => JSX.Element> = {
-  mycamps: MyCamps,
-  workshops: MyWorkshops,
-  cursuri: MyCourses,
-  plati: Plati,
-  wishlist: Wishlist,
+  experiente: Experiente,
   diplome: Diplome,
-  setari: Setari,
+  plati: Plati,
+  profil: ProfilPublic,
+  date: DatePersonaleCont,
+  notificari: NotificariCont,
 };
 
-/** Paginile deja rescrise în hub. Meniul de cont din `BaraSus` le deschide aici, restul pe site. */
-export const PAGINI_IN_HUB = new Set(Object.keys(PAGINI));
+/** Adresele de dinainte de 23 → pagina care le-a luat locul. */
+const ADRESE_VECHI: Record<string, string> = {
+  mycamps: "experiente",
+  workshops: "experiente",
+  cursuri: "experiente",
+  wishlist: "experiente",
+  setari: "profil",
+};
 
 export function ContulMeu() {
   const params = useParams<{ pagina?: string; id?: string }>();
@@ -102,8 +92,12 @@ export function ContulMeu() {
     ),
   );
 
-  // Pe desktop `/cont` simplu = My Camps; pe telefon = lista (vezi antetul).
-  const pagina = () => params.pagina ?? (telefon() ? undefined : "mycamps");
+  // Pe desktop `/cont` simplu = Experiențele mele; pe telefon = lista (vezi antetul).
+  const pagina = () => {
+    const p = params.pagina;
+    if (!p) return telefon() ? undefined : "experiente";
+    return ADRESE_VECHI[p] ?? p;
+  };
   // ⚠️ `keyed`, ca pagina să se schimbe la fiecare rând apăsat. Varianta veche citea `pagina()` o
   // singură dată, la montare, iar `<Match>` de mai jos nu se re-randează cât condiția rămâne
   // adevărată: din My Camps pe Plăți se schimba adresa și rândul activ, dar conținutul rămânea.
@@ -122,6 +116,7 @@ export function ContulMeu() {
         "min-height": 0,
         background: C.fundal,
         color: C.text,
+        "font-family": "Inter, sans-serif",
       }}
     >
       <Show when={!telefon() || !pagina()}>
@@ -139,7 +134,7 @@ export function ContulMeu() {
             />
           </Show>
           <Meniu
-            activ={pagina() === "tabara" ? "mycamps" : pagina()}
+            activ={pagina() === "tabara" ? "experiente" : pagina()}
             lat={telefon()}
           />
         </div>
@@ -150,25 +145,26 @@ export function ContulMeu() {
             "flex-grow": 1,
             "min-width": 0,
             "overflow-y": "auto",
-            padding: telefon() ? "12px 16px 32px" : "28px 32px 48px",
+            padding: telefon() ? "12px 16px 32px" : "32px 36px 48px",
           }}
         >
-          <Show when={telefon()}>
-            <Show
-              when={pagina() === "tabara"}
-              fallback={
+          {/* Pagina taberei are „‹ Experiențele mele" și pe desktop (23e); restul, doar pe telefon. */}
+          <Show
+            when={pagina() === "tabara"}
+            fallback={
+              <Show when={telefon()}>
                 <Inapoi text="Contul meu" laApasare={() => navigate("/cont")} />
-              }
-            >
-              <Inapoi
-                text="My Camps"
-                laApasare={() => navigate("/cont/mycamps")}
-              />
-            </Show>
+              </Show>
+            }
+          >
+            <Inapoi
+              text="Experiențele mele"
+              laApasare={() => navigate("/cont/experiente")}
+            />
           </Show>
           <div style={{ "max-width": "1100px" }}>
             <Switch>
-              {/* `/cont/tabara/:id` = pagina unei tabere (Faza 7), sub My Camps. */}
+              {/* `/cont/tabara/:id` = pagina unei tabere (23e), sub Experiențele mele. */}
               <Match when={pagina() === "tabara" && params.id}>
                 <Tabara id={params.id!} />
               </Match>
@@ -214,66 +210,68 @@ function Inapoi(props: { text: string; laApasare: () => void }) {
 function Meniu(props: { activ?: string; lat: boolean }) {
   const navigate = useNavigate();
   const cont = useCont();
+  const experiente = useExperiente();
+  const { logout } = useClientLifecycle();
+  const [iesire, setIesire] = createSignal(false);
+  // Cifra roz de lângă „Experiențele mele" (23b): câte au ceva de făcut acum (o plată sau o semnătură).
+  const deFacut = () =>
+    (experiente.data?.active ?? []).filter((e) => e.plata).length;
 
   const Grup = (p: { randuri: Rand[] }) => (
     <For each={p.randuri}>
       {(r) => {
         const activ = () => props.activ === r.pagina;
-        const stil = (): JSX.CSSProperties => ({
-          display: "flex",
-          "align-items": "center",
-          gap: "10px",
-          width: "100%",
-          height: props.lat ? "48px" : "38px",
-          padding: "0 12px",
-          "box-sizing": "border-box",
-          "border-radius": "10px",
-          border: "0",
-          background: activ() ? "rgba(255,255,255,0.08)" : "transparent",
-          color: activ() ? C.text : "rgba(255,255,255,0.75)",
-          "font-family": "inherit",
-          "font-size": props.lat ? "15px" : "14px",
-          "font-weight": activ() ? 700 : 500,
-          "text-decoration": "none",
-          "text-align": "left",
-          cursor: "pointer",
-        });
         return (
-          <Show
-            when={r.siteUrl}
-            fallback={
-              <button
-                type="button"
-                onClick={() => navigate(`/cont/${r.pagina}`)}
-                aria-current={activ() ? "page" : undefined}
-                style={stil()}
-              >
-                <Symbol size={18}>{r.simbol}</Symbol>
-                <span style={{ "flex-grow": 1 }}>{r.nume}</span>
-                <Show when={props.lat}>
-                  <span style={{ color: C.slab, display: "flex" }}>
-                    <Symbol size={16}>chevron_right</Symbol>
-                  </span>
-                </Show>
-              </button>
-            }
+          <button
+            type="button"
+            onClick={() => navigate(`/cont/${r.pagina}`)}
+            aria-current={activ() ? "page" : undefined}
+            style={{
+              display: "flex",
+              "align-items": "center",
+              gap: "10px",
+              width: "100%",
+              height: "48px",
+              padding: "0 16px",
+              "box-sizing": "border-box",
+              "border-radius": "14px",
+              border: "0",
+              background: activ() ? C.foaie : "transparent",
+              color: activ() ? C.text : C.stins,
+              "font-family": "inherit",
+              "font-size": "16px",
+              "font-weight": activ() ? 700 : 500,
+              "text-align": "left",
+              cursor: "pointer",
+            }}
           >
-            <a
-              href={`${BBT_SITE_URL}${r.siteUrl}`}
-              target="_blank"
-              rel="noopener"
-              style={stil()}
-            >
-              <Symbol size={18}>{r.simbol}</Symbol>
-              <span style={{ "flex-grow": 1 }}>{r.nume}</span>
+            <span style={{ "flex-grow": 1 }}>{r.nume}</span>
+            <Show when={r.pagina === "experiente" && deFacut()}>
               <span
-                style={{ color: C.slab, display: "flex" }}
-                title="Se deschide pe site"
+                style={{
+                  "min-width": "22px",
+                  height: "22px",
+                  padding: "0 6px",
+                  "box-sizing": "border-box",
+                  display: "inline-flex",
+                  "align-items": "center",
+                  "justify-content": "center",
+                  "border-radius": "999px",
+                  background: C.roz,
+                  color: C.text,
+                  "font-size": "12px",
+                  "font-weight": 700,
+                }}
               >
-                <Symbol size={14}>open_in_new</Symbol>
+                {deFacut()}
               </span>
-            </a>
-          </Show>
+            </Show>
+            <Show when={props.lat}>
+              <span style={{ color: C.slab, display: "flex" }}>
+                <Symbol size={16}>chevron_right</Symbol>
+              </span>
+            </Show>
+          </button>
         );
       }}
     </For>
@@ -283,10 +281,11 @@ function Meniu(props: { activ?: string; lat: boolean }) {
     <nav
       aria-label="Contul meu"
       style={{
-        width: props.lat ? "100%" : "240px",
+        width: props.lat ? "100%" : "280px",
+        height: "100%",
         "flex-shrink": 0,
         "overflow-y": "auto",
-        padding: props.lat ? "16px" : "20px 12px",
+        padding: props.lat ? "16px" : "28px 16px",
         "box-sizing": "border-box",
         "border-right": props.lat ? "0" : `1px solid ${C.linie}`,
         display: "flex",
@@ -299,33 +298,50 @@ function Meniu(props: { activ?: string; lat: boolean }) {
           display: "flex",
           "align-items": "center",
           gap: "12px",
-          padding: "4px 8px 16px",
-          "margin-bottom": "8px",
-          "border-bottom": `1px solid ${C.linie}`,
+          padding: "0 8px 20px",
         }}
       >
-        <Avatar
-          src={cont.data?.avatarUrl ?? undefined}
-          fallback={cont.data?.numeComplet ?? "?"}
-          fallbackBackground
-          size={40}
-        />
+        {/* Inelul roz din 23, ca în aplicația de telefon. */}
+        <div
+          style={{
+            padding: "3px",
+            "border-radius": "999px",
+            background: C.roz,
+            display: "flex",
+          }}
+        >
+          <div
+            style={{
+              padding: "2px",
+              "border-radius": "999px",
+              background: C.fundal,
+              display: "flex",
+            }}
+          >
+            <Avatar
+              src={cont.data?.avatarUrl ?? undefined}
+              fallback={cont.data?.numeAfisat ?? cont.data?.numeComplet ?? "?"}
+              fallbackBackground
+              size={48}
+            />
+          </div>
+        </div>
         <div style={{ "min-width": 0, "line-height": "1.3" }}>
           <div
             style={{
               "font-weight": 700,
-              "font-size": "14.5px",
+              "font-size": "16px",
               overflow: "hidden",
               "text-overflow": "ellipsis",
               "white-space": "nowrap",
             }}
           >
-            {cont.data?.numeComplet ?? "Contul meu"}
+            {cont.data?.numeAfisat ?? cont.data?.numeComplet ?? "Contul meu"}
           </div>
           <div
             style={{
               color: cont.data?.phoneVerified ? C.verde : C.chihlimbar,
-              "font-size": "12px",
+              "font-size": "14px",
               "font-weight": 600,
             }}
           >
@@ -339,9 +355,55 @@ function Meniu(props: { activ?: string; lat: boolean }) {
       </div>
       <Grup randuri={ACTIVITATE} />
       <div
-        style={{ margin: "6px 4px", "border-top": `1px solid ${C.linie}` }}
+        style={{ margin: "10px 8px", "border-top": `1px solid ${C.linie}` }}
       />
       <Grup randuri={CONT} />
+      <div style={{ "flex-grow": 1, "min-height": "24px" }} />
+      <button
+        type="button"
+        onClick={() => setIesire(true)}
+        style={{
+          height: "44px",
+          padding: "0 16px",
+          border: "0",
+          background: "transparent",
+          color: C.rosu,
+          "font-family": "inherit",
+          "font-size": "16px",
+          "font-weight": 700,
+          "text-align": "left",
+          cursor: "pointer",
+        }}
+      >
+        Ieși din cont
+      </button>
+      <Show when={iesire()}>
+        <Fereastra
+          titlu="Ieși din cont?"
+          laInchidere={() => setIesire(false)}
+          latime={400}
+        >
+          <p
+            style={{
+              margin: "0 0 18px",
+              color: C.stins,
+              "font-size": "16px",
+              "line-height": "1.45",
+            }}
+          >
+            Te deconectezi de pe dispozitivul ăsta. Intri din nou cu emailul și
+            parola contului BBT.
+          </p>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <Buton piele="alb" lat onClick={() => setIesire(false)}>
+              Rămân
+            </Buton>
+            <Buton lat onClick={() => logout()}>
+              Ieși din cont
+            </Buton>
+          </div>
+        </Fereastra>
+      </Show>
     </nav>
   );
 }

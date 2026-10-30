@@ -1,46 +1,92 @@
-import { For, JSX, Show, createSignal } from "solid-js";
+import { For, JSX, Show, createSignal, onCleanup, onMount } from "solid-js";
+import { Portal } from "solid-js/web";
 
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 /**
  * BBT: piesele comune ale contului din hub.
  *
- * Paleta e a hub-ului (întunecată, `tema.ts`), nu a site-ului: contul trebuie să arate ca restul
- * aplicației, nu ca o pagină de site lipită înăuntru. Regulile de culoare ale site-ului rămân:
- * roz = acțiune (text NEGRU pe el, alb ar da 1,6:1), culoarea teritoriului = UNDE ești (eticheta
- * taberei, a workshopului, a cursului), niciodată un buton.
+ * 🔥 **Paleta albă din macheta 23** (30 oct 2026), aceeași cu aplicația de telefon (`mobil/src/ui/culori.ts`):
+ * fundal alb, carduri #F2F2F3, pill negru pentru acțiunea principală, roz pentru ce e „azi", galben pentru plăți
+ * scadente, verde pentru plătit, roșu doar pentru ieșire și întârzieri. Până atunci contul era pe paleta închisă
+ * a hub-ului (`tema.ts`); restul hub-ului (canalele, mesajele) trece pe alb într-un pas următor.
+ *
+ * ⚠️ Numele vechi (`foaie`, `stins`, `chihlimbar`…) au rămas, ca Playlist-ul și setările să se mute pe alb fără
+ * să fie rescrise; doar valorile s-au schimbat. Textul pe roz și pe galben e NEGRU: alb pe roz dă 1,6:1.
+ *
+ * Mărimile urmează pragul casei: 16 în câmpuri (sub 16 Safari pe iOS mărește pagina), 14 minim în rest, 12 doar
+ * pe etichetele cu majuscule.
  */
 
 export const C = {
-  fundal: "#0D0D0D",
-  foaie: "#141414",
-  foaieTare: "#1B1B1B",
-  linie: "rgba(255,255,255,0.08)",
-  text: "#fff",
-  stins: "rgba(255,255,255,0.6)",
-  slab: "rgba(255,255,255,0.4)",
-  roz: "#FFA8CD",
+  fundal: "#FFFFFF",
+  /** Cardurile (#F2F2F3 din machetă). */
+  foaie: "#F2F2F3",
+  /** Câmpurile și rândul apăsat. */
+  foaieTare: "#F3F3F6",
+  linie: "#E5E5E5",
+  text: "#0A0A0B",
+  /** #0A0A0B la 60%, textul secundar din machetă. */
+  stins: "#6C6C6D",
+  /** Placeholder și metadate. */
+  slab: "#8D8D9A",
+  roz: "#FFB3D9",
+  rozDeschis: "#FFE4F1",
   rozIntens: "#B85C86",
-  verde: "#5BD08A",
-  chihlimbar: "#E0A854",
-  rosu: "#FF8A80",
+  negru: "#0A0A0B",
+  peNegru: "#FFFFFF",
+  /** Plătit, pe alb (verdele deschis al pastilelor nu se citește ca text). */
+  verde: "#1E9E62",
+  verdeDeschis: "#99E9C4",
+  /** Ratele plătite din bara de progres. */
+  verdeBara: "#55DB9C",
+  galben: "#FFD731",
+  galbenDeschis: "#FFEFAD",
+  /** Text de avertisment pe alb (scadențe, „Completează profilul"). */
+  chihlimbar: "#A66A00",
+  rosu: "#CA1A38",
   camps: "#FFD731",
   workshops: "#FB4903",
   cursuri: "#5C4ADE",
 };
 
-export function TitluPagina(props: { children: JSX.Element }) {
+/** Titlurile mari din 23 (`fonte.css`). Spațierea de pe site, fără spațiere negativă: regulă de marcă. */
+export const DE_FONTE: JSX.CSSProperties = {
+  "font-family": '"De Fonte BBT", Inter, sans-serif',
+  "font-weight": 400,
+  "letter-spacing": "0.01em",
+  "font-synthesis": "none",
+};
+
+/** Titlul paginii (23b: „Experiențele mele" mare), cu ce stă în dreapta lui (23b: „Vezi site ↗", 23d: „Schimbă…"). */
+export function TitluPagina(props: {
+  children: JSX.Element;
+  dreapta?: JSX.Element;
+}) {
   return (
-    <h1
+    <div
       style={{
+        display: "flex",
+        "align-items": "center",
+        "justify-content": "space-between",
+        gap: "16px",
+        "flex-wrap": "wrap",
         margin: "0 0 20px",
-        "font-size": "22px",
-        "font-weight": 700,
-        color: C.text,
       }}
     >
-      {props.children}
-    </h1>
+      <h1
+        style={{
+          ...DE_FONTE,
+          margin: 0,
+          "font-size": "40px",
+          "line-height": "1.05",
+          color: C.text,
+        }}
+      >
+        {props.children}
+      </h1>
+      {props.dreapta}
+    </div>
   );
 }
 
@@ -51,8 +97,7 @@ export function Card(props: {
   return (
     <div
       style={{
-        "border-radius": "16px",
-        border: `1px solid ${C.linie}`,
+        "border-radius": "24px",
         background: C.foaie,
         overflow: "hidden",
         ...props.style,
@@ -63,14 +108,14 @@ export function Card(props: {
   );
 }
 
-/** Eticheta mică, majuscule, în culoarea teritoriului (ca pe site, `text-[12px] uppercase`). */
+/** Eticheta mică cu majuscule (23: „AZI · 19:00 · CONTROL CLUB", „DOCUMENTE"). 12 e voie doar pe majuscule. */
 export function Eticheta(props: { culoare?: string; children: JSX.Element }) {
   return (
     <span
       style={{
-        "font-size": "11px",
+        "font-size": "12px",
         "font-weight": 700,
-        "letter-spacing": "0.12em",
+        "letter-spacing": "0.06em",
         "text-transform": "uppercase",
         color: props.culoare ?? C.stins,
       }}
@@ -81,13 +126,14 @@ export function Eticheta(props: { culoare?: string; children: JSX.Element }) {
 }
 
 const CULORI_PASTILA = {
-  ok: { bg: "rgba(91,208,138,0.12)", text: C.verde },
-  asteapta: { bg: "rgba(224,168,84,0.14)", text: C.chihlimbar },
-  neutru: { bg: "rgba(255,255,255,0.06)", text: C.stins },
+  ok: { bg: C.verdeDeschis, text: C.negru },
+  asteapta: { bg: C.galben, text: C.negru },
+  neutru: { bg: C.fundal, text: C.stins },
+  roz: { bg: C.roz, text: C.negru },
 };
 
 export function Pastila(props: {
-  fel: "ok" | "asteapta" | "neutru";
+  fel: keyof typeof CULORI_PASTILA;
   children: JSX.Element;
 }) {
   const culori = () => CULORI_PASTILA[props.fel];
@@ -97,12 +143,12 @@ export function Pastila(props: {
         display: "inline-flex",
         "align-items": "center",
         gap: "4px",
-        padding: "3px 10px",
+        padding: "4px 10px",
         "border-radius": "999px",
         background: culori().bg,
         color: culori().text,
-        "font-size": "12px",
-        "font-weight": 600,
+        "font-size": "14px",
+        "font-weight": 700,
         "white-space": "nowrap",
       }}
     >
@@ -111,9 +157,20 @@ export function Pastila(props: {
   );
 }
 
-/** Buton principal: roz, text negru. `href` = link (deschis în browser dacă e în afara hub-ului). */
-export function ButonRoz(props: {
+const PIELE_BUTON = {
+  negru: { bg: C.negru, text: C.peNegru, contur: "transparent" },
+  // Plățile scadente: galben, ca în 23b, 23e și în aplicația de telefon (20d).
+  galben: { bg: C.galben, text: C.negru, contur: "transparent" },
+  alb: { bg: C.fundal, text: C.text, contur: C.linie },
+};
+
+/**
+ * Butonul unei acțiuni. `negru` = principala (pill-ul din 23), `galben` = o plată, `alb` = drumurile secundare
+ * („Deschide", „Vezi site ↗"). `href` = link (deschis în browser dacă e în afara hub-ului).
+ */
+export function Buton(props: {
   children: JSX.Element;
+  piele?: keyof typeof PIELE_BUTON;
   /** `submit` în formulare: Enter și clicul trimit formularul, fără cod în plus. */
   tip?: "button" | "submit";
   onClick?: () => void;
@@ -121,23 +178,26 @@ export function ButonRoz(props: {
   target?: string;
   dezactivat?: boolean;
   lat?: boolean;
+  mic?: boolean;
 }) {
+  const piele = () => PIELE_BUTON[props.piele ?? "negru"];
   const stil = (): JSX.CSSProperties => ({
     display: "inline-flex",
     "align-items": "center",
     "justify-content": "center",
     gap: "8px",
     width: props.lat ? "100%" : undefined,
-    height: "42px",
-    padding: "0 18px",
+    height: props.mic ? "38px" : "46px",
+    padding: props.mic ? "0 16px" : "0 22px",
     "box-sizing": "border-box",
     "border-radius": "999px",
-    border: "0",
-    background: props.dezactivat ? "rgba(255,255,255,0.12)" : C.roz,
-    color: props.dezactivat ? C.slab : "#000",
+    border: `1px solid ${props.dezactivat ? "transparent" : piele().contur}`,
+    background: props.dezactivat ? C.foaie : piele().bg,
+    color: props.dezactivat ? C.slab : piele().text,
     "font-family": "inherit",
-    "font-size": "14px",
+    "font-size": props.mic ? "14px" : "16px",
     "font-weight": 700,
+    "white-space": "nowrap",
     "text-decoration": "none",
     cursor: props.dezactivat ? "default" : "pointer",
   });
@@ -168,57 +228,10 @@ export function ButonRoz(props: {
   );
 }
 
-/** Buton secundar (contur), pentru drumuri care nu sunt acțiunea principală a ecranului. */
-export function ButonContur(props: {
-  children: JSX.Element;
-  onClick?: () => void;
-  href?: string;
-  target?: string;
-}) {
-  const stil: JSX.CSSProperties = {
-    display: "inline-flex",
-    "align-items": "center",
-    "justify-content": "center",
-    gap: "8px",
-    height: "40px",
-    padding: "0 16px",
-    "box-sizing": "border-box",
-    "border-radius": "999px",
-    border: `1px solid ${C.linie}`,
-    background: "transparent",
-    color: C.text,
-    "font-family": "inherit",
-    "font-size": "13.5px",
-    "font-weight": 600,
-    "text-decoration": "none",
-    cursor: "pointer",
-  };
-  return (
-    <Show
-      when={props.href}
-      fallback={
-        <button type="button" onClick={() => props.onClick?.()} style={stil}>
-          {props.children}
-        </button>
-      }
-    >
-      <a
-        href={props.href}
-        target={props.target}
-        rel={props.target ? "noopener" : undefined}
-        style={stil}
-      >
-        {props.children}
-      </a>
-    </Show>
-  );
-}
-
-/** „Active | Istoric", ca `InscrieriTabs` de pe site. */
+/** „Active | Istoric" (23b): pill negru pe fila deschisă, gri pe cealaltă. */
 export function FileActivIstoric(props: {
   active: () => JSX.Element;
   istoric: () => JSX.Element;
-  nrActive: number;
 }) {
   const [fila, setFila] = createSignal<"active" | "istoric">("active");
   const buton = (cheie: "active" | "istoric", text: string) => (
@@ -227,15 +240,15 @@ export function FileActivIstoric(props: {
       onClick={() => setFila(cheie)}
       aria-pressed={fila() === cheie}
       style={{
-        height: "34px",
-        padding: "0 14px",
+        height: "40px",
+        padding: "0 18px",
         "border-radius": "999px",
-        border: `1px solid ${fila() === cheie ? "transparent" : C.linie}`,
-        background: fila() === cheie ? "rgba(255,255,255,0.1)" : "transparent",
-        color: fila() === cheie ? C.text : C.stins,
+        border: "0",
+        background: fila() === cheie ? C.negru : C.foaie,
+        color: fila() === cheie ? C.peNegru : C.stins,
         "font-family": "inherit",
-        "font-size": "13px",
-        "font-weight": 600,
+        "font-size": "14px",
+        "font-weight": 700,
         cursor: "pointer",
       }}
     >
@@ -244,11 +257,8 @@ export function FileActivIstoric(props: {
   );
   return (
     <>
-      <div style={{ display: "flex", gap: "8px", "margin-bottom": "16px" }}>
-        {buton(
-          "active",
-          props.nrActive ? `Active (${props.nrActive})` : "Active",
-        )}
+      <div style={{ display: "flex", gap: "8px", "margin-bottom": "18px" }}>
+        {buton("active", "Active")}
         {buton("istoric", "Istoric")}
       </div>
       <Show when={fila() === "active"} fallback={props.istoric()}>
@@ -258,56 +268,56 @@ export function FileActivIstoric(props: {
   );
 }
 
+/**
+ * Locul gol. `roz` = cardul din 23c („Încă nimic aici" + „Vezi site ↗"), unde golul e un îndemn, nu o lipsă; altfel
+ * cardul gri. ⚠️ Fără chenarul punctat de dinainte: 23 l-a scos dinadins.
+ */
 export function StareGoala(props: {
-  simbol: string;
   titlu: string;
   text: string;
   link?: { href: string; text: string };
+  roz?: boolean;
 }) {
   return (
     <div
       style={{
         display: "flex",
         "flex-direction": "column",
-        "align-items": "center",
-        "justify-content": "center",
+        "align-items": "flex-start",
         gap: "8px",
-        padding: "40px 24px",
-        "border-radius": "16px",
-        border: `2px dashed ${C.linie}`,
-        "text-align": "center",
+        padding: "28px",
+        "border-radius": "24px",
+        background: props.roz ? C.roz : C.foaie,
       }}
     >
-      <span style={{ color: C.slab, display: "flex" }}>
-        <Symbol size={26}>{props.simbol}</Symbol>
-      </span>
       <p
         style={{
+          ...DE_FONTE,
           margin: 0,
           color: C.text,
-          "font-weight": 600,
-          "font-size": "14px",
+          "font-size": "26px",
+          "line-height": "1.1",
         }}
       >
         {props.titlu}
       </p>
-      <p style={{ margin: 0, color: C.stins, "font-size": "13px" }}>
+      <p
+        style={{
+          margin: 0,
+          color: props.roz ? C.text : C.stins,
+          "font-size": "16px",
+          "line-height": "1.45",
+          "max-width": "460px",
+        }}
+      >
         {props.text}
       </p>
       <Show when={props.link}>
-        <a
-          href={props.link!.href}
-          target="_blank"
-          rel="noopener"
-          style={{
-            "margin-top": "6px",
-            color: C.text,
-            "font-size": "13px",
-            "font-weight": 600,
-          }}
-        >
-          {props.link!.text}
-        </a>
+        <div style={{ "margin-top": "8px" }}>
+          <Buton piele="alb" href={props.link!.href} target="_blank">
+            {props.link!.text}
+          </Buton>
+        </div>
       </Show>
     </div>
   );
@@ -322,14 +332,12 @@ export function Mesaj(props: {
       role={props.fel === "eroare" ? "alert" : undefined}
       style={{
         margin: "0 0 16px",
-        padding: "12px 14px",
-        "border-radius": "12px",
+        padding: "12px 16px",
+        "border-radius": "16px",
         background:
-          props.fel === "eroare"
-            ? "rgba(255,138,128,0.1)"
-            : "rgba(224,168,84,0.1)",
-        color: props.fel === "eroare" ? C.rosu : C.chihlimbar,
-        "font-size": "13.5px",
+          props.fel === "eroare" ? "rgba(202,26,56,0.08)" : C.galbenDeschis,
+        color: props.fel === "eroare" ? C.rosu : C.text,
+        "font-size": "14px",
         "line-height": "1.45",
       }}
     >
@@ -347,29 +355,129 @@ export function RandInfo(props: { simbol: string; children: JSX.Element }) {
         "align-items": "center",
         gap: "6px",
         color: C.stins,
-        "font-size": "13px",
+        "font-size": "14px",
       }}
     >
-      <Symbol size={14}>{props.simbol}</Symbol>
+      <Symbol size={15}>{props.simbol}</Symbol>
       {props.children}
     </span>
   );
 }
 
-/* ── Formulare (Setări cont) ─────────────────────────────────────────────────────────────── */
+/**
+ * Fereastra peste cont (23g: plata; cererea de anulare; QR-ul mărit). ⚠️ În `Portal`, pe `body`: pe telefon contul
+ * stă într-un SlideDrawer mutat cu `transform`, iar un `position: fixed` dinăuntru s-ar fi poziționat față de drawer,
+ * nu de ecran. Escape și clicul pe fundal o închid.
+ */
+export function Fereastra(props: {
+  titlu: string;
+  laInchidere: () => void;
+  latime?: number;
+  fundal?: string;
+  children: JSX.Element;
+}) {
+  onMount(() => {
+    const tasta = (e: KeyboardEvent) =>
+      e.key === "Escape" && props.laInchidere();
+    document.addEventListener("keydown", tasta);
+    onCleanup(() => document.removeEventListener("keydown", tasta));
+  });
+  return (
+    <Portal>
+      <div
+        onClick={() => props.laInchidere()}
+        style={{
+          position: "fixed",
+          inset: 0,
+          "z-index": 1000,
+          display: "flex",
+          "align-items": "center",
+          "justify-content": "center",
+          padding: "16px",
+          background: "rgba(10,10,11,0.45)",
+        }}
+      >
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={props.titlu}
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            width: "100%",
+            "max-width": `${props.latime ?? 460}px`,
+            "max-height": "calc(100vh - 32px)",
+            "overflow-y": "auto",
+            padding: "24px",
+            "box-sizing": "border-box",
+            "border-radius": "28px",
+            background: props.fundal ?? C.fundal,
+            color: C.text,
+            "font-family": "Inter, sans-serif",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              "align-items": "center",
+              "justify-content": "space-between",
+              gap: "12px",
+              "margin-bottom": "16px",
+            }}
+          >
+            <h2
+              style={{
+                ...DE_FONTE,
+                margin: 0,
+                "font-size": "26px",
+                "line-height": "1.1",
+              }}
+            >
+              {props.titlu}
+            </h2>
+            <button
+              type="button"
+              aria-label="Închide"
+              onClick={() => props.laInchidere()}
+              style={{
+                width: "38px",
+                height: "38px",
+                "flex-shrink": 0,
+                display: "flex",
+                "align-items": "center",
+                "justify-content": "center",
+                "border-radius": "999px",
+                border: "0",
+                background: C.foaie,
+                color: C.text,
+                cursor: "pointer",
+              }}
+            >
+              <Symbol size={18}>close</Symbol>
+            </button>
+          </div>
+          {props.children}
+        </div>
+      </div>
+    </Portal>
+  );
+}
+
+/* ── Formulare (Profil public, Date personale) ───────────────────────────────────────────── */
 
 const stilCamp: JSX.CSSProperties = {
   width: "100%",
-  height: "44px",
-  padding: "0 12px",
+  height: "48px",
+  padding: "0 16px",
   "box-sizing": "border-box",
-  "border-radius": "10px",
-  border: `1px solid ${C.linie}`,
-  background: "#0D0D0D",
+  "border-radius": "14px",
+  border: "1px solid transparent",
+  // Alb: câmpurile stau mereu pe un card gri (`Sectiune`, formularul profilului), unde gri pe gri nu se vedea.
+  background: C.fundal,
   color: C.text,
   outline: "none",
   "font-family": "inherit",
-  "font-size": "14.5px",
+  // 16, nu mai puțin: sub 16 Safari pe iOS mărește pagina la fiecare câmp atins.
+  "font-size": "16px",
 };
 
 export function Eticheta2(props: { children: JSX.Element }) {
@@ -379,8 +487,10 @@ export function Eticheta2(props: { children: JSX.Element }) {
         display: "block",
         "margin-bottom": "6px",
         color: C.stins,
-        "font-size": "12.5px",
-        "font-weight": 600,
+        "font-size": "12px",
+        "font-weight": 700,
+        "letter-spacing": "0.06em",
+        "text-transform": "uppercase",
       }}
     >
       {props.children}
@@ -396,8 +506,9 @@ export function CampText(props: {
   placeholder?: string;
   maxim?: number;
   autocomplete?: string;
-  inputmode?: "numeric" | "tel" | "text";
+  inputmode?: "numeric" | "tel" | "text" | "url";
   inainte?: string;
+  randuri?: number;
 }) {
   return (
     <label style={{ display: "block" }}>
@@ -405,16 +516,36 @@ export function CampText(props: {
       <Show
         when={props.inainte}
         fallback={
-          <input
-            type={props.tip ?? "text"}
-            value={props.valoare}
-            placeholder={props.placeholder}
-            maxLength={props.maxim}
-            autocomplete={props.autocomplete}
-            inputMode={props.inputmode}
-            onInput={(e) => props.laSchimbare(e.currentTarget.value)}
-            style={stilCamp}
-          />
+          <Show
+            when={props.randuri}
+            fallback={
+              <input
+                type={props.tip ?? "text"}
+                value={props.valoare}
+                placeholder={props.placeholder}
+                maxLength={props.maxim}
+                autocomplete={props.autocomplete}
+                inputMode={props.inputmode}
+                onInput={(e) => props.laSchimbare(e.currentTarget.value)}
+                style={stilCamp}
+              />
+            }
+          >
+            <textarea
+              rows={props.randuri}
+              value={props.valoare}
+              placeholder={props.placeholder}
+              maxLength={props.maxim}
+              onInput={(e) => props.laSchimbare(e.currentTarget.value)}
+              style={{
+                ...stilCamp,
+                height: "auto",
+                padding: "12px 16px",
+                resize: "none",
+                "line-height": "1.45",
+              }}
+            />
+          </Show>
         }
       >
         <div
@@ -439,7 +570,7 @@ export function CampText(props: {
               color: C.text,
               outline: "none",
               "font-family": "inherit",
-              "font-size": "14.5px",
+              "font-size": "16px",
             }}
           />
         </div>
@@ -461,7 +592,7 @@ export function CampAlege(props: {
       <select
         value={props.valoare}
         onChange={(e) => props.laSchimbare(e.currentTarget.value)}
-        style={{ ...stilCamp, "color-scheme": "dark" }}
+        style={{ ...stilCamp, "color-scheme": "light" }}
       >
         <Show when={props.gol}>
           <option value="">{props.gol}</option>
@@ -482,7 +613,7 @@ export function CampAlege(props: {
   );
 }
 
-/** Cardul unei secțiuni din Setări: titlu mic sus, acțiune în dreapta (Editează / Anulează). */
+/** Cardul unei secțiuni (Date personale, Facturare): titlu mic sus, acțiune în dreapta (Editează / Anulează). */
 export function Sectiune(props: {
   titlu: string;
   actiune?: { text: string; laApasare: () => void };
@@ -492,8 +623,7 @@ export function Sectiune(props: {
   return (
     <div
       style={{
-        "border-radius": "16px",
-        border: `1px solid ${props.pericol ? "rgba(229,72,77,0.35)" : C.linie}`,
+        "border-radius": "24px",
         background: C.foaie,
         overflow: "hidden",
       }}
@@ -504,8 +634,7 @@ export function Sectiune(props: {
           "align-items": "center",
           "justify-content": "space-between",
           gap: "12px",
-          padding: "14px 18px",
-          "border-bottom": `1px solid ${C.linie}`,
+          padding: "18px 22px 0",
         }}
       >
         <Eticheta culoare={props.pericol ? C.rosu : undefined}>
@@ -518,10 +647,11 @@ export function Sectiune(props: {
             style={{
               border: "0",
               background: "transparent",
-              color: C.stins,
+              color: C.text,
               "font-family": "inherit",
-              "font-size": "13px",
-              "font-weight": 600,
+              "font-size": "14px",
+              "font-weight": 700,
+              "text-decoration": "underline",
               cursor: "pointer",
             }}
           >
@@ -529,7 +659,7 @@ export function Sectiune(props: {
           </button>
         </Show>
       </div>
-      <div style={{ padding: "16px 18px" }}>{props.children}</div>
+      <div style={{ padding: "14px 22px 20px" }}>{props.children}</div>
     </div>
   );
 }
@@ -546,11 +676,11 @@ export function RandValoare(props: {
         "align-items": "center",
         "justify-content": "space-between",
         gap: "16px",
-        padding: "9px 0",
+        padding: "10px 0",
         "border-top": `1px solid ${C.linie}`,
       }}
     >
-      <span style={{ color: C.stins, "font-size": "13px", "flex-shrink": 0 }}>
+      <span style={{ color: C.stins, "font-size": "14px", "flex-shrink": 0 }}>
         {props.eticheta}
       </span>
       <span
@@ -577,11 +707,20 @@ export function MesajSalvare(props: {
         role={props.stare!.tip === "err" ? "alert" : "status"}
         style={{
           color: props.stare!.tip === "ok" ? C.verde : C.rosu,
-          "font-size": "13px",
+          "font-size": "14px",
         }}
       >
         {props.stare!.text}
       </span>
     </Show>
+  );
+}
+
+/** Se încarcă… (aceeași frază peste tot în cont). */
+export function Incarcare() {
+  return (
+    <p style={{ color: C.stins, "font-size": "14px", margin: "8px 0" }}>
+      Se încarcă…
+    </p>
   );
 }
