@@ -250,6 +250,7 @@ export function ChannelHeader(props: Props) {
       >
         <button
           type="button"
+          class="bbt-buton-panou"
           aria-pressed={state.layout.getSectionState(
             LAYOUT_SECTIONS.MEMBER_SIDEBAR,
             true,
@@ -286,34 +287,37 @@ export function ChannelHeader(props: Props) {
           props.channel.type !== "DirectMessage"
         }
       >
-        <IconButton
-          onPress={() => {
-            if (props.sidebarState!().state === "default") {
-              state.layout.toggleSectionState(
-                LAYOUT_SECTIONS.MEMBER_SIDEBAR,
-                true,
-              );
-            } else {
-              state.layout.setSectionState(
-                LAYOUT_SECTIONS.MEMBER_SIDEBAR,
-                true,
-                true,
-              );
+        {/* BBT: sub 1180px panoul membrilor nu mai are loc (`bbt/raspuns.css`), deci nici butonul lui. */}
+        <span class="bbt-buton-panou" style={{ display: "contents" }}>
+          <IconButton
+            onPress={() => {
+              if (props.sidebarState!().state === "default") {
+                state.layout.toggleSectionState(
+                  LAYOUT_SECTIONS.MEMBER_SIDEBAR,
+                  true,
+                );
+              } else {
+                state.layout.setSectionState(
+                  LAYOUT_SECTIONS.MEMBER_SIDEBAR,
+                  true,
+                  true,
+                );
 
-              props.setSidebarState!({
-                state: "default",
-              });
-            }
-          }}
-          use:floating={{
-            tooltip: {
-              placement: "bottom",
-              content: t`View members`,
-            },
-          }}
-        >
-          <MdGroup />
-        </IconButton>
+                props.setSidebarState!({
+                  state: "default",
+                });
+              }
+            }}
+            use:floating={{
+              tooltip: {
+                placement: "bottom",
+                content: t`View members`,
+              },
+            }}
+          >
+            <MdGroup />
+          </IconButton>
+        </span>
       </Show>
 
       {/* BBT: pe desktop căutarea stă în bara de sus (src/bbt/BaraSus.tsx); aici rămâne doar

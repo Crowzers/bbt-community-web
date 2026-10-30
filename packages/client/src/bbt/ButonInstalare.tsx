@@ -99,6 +99,7 @@ export function ButonInstalare(props: { compact?: boolean }) {
         <button
           type="button"
           onClick={apasa}
+          class={props.compact ? undefined : "bbt-instalare-buton"}
           aria-expanded={instalare.directa() ? undefined : pasi()}
           aria-label={telefon ? "Instalează BBT Community" : undefined}
           title={
@@ -135,7 +136,10 @@ export function ButonInstalare(props: { compact?: boolean }) {
           }
         >
           <Symbol size={props.compact ? 18 : 20}>download</Symbol>
-          {text()}
+          {/* Pe îngust (`raspuns.css`) rămâne doar iconița. */}
+          <span class={props.compact ? undefined : "bbt-instalare-text"}>
+            {text()}
+          </span>
         </button>
 
         <Show when={tutorial() && telefon}>

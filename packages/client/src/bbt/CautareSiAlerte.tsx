@@ -38,6 +38,7 @@ export function CautareSus() {
   return (
     <Show when={canal()}>
       <label
+        class="bbt-cautare-sus"
         style={{
           display: "flex",
           "align-items": "center",

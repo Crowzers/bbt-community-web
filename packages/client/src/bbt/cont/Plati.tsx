@@ -213,6 +213,7 @@ export function Plati() {
             <Eticheta>Toate tranzacțiile</Eticheta>
           </div>
           <div
+            class="bbt-tranzactii"
             style={{
               "border-radius": "24px",
               background: C.foaie,
@@ -304,20 +305,19 @@ function RandTranzactie(props: {
       : undefined;
 
   return (
+    // Grila e în `bbt/raspuns.css` (`.bbt-tranzactie`): pe îngust rândul se desface pe trei linii.
     <div
+      class="bbt-tranzactie"
       style={{
-        display: "grid",
-        "grid-template-columns": "110px minmax(0, 1fr) auto auto 40px",
-        "align-items": "center",
-        gap: "14px",
         padding: "14px 0",
         "border-top": props.primul ? "0" : `1px solid ${C.linie}`,
       }}
     >
-      <span style={{ color: C.stins, "font-size": "14px" }}>
+      <span class="data" style={{ color: C.stins, "font-size": "14px" }}>
         {props.t.data ? ziCuAn(props.t.data) : ""}
       </span>
       <span
+        class="titlu"
         style={{
           "font-size": "16px",
           "font-weight": 600,
@@ -337,6 +337,7 @@ function RandTranzactie(props: {
         </Show>
       </span>
       <span
+        class="suma"
         style={{
           "font-size": "16px",
           "font-weight": 700,
@@ -345,30 +346,33 @@ function RandTranzactie(props: {
       >
         {lei(p().suma)}
       </span>
-      <Show
-        when={plateste()}
-        fallback={
-          <Pastila
-            fel={
-              anulata()
-                ? "neutru"
-                : platit()
-                  ? "ok"
-                  : p().status === "Asteptata"
-                    ? "asteapta"
-                    : "neutru"
-            }
-          >
-            {anulata()
-              ? c().statusPlata
-              : (STATUS_TRANSA[p().status] ?? p().status)}
-          </Pastila>
-        }
-      >
-        {(pl) => <ButonPlateste mic plata={pl()} />}
-      </Show>
-      <Show when={p().fgoFacturaLink} fallback={<span />}>
+      <span class="stare">
+        <Show
+          when={plateste()}
+          fallback={
+            <Pastila
+              fel={
+                anulata()
+                  ? "neutru"
+                  : platit()
+                    ? "ok"
+                    : p().status === "Asteptata"
+                      ? "asteapta"
+                      : "neutru"
+              }
+            >
+              {anulata()
+                ? c().statusPlata
+                : (STATUS_TRANSA[p().status] ?? p().status)}
+            </Pastila>
+          }
+        >
+          {(pl) => <ButonPlateste mic plata={pl()} />}
+        </Show>
+      </span>
+      <Show when={p().fgoFacturaLink} fallback={<span class="factura" />}>
         <a
+          class="factura"
           href={p().fgoFacturaLink!}
           target="_blank"
           rel="noopener noreferrer"

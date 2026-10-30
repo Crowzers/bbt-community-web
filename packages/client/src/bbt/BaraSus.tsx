@@ -234,6 +234,7 @@ export function BaraSus(props: { compact?: boolean }) {
           />
         </span>
         <span
+          class="bbt-text-community"
           style={{
             "font-family": '"De Fonte BBT", Inter, sans-serif',
             "font-size": props.compact ? "18px" : "20px",
@@ -287,6 +288,7 @@ export function BaraSus(props: { compact?: boolean }) {
           aria-expanded={meniu()}
           aria-label="Contul meu"
           onClick={() => setMeniu((m) => !m)}
+          class="bbt-cont-pastila"
           style={{
             display: "flex",
             "align-items": "center",
@@ -322,6 +324,7 @@ export function BaraSus(props: { compact?: boolean }) {
           </span>
           <Show when={!props.compact}>
             <span
+              class="bbt-cont-nume"
               style={{
                 "text-align": "left",
                 "line-height": "1.25",

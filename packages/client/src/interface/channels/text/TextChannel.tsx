@@ -279,6 +279,10 @@ export function TextChannel(props: ChannelPageProps) {
         >
           <div
             ref={sidebarScrollTargetElement}
+            // BBT: membrii și profilul din conversație ies sub 1180px (`bbt/raspuns.css`); fixatele și căutarea, nu.
+            classList={{
+              "bbt-panou-dreapta": sidebarState().state === "default",
+            }}
             use:scrollable={{
               direction: "y",
               showOnHover: true,

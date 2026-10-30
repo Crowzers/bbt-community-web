@@ -141,6 +141,7 @@ export function ContulMeu() {
       </Show>
       <Show when={pagina()}>
         <div
+          class="bbt-pagina-cont"
           style={{
             "flex-grow": 1,
             "min-width": 0,
@@ -280,6 +281,7 @@ function Meniu(props: { activ?: string; lat: boolean }) {
   return (
     <nav
       aria-label="Contul meu"
+      class="bbt-meniu-cont"
       style={{
         width: props.lat ? "100%" : "280px",
         height: "100%",
