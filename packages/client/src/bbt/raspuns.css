@@ -138,10 +138,11 @@
 .bbt-bula p {
   margin: 0;
 }
-/* ⚠️ Fără vocal: acolo `::after` devenea al treilea element din rând și scotea unda din bulă. Ora lui are rândul ei. */
+/* ⚠️ Fără vocal și Play-ul de pe video: acolo `::after` devenea un element în plus din rând, care scotea unda din bulă,
+   respectiv muta butonul din mijloc. Ora lor nu stă pe un rând de text. */
 .bbt-bula
   > div:not(.bbt-bula-autor):last-of-type
-  > :last-child:not(.bbt-vocal)::after {
+  > :last-child:not(.bbt-vocal, .bbt-play-video)::after {
   content: var(--bbt-ora);
   font-size: 11px;
   color: transparent;
