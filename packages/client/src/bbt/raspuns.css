@@ -138,7 +138,10 @@
 .bbt-bula p {
   margin: 0;
 }
-.bbt-bula > div:not(.bbt-bula-autor):last-of-type > :last-child::after {
+/* ⚠️ Fără vocal: acolo `::after` devenea al treilea element din rând și scotea unda din bulă. Ora lui are rândul ei. */
+.bbt-bula
+  > div:not(.bbt-bula-autor):last-of-type
+  > :last-child:not(.bbt-vocal)::after {
   content: var(--bbt-ora);
   font-size: 11px;
   color: transparent;
@@ -208,6 +211,17 @@
 .bbt-bula .bbt-vocal > button:first-child {
   width: 36px;
   height: 36px;
+}
+/* Unda din aplicație: 168 lățime, bețe de 2,5 răspândite pe toată lățimea. Cu 3 + 2 de pe desktop, cele 40 de bețe
+   cereau 198 și ieșeau din bulă. `max-width`: pe ecranele mai înguste, unda se strânge, nu iese. */
+.bbt-bula .bbt-vocal [role="slider"] {
+  width: 168px;
+  max-width: 100%;
+  gap: 0;
+  justify-content: space-between;
+}
+.bbt-bula .bbt-vocal [role="slider"] > div {
+  width: 2.5px;
 }
 /* Pe bula ta, un Play roz s-ar pierde: e negru cu triunghi alb, ca în `mobil/src/fir/BulaVocal.tsx`. */
 .bbt-bula-mea .bbt-vocal > button:first-child {
