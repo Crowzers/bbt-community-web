@@ -166,6 +166,12 @@
   font-weight: 400;
   text-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
 }
+/* Video-ul are comenzile browserului jos, iar ora ar sta peste bara lor: urcă în colțul de sus. */
+.bbt-bula-media:has(video) .bbt-bula-ora-media {
+  top: 14px;
+  bottom: auto;
+  pointer-events: none;
+}
 
 /* Reacțiile stau sub bulă, lipite de ea (`RandMesaj.tsx`: `reactii`). */
 .bbt-reactii {
@@ -184,9 +190,13 @@
 }
 /* Vocalul stă direct pe bulă, ca în aplicație; cardul gri rămâne pentru firul liniar de pe desktop. */
 .bbt-bula .bbt-vocal {
+  --bbt-bat: #8d8d9a;
   padding: 0;
   border: 0;
   background: transparent;
+}
+.bbt-bula-mea .bbt-vocal {
+  --bbt-bat-ascultat: #0a0a0b;
 }
 .bbt-bula .bbt-vocal > button:first-child {
   width: 36px;

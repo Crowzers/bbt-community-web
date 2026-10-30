@@ -137,8 +137,11 @@ export function BulaVocal(props: { file: File; durataMs: number }) {
               <Bat
                 style={{
                   height: `${Math.round(4 + inaltime * 24)}px`,
+                  // Culorile se schimbă în bulă, din `raspuns.css`: pe bula ta roz, partea ascultată ar dispărea.
                   background:
-                    (i() + 0.5) / BETE <= progres() ? "#FFB3D9" : "#C9C9CE",
+                    (i() + 0.5) / BETE <= progres()
+                      ? "var(--bbt-bat-ascultat, #FFB3D9)"
+                      : "var(--bbt-bat, #C9C9CE)",
                 }}
               />
             )}

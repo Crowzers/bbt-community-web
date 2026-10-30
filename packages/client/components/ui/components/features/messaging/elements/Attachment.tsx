@@ -1,4 +1,4 @@
-import { Match, Show, Switch } from "solid-js";
+import { Match, Show, Switch, createSignal } from "solid-js";
 
 import { File, ImageEmbed, Message, VideoEmbed } from "stoat.js";
 import { css } from "styled-system/css";
@@ -33,6 +33,10 @@ export const AttachmentContainer = styled(Column, {
 export function Attachment(props: { file: File; message?: Message }) {
   const { openModal } = useModals();
   const { reactPicker } = useMessage();
+  const [marimeVideo, setMarimeVideo] = createSignal<{
+    width: number;
+    height: number;
+  }>();
 
   return (
     <Switch fallback={`Could not render ${props.file.metadata.type}!`}>
@@ -87,17 +91,30 @@ export function Attachment(props: { file: File; message?: Message }) {
       </Match>
       <Match when={props.file.metadata.type === "Video"}>
         <SizedContent
-          width={(props.file.metadata as VideoEmbed).width}
-          height={(props.file.metadata as VideoEmbed).height}
+          width={
+            marimeVideo()?.width ?? (props.file.metadata as VideoEmbed).width
+          }
+          height={
+            marimeVideo()?.height ?? (props.file.metadata as VideoEmbed).height
+          }
         >
           <Show when={props.file.isSpoiler}>
             <Spoiler contentType="Video" />
           </Show>
           <video
+            class={css({ background: "#000" })}
             controls
             playsinline
             preload="metadata"
             src={props.file.originalUrl}
+            // BBT: autumn citește lățimea și înălțimea din fișier fără rotație, deci un video filmat pe iPhone în picioare
+            // venea culcat: caseta ieșea lată, iar pe lângă imagine se vedea bula. Browserul știe mărimea reală.
+            onLoadedMetadata={(e) =>
+              setMarimeVideo({
+                width: e.currentTarget.videoWidth,
+                height: e.currentTarget.videoHeight,
+              })
+            }
             use:floating={{
               contextMenu: () => (
                 <MessageContextMenu
