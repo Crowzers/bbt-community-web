@@ -166,6 +166,13 @@
   font-weight: 400;
   text-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
 }
+/* Colțurile pozei și ale video-ului urmează bula: raza ei (26 și 8, `ContainerBula`) minus cei 6 px de margine. */
+.bbt-bula-media div:has(> video, > img) {
+  border-radius: 20px 20px 20px 2px;
+}
+.bbt-bula-mea.bbt-bula-media div:has(> video, > img) {
+  border-radius: 20px 20px 2px 20px;
+}
 /* Video-ul are comenzile browserului jos, iar ora ar sta peste bara lor: urcă în colțul de sus. */
 .bbt-bula-media:has(video) .bbt-bula-ora-media {
   top: 14px;
