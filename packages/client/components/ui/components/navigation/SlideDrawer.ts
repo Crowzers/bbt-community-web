@@ -50,6 +50,13 @@ export class SlideDrawer {
    */
   poateGlisa: () => boolean = () => true;
 
+  /**
+   * BBT: `setShown` schimbă ecranul pe loc, fără alunecare, ca în aplicație (`animation: 'none'` din `mobil/src/app/
+   * _layout.tsx`). Alunecarea de 150 ms arăta pagina nouă cum se mișcă peste cea veche la fiecare apăsare pe pastilă
+   * (userul, 30 oct: „se glitchuiește"). Doar glisarea cu degetul rămâne animată. Setările își păstrează drawer-ul lor.
+   */
+  faraAnimatie = false;
+
   private dispose!: () => void;
   private eGet!: Accessor<boolean>;
   private eSet!: Setter<boolean>;
@@ -307,7 +314,18 @@ export class SlideDrawer {
   }
 
   setShown(show: boolean) {
-    if (!this.eGet() || this.touch?.trig || this.tTmr) return false;
+    if (!this.eGet() || this.touch?.trig) return false;
+    if (this.faraAnimatie) {
+      clearTimeout(this.tTmr!);
+      this.tTmr = null;
+      const ds = this.drawer.style;
+      ds.transition = ds.transform = "";
+      this.ofs = show ? -innerWidth : 0;
+      this.setElState(show);
+      this.sSet(show ? SlideState.SHOWN : SlideState.HIDDEN);
+      return true;
+    }
+    if (this.tTmr) return false;
     if ((this.ofs !== 0) !== show) {
       this.setElState(false);
       this.drawer.style.transform = `translateX(${this.ofs}px)`;

@@ -29,6 +29,7 @@ import {
   TITLU_PAGINA,
   UN_RAND,
   deFonte,
+  dupaNavigare,
   oraRand,
   rezumatMesaj,
 } from "./telefon";
@@ -263,7 +264,7 @@ function RandConversatie(props: { canal: Channel; euId: string | undefined }) {
       onClick={(e) => {
         e.preventDefault();
         navigate(`/channel/${props.canal.id}`);
-        state.appDrawer()?.setShown(true);
+        dupaNavigare(() => state.appDrawer()?.setShown(true));
       }}
       use:floating={{
         contextMenu: () =>
@@ -405,7 +406,7 @@ function MesajNou(props: { laInchidere: () => void }) {
       const dm = await om.openDM();
       props.laInchidere();
       navigate(`/channel/${dm.id}`);
-      state.appDrawer()?.setShown(true);
+      dupaNavigare(() => state.appDrawer()?.setShown(true));
     } catch {
       setEroare("Conversația nu se deschide acum. Încearcă din nou.");
     }

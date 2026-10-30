@@ -1,4 +1,4 @@
-import { For, Show, createMemo } from "solid-js";
+import { For, Show, createEffect, createMemo, on } from "solid-js";
 
 import { useClient } from "@revolt/client";
 import { useLocation, useNavigate } from "@revolt/routing";
@@ -16,7 +16,7 @@ import { AvatarOm, IconBalon, IconBilet, IconDiez } from "./telefon";
  * duce la Profil. Înlocuiește pe telefon bara de sus și bara de tab-uri (`BaraSus compact`, `BaraSectiuni orizontal`).
  *
  * ⚠️ Stă în `Interface.tsx`, peste tot, nu în lista de canale: pe telefon Experiențe și Profil sunt în `/cont`, care
- * alunecă PESTE listă (SlideDrawer), iar în lista de canale pastila ar fi rămas sub ele.
+ * stă PESTE listă (SlideDrawer), iar în lista de canale pastila ar fi rămas sub ele.
  *
  * Se vede pe paginile de nivel 1, ca în aplicație: listele (panoul închis), Experiențe și Profil. În fir și în
  * paginile din cont (Plăți, tabăra) nu: acolo jos stă bara de scris, respectiv pagina are „înapoi".
@@ -64,11 +64,25 @@ export function PastilaDeJos() {
           .some((c) => c.type === "DirectMessage" && c.unread)
       : t === "experiente" && !!experiente.data?.active.some((e) => e.azi);
 
+  // Listele stau sub conținut: din cont, panoul se închide ca lista să iasă la vedere. ⚠️ În efectul pe rută, nu la
+  // apăsare și nu într-un `requestAnimationFrame`: așa lista nouă și închiderea ajung în același cadru. Altfel se vedea
+  // o clipă lista veche, respectiv pagina goală de sub cont (~60 ms până se desenează Comunitate).
+  let spreLista = false;
+  createEffect(
+    on(
+      cale,
+      () => {
+        if (spreLista) state.appDrawer()?.setShown(false);
+        spreLista = false;
+      },
+      { defer: true },
+    ),
+  );
+
   function mergi(t: Tab) {
     if (t === "experiente") return navigate("/cont/experiente");
     if (t === "profil") return navigate("/cont");
-    // Listele stau sub conținut: închidem panoul, ca lista să iasă la vedere.
-    state.appDrawer()?.setShown(false);
+    spreLista = cale().startsWith("/cont");
     if (t === "mesaje") return navigate("/friends");
     const s = client().servers.toList()[0];
     if (s) navigate(`/server/${s.id}`);

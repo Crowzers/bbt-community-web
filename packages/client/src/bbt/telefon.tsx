@@ -335,3 +335,11 @@ export function lunaScurta(iso: string, acum = new Date()): string {
     ? LUNI[d.getMonth()]
     : `${LUNI[d.getMonth()]} ${d.getFullYear()}`;
 }
+
+/**
+ * Pune `f` după ce se desenează ruta nouă. ⚠️ Ecranul se schimbă pe loc (`SlideDrawer.faraAnimatie`): chemat înaintea
+ * routerului, ar arăta un cadru cu ce era dedesubt (lista veche, canalul de dinainte).
+ */
+export function dupaNavigare(f: () => void) {
+  requestAnimationFrame(f);
+}

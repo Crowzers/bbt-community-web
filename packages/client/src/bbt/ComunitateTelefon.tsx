@@ -30,6 +30,7 @@ import {
   TITLU_PAGINA,
   UN_RAND,
   deFonte,
+  dupaNavigare,
   oraRand,
   rezumatMesaj,
 } from "./telefon";
@@ -347,6 +348,7 @@ function culoarePlaca(id: string) {
 
 function RandCanal(props: { canal: Channel; euId: string | undefined }) {
   const state = useState();
+  const navigate = useNavigate();
   const necitit = () => props.canal.unread && !props.canal.muted;
   const mentiuni = () => props.canal.mentions?.size ?? 0;
   const deScris = () => props.canal.type === "TextChannel";
@@ -363,7 +365,11 @@ function RandCanal(props: { canal: Channel; euId: string | undefined }) {
   return (
     <a
       href={`/server/${props.canal.serverId}/channel/${props.canal.id}`}
-      onClick={() => state.appDrawer()?.setShown(true)}
+      onClick={(e) => {
+        e.preventDefault();
+        navigate(`/server/${props.canal.serverId}/channel/${props.canal.id}`);
+        dupaNavigare(() => state.appDrawer()?.setShown(true));
+      }}
       aria-label={`${props.canal.name}${necitit() ? ", necitit" : ""}`}
       use:floating={{
         contextMenu: () => <ChannelContextMenu channel={props.canal} />,

@@ -83,6 +83,7 @@ const Interface = (props: { children: JSX.Element }) => {
     if (cont && !sDrawer) {
       sDrawer = new SlideDrawer(cont, rootRef!, false);
       sDrawer.poateGlisa = () => location.pathname.includes("/channel/");
+      sDrawer.faraAnimatie = true;
     }
     //Update on layout change
     if (sDrawer) {
