@@ -114,8 +114,10 @@ export function ListView2(props: Props) {
       // Account for https://issues.chromium.org/issues/40829494
       // Chromium based browsers (read: Chrome and Electron) will overscroll on reverse column flexboxes
       // breaking automatic scrolling when adding new messages. This caps the scrolltop at 0 (it's negative.)
+      // BBT: doar în Chromium. Pe iPhone, elasticul de la ultimul mesaj dă și el `scrollTop` pozitiv, iar punerea lui la 0
+      // se bătea cu elasticul: pagina vibra sus-jos, foarte repede (userul, 31 oct).
       onScroll={(e) => {
-        if (e.target.scrollTop > 0) {
+        if (navigator.userAgent.includes("Chrome/") && e.target.scrollTop > 0) {
           e.target.scrollTop = 0;
         }
       }}
@@ -284,6 +286,8 @@ const container = cva({
       true: {
         height: "100%",
         flexGrow: 1,
+        // BBT: la capătul firului lista stă pe loc, fără elastic.
+        overscrollBehaviorY: "none",
       },
     },
   },

@@ -16,11 +16,18 @@
  * 30 oct 2026, iPhone (captura userului): cu tastatura sus, o tragere pe un fir scurt a lăsat o fâșie albă
  * între bara de scris și tastatură, iar tastatura nu se închidea trăgând în jos, ca în aplicație
  * (`keyboardDismissMode="interactive"`). Doar cât e tastatura sus: `overflow: hidden` nu oprește Safari să mute pagina
- * atunci, deci tragerile care ar ajunge la pagină se opresc aici, iar o tragere în jos închide tastatura.
+ * atunci, deci tragerile care ar ajunge la pagină se opresc aici, iar o tragere până la bară închide tastatura.
  */
 
-/** Cât se trage în jos până se închide tastatura: destul cât o atingere tremurată pe un mesaj să n-o închidă. */
-const TRAGERE_INCHIDE = 30;
+/**
+ * Tastatura se închide când degetul coboară până la bara de scris, ca în aplicație și la WhatsApp, nu de oriunde.
+ * ⚠️ O pagină web nu poate mișca tastatura sistemului cu degetul: de la punctul ăsta iOS o coboară singur, dintr-odată.
+ * Urmărirea cadru cu cadru din aplicație vine din `react-native-keyboard-controller`, care n-are echivalent în browser.
+ */
+const SUS_DE_CAMP = 20;
+
+/** Sub atâta nu e tragere: o atingere tremurată pe bară nu închide tastatura. */
+const TRAGERE_MINIMA = 12;
 
 /**
  * Cât se remăsoară după un gest. ⚠️ Safari nu anunță mereu ultima poziție a ecranului vizibil la capătul unei
@@ -49,36 +56,6 @@ function ajungeLaPagina(tinta: EventTarget | null, dy: number) {
     return dy > 0 ? pozitie <= 0 : pozitie >= max - 1;
   }
   return true;
-}
-
-/**
- * Măsurătorile de pe telefon, la vedere: `hub.beanbagtheory.ro/?ecran`. Pe iPhone nu există consolă fără Mac, iar
- * fâșia albă de deasupra tastaturii nu se reproduce în browserul de pe calculator. Se scoate după ce e găsită cauza.
- */
-function arataMasuratorile(vv: VisualViewport) {
-  try {
-    if (location.search.includes("ecran"))
-      localStorage.setItem("bbt-ecran", "1");
-    if (!localStorage.getItem("bbt-ecran")) return;
-  } catch {
-    return;
-  }
-  const el = document.createElement("div");
-  el.style.cssText =
-    "position:fixed;left:50%;transform:translateX(-50%);z-index:99999;padding:4px 8px;border-radius:8px;" +
-    "background:#0A0A0B;color:#fff;font:12px/1.3 monospace;white-space:pre;pointer-events:none";
-  document.body.append(el);
-  const root = document.getElementById("root")!;
-  setInterval(() => {
-    const b = root.getBoundingClientRect();
-    // ⚠️ Lipită de ecranul vizibil: cu pagina mutată de Safari, un `top` fix iese din ecran (capturile din 31 oct).
-    el.style.top = `${Math.round(vv.offsetTop) + 4}px`;
-    el.textContent =
-      `vv h ${Math.round(vv.height)} sus ${Math.round(vv.offsetTop)} zoom ${vv.scale}\n` +
-      `fereastra h ${innerHeight} scroll ${Math.round(scrollY)}\n` +
-      `root sus ${Math.round(b.top)} h ${Math.round(b.height)}\n` +
-      `tastatura ${document.documentElement.classList.contains("bbt-tastatura")} camp ${campActiv()}`;
-  }, 200);
 }
 
 /** Dacă e activ un câmp care scoate tastatura. */
@@ -122,9 +99,10 @@ export function legaEcranulVizibil() {
     const camp = document.activeElement;
     if (
       a.vertical &&
-      dy > TRAGERE_INCHIDE &&
+      dy > TRAGERE_MINIMA &&
       camp instanceof HTMLElement &&
-      !(e.target instanceof Node && camp.contains(e.target))
+      !(e.target instanceof Node && camp.contains(e.target)) &&
+      t.clientY >= camp.getBoundingClientRect().top - SUS_DE_CAMP
     ) {
       camp.blur();
     }
@@ -176,7 +154,6 @@ export function legaEcranulVizibil() {
   };
 
   aplica();
-  if (vv) arataMasuratorile(vv);
   vv?.addEventListener("resize", aplica);
   vv?.addEventListener("scroll", aplica);
   // ⚠️ Fără `window.scrollTo(0, 0)` la derularea ferestrei: pe iOS s-ar bate cu Safari, care

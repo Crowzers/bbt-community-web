@@ -88,7 +88,7 @@ html.bbt-tastatura #root {
    rămâne o fâșie albă deasupra tastaturii. `ecran.ts` oprește restul tragerilor, cele de pe ce nu se derulează. */
 html.bbt-tastatura #root *,
 html.bbt-tastatura #floating * {
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: none;
 }
 
 /* BBT: câmpurile de text (mdui) în stilul BBT — rotunjite, cu chenar subțire, roz la focus — nu
