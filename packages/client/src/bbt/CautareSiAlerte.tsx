@@ -42,15 +42,16 @@ export function CautareSus() {
           display: "flex",
           "align-items": "center",
           gap: "8px",
-          width: "260px",
-          height: "34px",
-          padding: "0 10px",
+          // Pastila gri din 21/23 (30 oct 2026); până atunci un câmp închis, de 34px.
+          width: "320px",
+          height: "44px",
+          padding: "0 16px",
           "box-sizing": "border-box",
-          "border-radius": "8px",
-          background: "#141414",
-          border: "1px solid rgba(255,255,255,0.08)",
-          color: "rgba(255,255,255,0.48)",
-          "font-size": "13px",
+          "border-radius": "999px",
+          background: "#F2F2F3",
+          border: "0",
+          color: "#8D8D9A",
+          "font-size": "14px",
         }}
       >
         <Symbol size={16}>search</Symbol>
@@ -68,9 +69,10 @@ export function CautareSus() {
             background: "transparent",
             border: "0",
             outline: "none",
-            color: "#fff",
+            color: "#0A0A0B",
             "font-family": "inherit",
-            "font-size": "13px",
+            // 16: sub 16 Safari pe iOS mărește pagina la atingere.
+            "font-size": "16px",
           }}
         />
       </label>
@@ -141,12 +143,12 @@ export function Clopotel() {
         onClick={() => setDeschis((d) => !d)}
         style={{
           position: "relative",
-          width: "36px",
-          height: "36px",
+          width: "44px",
+          height: "44px",
           border: "0",
-          "border-radius": "8px",
-          background: deschis() ? "rgba(255,255,255,0.1)" : "transparent",
-          color: "rgba(255,255,255,0.8)",
+          "border-radius": "999px",
+          background: deschis() ? "#E9E9EC" : "#F2F2F3",
+          color: "#0A0A0B",
           display: "flex",
           "align-items": "center",
           "justify-content": "center",
@@ -158,16 +160,18 @@ export function Clopotel() {
           <span
             style={{
               position: "absolute",
-              top: "3px",
-              right: "2px",
-              "min-width": "16px",
-              height: "16px",
-              padding: "0 4px",
+              top: "2px",
+              right: "0",
+              "min-width": "18px",
+              height: "18px",
+              padding: "0 5px",
               "box-sizing": "border-box",
-              "border-radius": "8px",
-              background: "#E5484D",
-              color: "#fff",
-              "font-size": "10px",
+              "border-radius": "999px",
+              // Roz cu cifră neagră, ca cifrele de necitite din 23 (până pe 30 oct, roșu).
+              background: "#FFB3D9",
+              border: "2px solid #FFFFFF",
+              color: "#0A0A0B",
+              "font-size": "11px",
               "font-weight": 700,
               display: "flex",
               "align-items": "center",
@@ -191,20 +195,20 @@ export function Clopotel() {
             "max-height": "420px",
             overflow: "auto",
             "border-radius": "16px",
-            border: "1px solid rgba(255,255,255,0.08)",
-            background: "#141414",
+            border: "1px solid #E5E5E5",
+            background: "#FFFFFF",
             padding: "8px 0",
-            "box-shadow": "0 16px 48px rgba(0,0,0,0.6)",
+            "box-shadow": "0 16px 48px rgba(10,10,11,0.14)",
           }}
         >
           <div
             style={{
               padding: "6px 16px 10px",
-              "font-size": "11px",
-              "font-weight": 600,
+              "font-size": "12px",
+              "font-weight": 700,
               "letter-spacing": "0.06em",
               "text-transform": "uppercase",
-              color: "rgba(255,255,255,0.48)",
+              color: "#6C6C6D",
             }}
           >
             Notificări
@@ -215,8 +219,8 @@ export function Clopotel() {
               <div
                 style={{
                   padding: "8px 16px 14px",
-                  "font-size": "13px",
-                  color: "rgba(255,255,255,0.6)",
+                  "font-size": "14px",
+                  color: "#6C6C6D",
                 }}
               >
                 Nimic nou. Ești la zi.
@@ -239,7 +243,7 @@ export function Clopotel() {
                     padding: "8px 16px",
                     border: "0",
                     background: "transparent",
-                    color: "#fff",
+                    color: "#0A0A0B",
                     cursor: "pointer",
                     "text-align": "left",
                     "font-family": "inherit",
@@ -253,7 +257,7 @@ export function Clopotel() {
                           width: "32px",
                           height: "32px",
                           "border-radius": "8px",
-                          background: "rgba(255,255,255,0.08)",
+                          background: "#F2F2F3",
                           display: "flex",
                           "align-items": "center",
                           "justify-content": "center",
@@ -275,7 +279,7 @@ export function Clopotel() {
                     <span
                       style={{
                         display: "block",
-                        "font-size": "13px",
+                        "font-size": "14px",
                         "font-weight": 600,
                       }}
                     >
@@ -284,8 +288,8 @@ export function Clopotel() {
                     <span
                       style={{
                         display: "block",
-                        "font-size": "12px",
-                        color: "rgba(255,255,255,0.6)",
+                        "font-size": "14px",
+                        color: "#6C6C6D",
                       }}
                     >
                       {a.detaliu}

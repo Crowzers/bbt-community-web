@@ -237,7 +237,7 @@ const BaraTelefon = styled("div", {
       marginInline: "-12px",
       paddingInline: "4px",
       background: "var(--md-sys-color-surface-container-low)",
-      borderBottom: "1px solid rgba(255,255,255,0.08)",
+      borderBottom: "1px solid var(--md-sys-color-outline-variant)",
 
       "& button": {
         height: "40px",
@@ -250,7 +250,7 @@ const BaraTelefon = styled("div", {
         border: 0,
         borderRadius: "10px",
         background: "transparent",
-        color: "#fff",
+        color: "#0A0A0B",
         fontFamily: "inherit",
         fontSize: "14px",
         fontWeight: 600,

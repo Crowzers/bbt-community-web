@@ -96,8 +96,9 @@ export default defineConfig({
         scope: pwaScope,
         display_override: ["window-controls-overlay"],
         display: "standalone",
-        background_color: "#000000",
-        theme_color: "#000000",
+        // BBT: alb din 30 oct 2026, ca tema (src/bbt/tema.ts); fereastra aplicației instalate pornește pe el.
+        background_color: "#FFFFFF",
+        theme_color: "#FFFFFF",
         icons: [
           {
             src: `${base}assets/web/android-chrome-192x192.png`,

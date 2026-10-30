@@ -16,11 +16,11 @@ export const main = cva({
     flexDirection: "column",
 
     // BBT (layout TRW, pânza aprobată 5 oct 2026): zona de mesaje e PLATĂ — fără ramă, fără colțuri,
-    // lipită de lista de canale și de cea de membri, separate doar de un fir. #0D0D0D = alb 5% pe negru.
+    // lipită de lista de canale și de cea de membri, separate doar de un fir. Albă din 30 oct 2026 (21); până atunci #0D0D0D.
     paddingInline: 0,
     margin: 0,
     borderRadius: 0,
-    background: "#0D0D0D",
+    background: "#FFFFFF",
     paddingBottom: "env(keyboard-inset-height)",
 
     _tablet: {

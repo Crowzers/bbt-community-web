@@ -42,8 +42,8 @@ export function BandaFixat(props: { channel: Channel; onVezi: () => void }) {
           margin: "10px 16px 0",
           padding: "8px 12px",
           "border-radius": "8px",
-          background: "rgba(255,168,205,0.08)",
-          border: "1px solid rgba(255,168,205,0.22)",
+          background: "#FFE4F1",
+          border: "1px solid #FFB3D9",
           display: "flex",
           "align-items": "center",
           gap: "10px",
@@ -51,12 +51,12 @@ export function BandaFixat(props: { channel: Channel; onVezi: () => void }) {
           "flex-shrink": 0,
         }}
       >
-        <span style={{ color: "#FFA8CD", display: "flex" }}>
+        <span style={{ color: "#FFB3D9", display: "flex" }}>
           <Symbol size={15}>keep</Symbol>
         </span>
         <span
           style={{
-            color: "rgba(255,255,255,0.8)",
+            color: "#0A0A0B",
             "flex-grow": 1,
             "min-width": 0,
             "white-space": "nowrap",
@@ -64,7 +64,7 @@ export function BandaFixat(props: { channel: Channel; onVezi: () => void }) {
             "text-overflow": "ellipsis",
           }}
         >
-          <b style={{ color: "#fff", "font-weight": 600 }}>Fixat:</b>{" "}
+          <b style={{ color: "#0A0A0B", "font-weight": 600 }}>Fixat:</b>{" "}
           {rezumat()}
         </span>
         <button

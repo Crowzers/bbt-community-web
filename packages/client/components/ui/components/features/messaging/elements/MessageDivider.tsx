@@ -23,8 +23,8 @@ const Base = styled("div", {
       fontWeight: 500,
       paddingInline: "10px",
 
-      color: "rgba(255,255,255,0.48)",
-      background: "#0D0D0D",
+      color: "#8D8D9A",
+      background: "#FFFFFF",
     },
   },
   variants: {
@@ -33,7 +33,7 @@ const Base = styled("div", {
         borderTop: "thin solid var(--md-sys-color-primary)",
       },
       false: {
-        borderTop: "1px solid rgba(255,255,255,0.08)",
+        borderTop: "1px solid var(--md-sys-color-outline-variant)",
       },
     },
   },

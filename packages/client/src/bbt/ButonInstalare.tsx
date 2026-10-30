@@ -28,15 +28,15 @@ import { browser, instalare, sistemDesktop, sistemTelefon } from "./instalare";
  * (Chrome pe Android), altfel panoul cu pașii de jos în sus, `TutorialInstalare.tsx`. Pe telefon
  * butonul stă în bara de sus a listei de canale (`compact`), mai mic.
  *
- * Roz, fiindcă e o acțiune („roz înseamnă click", regula de pe site), cu text NEGRU (alb pe roz =
- * 1,6:1). Înălțimea 44px, ca o pastilă: cât caseta de cont de lângă (avatar 34 + 2×6 + chenar),
+ * 🔥 **Negru din 30 oct 2026** (21 și 23: „pill negru, nu roz, ca să nu concureze cu conținutul"). Până atunci roz,
+ * ca acțiune („roz înseamnă click"), cu text negru. Înălțimea 44px, ca o pastilă: cât caseta de cont de lângă (avatar 34 + 2×6 + chenar),
  * ca să stea pe aceeași linie fără să se întindă una pe alta.
  */
 
-const ROZ = "#FFA8CD";
-const ROZ_INTENS = "#B85C86";
-const LINIE = "rgba(255,255,255,0.08)";
-const FOAIE = "#141414";
+const NEGRU = "#0A0A0B";
+const NEGRU_APASAT = "#2A2A2C";
+const LINIE = "#E5E5E5";
+const FOAIE = "#FFFFFF";
 
 export function ButonInstalare(props: { compact?: boolean }) {
   const sistem = sistemDesktop();
@@ -119,17 +119,19 @@ export function ButonInstalare(props: { compact?: boolean }) {
               : "0 20px 0 16px",
             "border-radius": "999px",
             border: "0",
-            background: pasi() ? ROZ_INTENS : ROZ,
-            color: "#000",
+            background: pasi() ? NEGRU_APASAT : NEGRU,
+            color: "#FFFFFF",
             cursor: "pointer",
             "font-family": "inherit",
-            "font-size": props.compact ? "13px" : "14px",
+            "font-size": "14px",
             "font-weight": 700,
             "white-space": "nowrap",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = ROZ_INTENS)}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.background = NEGRU_APASAT)
+          }
           onMouseLeave={(e) =>
-            (e.currentTarget.style.background = pasi() ? ROZ_INTENS : ROZ)
+            (e.currentTarget.style.background = pasi() ? NEGRU_APASAT : NEGRU)
           }
         >
           <Symbol size={props.compact ? 18 : 20}>download</Symbol>
@@ -157,17 +159,17 @@ export function ButonInstalare(props: { compact?: boolean }) {
               "border-radius": "16px",
               border: `1px solid ${LINIE}`,
               background: FOAIE,
-              "box-shadow": "0 16px 48px rgba(0,0,0,0.6)",
-              color: "rgba(255,255,255,0.8)",
-              "font-size": "13.5px",
+              "box-shadow": "0 16px 48px rgba(10,10,11,0.14)",
+              color: "#0A0A0B",
+              "font-size": "14px",
               "line-height": "1.5",
             }}
           >
             <div
               style={{
-                color: "#fff",
+                color: "#0A0A0B",
                 "font-weight": 700,
-                "font-size": "14px",
+                "font-size": "16px",
                 "margin-bottom": "6px",
               }}
             >

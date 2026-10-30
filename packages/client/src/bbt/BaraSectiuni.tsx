@@ -5,7 +5,7 @@ import { useLocation, useNavigate, useParams } from "@revolt/routing";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { BBT_SITE_URL } from "./config";
-import { simbolSite, tintaSite } from "./instalare";
+import { tintaSite } from "./instalare";
 
 /**
  * Bara de secțiuni a BBT Community — meniul principal, la fel oriunde ai fi (modelul TRW: Chat,
@@ -13,11 +13,12 @@ import { simbolSite, tintaSite } from "./instalare";
  * (design §2 decizia 12), deci o listă de servere n-avea ce lista. Pânza aprobată de user pe
  * 5 oct 2026: https://claude.ai/artifact/VF8eFPB2Xm7uznVkPX6t5F
  *
- * ⚠️ Etapa 1 = doar secțiuni care merg din prima zi, fără butoane spre ecrane goale (decizia
- * userului): Chat, Mesaje, Site. Live (cu programul și înregistrările) vine odată cu webinarele;
- * Lecții abia când există destule înregistrări. ⛔ Fără Challenge — userul nu l-a vrut în meniu.
+ * 🔥 **Rail-ul din 21 și 23** (30 oct 2026): aceleași intrări ca pastila de jos din aplicația de telefon —
+ * Comunitate, Mesaje, Experiențe — plus Site jos. Albă, 104px, intrarea activă = pătrat negru rotunjit cu iconița și
+ * numele albe. Până atunci: neagră, 72px, Chat / Mesaje / Site. „Experiențe" deschide contul (`/cont/experiente`).
+ * ⛔ Fără Challenge — userul nu l-a vrut în meniu.
  *
- * Contul NU mai stă aici (era avatarul de jos): e în bara de sus, `BaraSus.tsx`.
+ * Contul NU stă aici (era avatarul de jos): e în bara de sus, `BaraSus.tsx`.
  *
  * Două forme: verticală (desktop, stânga) și orizontală (telefon, jos — bara de tab-uri).
  */
@@ -28,11 +29,13 @@ type Sectiune = {
   activ: () => boolean;
   /** Necitite, pe iconiță. */
   badge?: () => number;
-  /** Navigare internă… */
-  laApasare?: () => void;
-  /** …sau pagină de pe site, în fila nouă. */
-  link?: string;
+  laApasare: () => void;
 };
+
+const NEGRU = "#0A0A0B";
+const STINS = "#6C6C6D";
+const ROZ = "#FFB3D9";
+const LINIE = "#E5E5E5";
 
 export function BaraSectiuni(props: {
   orizontal?: boolean;
@@ -49,8 +52,8 @@ export function BaraSectiuni(props: {
 
   const sectiuni: Sectiune[] = [
     {
-      nume: "Chat",
-      simbol: "forum",
+      nume: "Comunitate",
+      simbol: "tag",
       activ: inServer,
       laApasare: () => {
         const s = serverBbt();
@@ -59,7 +62,7 @@ export function BaraSectiuni(props: {
     },
     {
       nume: "Mesaje",
-      simbol: "mail",
+      simbol: "chat",
       // Mesajele directe și lista de prieteni trăiesc în afara serverului.
       activ: () =>
         !inServer() &&
@@ -67,6 +70,12 @@ export function BaraSectiuni(props: {
           location.pathname.startsWith("/channel")),
       badge: () => props.necititeMesaje,
       laApasare: () => navigate("/friends"),
+    },
+    {
+      nume: "Experiențe",
+      simbol: "confirmation_number",
+      activ: () => location.pathname.startsWith("/cont"),
+      laApasare: () => navigate("/cont/experiente"),
     },
   ];
 
@@ -80,7 +89,7 @@ export function BaraSectiuni(props: {
           "align-items": "center",
           "justify-content": "center",
           gap: "3px",
-          color: activ ? "#fff" : "rgba(255,255,255,0.55)",
+          color: activ ? NEGRU : STINS,
           "text-decoration": "none",
           background: "transparent",
           border: "0",
@@ -89,48 +98,45 @@ export function BaraSectiuni(props: {
         }
       : {
           position: "relative" as const,
-          width: "64px",
-          padding: "7px 0 6px",
-          "border-radius": "10px",
+          width: "88px",
+          padding: "10px 0",
+          "border-radius": "20px",
           display: "flex",
           "flex-direction": "column" as const,
           "align-items": "center",
-          gap: "3px",
-          color: activ ? "#fff" : "rgba(255,255,255,0.6)",
-          background: activ ? "rgba(255,255,255,0.1)" : "transparent",
+          gap: "5px",
+          color: activ ? "#FFFFFF" : STINS,
+          background: activ ? NEGRU : "transparent",
           "text-decoration": "none",
           border: "0",
           font: "inherit",
           cursor: "pointer",
         };
 
-  const continut = (s: Sectiune) => (
+  const continut = (s: {
+    nume: string;
+    simbol: string;
+    badge?: () => number;
+  }) => (
     <>
-      <Symbol size={props.orizontal ? 22 : 22}>{s.simbol}</Symbol>
-      <span
-        style={{
-          "font-size": "11px",
-          "font-weight": 500,
-        }}
-      >
-        {s.nume}
-      </span>
+      <Symbol size={22}>{s.simbol}</Symbol>
+      {/* 14, nu 11 ca în machetă: pragul casei pentru textul din interfață. */}
+      <span style={{ "font-size": "14px", "font-weight": 700 }}>{s.nume}</span>
       <Show when={(s.badge?.() ?? 0) > 0}>
         <span
           style={{
             position: "absolute",
-            top: props.orizontal ? "6px" : "2px",
-            ...(props.orizontal
-              ? { left: "calc(50% + 6px)" }
-              : { right: "6px" }),
-            "min-width": "16px",
-            height: "16px",
-            padding: "0 4px",
+            top: "6px",
+            left: "calc(50% + 6px)",
+            "min-width": "18px",
+            height: "18px",
+            padding: "0 5px",
             "box-sizing": "border-box",
-            "border-radius": "8px",
-            background: "#e5484d",
-            color: "#fff",
-            "font-size": "10px",
+            "border-radius": "999px",
+            // Roz cu cifră neagră, ca în 23 (până pe 30 oct, roșu).
+            background: ROZ,
+            color: NEGRU,
+            "font-size": "12px",
             "font-weight": 700,
             display: "flex",
             "align-items": "center",
@@ -152,66 +158,46 @@ export function BaraSectiuni(props: {
               height: "60px",
               "flex-shrink": 0,
               display: "flex",
-              "border-top": "1px solid rgba(255,255,255,0.08)",
-              background: "#000",
+              "border-top": `1px solid ${LINIE}`,
+              background: "#FFFFFF",
             }
           : {
-              width: "72px",
+              width: "104px",
               "flex-shrink": 0,
               display: "flex",
               "flex-direction": "column",
               "align-items": "center",
-              gap: "4px",
-              "padding-top": "10px",
-              "border-right": "1px solid rgba(255,255,255,0.08)",
-              background: "#000",
+              gap: "6px",
+              padding: "12px 8px",
+              "box-sizing": "border-box",
+              "border-right": `1px solid ${LINIE}`,
+              background: "#FFFFFF",
             }
       }
     >
       <For each={sectiuni}>
-        {(s) =>
-          s.link ? (
-            <a
-              href={s.link}
-              target="_blank"
-              rel="noopener"
-              style={stilElement(false)}
-            >
-              {continut(s)}
-            </a>
-          ) : (
-            <button
-              type="button"
-              aria-current={s.activ() ? "page" : undefined}
-              onClick={s.laApasare}
-              style={stilElement(s.activ())}
-            >
-              {continut(s)}
-            </button>
-          )
-        }
+        {(s) => (
+          <button
+            type="button"
+            aria-current={s.activ() ? "page" : undefined}
+            onClick={() => s.laApasare()}
+            style={stilElement(s.activ())}
+          >
+            {continut(s)}
+          </button>
+        )}
       </For>
       <Show when={!props.orizontal}>
         <div style={{ "flex-grow": 1 }} />
       </Show>
+      {/* „Site ↗": în browser același tab, în aplicația instalată se deschide în browser (`tintaSite`). */}
       <a
         href={BBT_SITE_URL}
         target={tintaSite()}
         rel="noopener"
-        style={{
-          ...stilElement(false),
-          ...(props.orizontal ? {} : { "margin-bottom": "10px" }),
-        }}
+        style={stilElement(false)}
       >
-        <Symbol size={props.orizontal ? 22 : 22}>{simbolSite()}</Symbol>
-        <span
-          style={{
-            "font-size": "11px",
-            "font-weight": 500,
-          }}
-        >
-          Site
-        </span>
+        {continut({ nume: "Site", simbol: "open_in_new" })}
       </a>
     </nav>
   );

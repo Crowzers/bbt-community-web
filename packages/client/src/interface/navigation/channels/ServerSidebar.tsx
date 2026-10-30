@@ -359,7 +359,7 @@ function ServerInfo(
               "font-size": "11px",
               "font-weight": 400,
               "line-height": "1.3",
-              color: "rgba(255,255,255,0.6)",
+              color: "#6C6C6D",
             }}
           >
             <span style={{ color: "#30A46C" }}>●</span>{" "}
@@ -518,7 +518,7 @@ const CategoryBase = styled("div", {
     userSelect: "none",
     transition: "var(--transitions-fast) all",
 
-    "--color": "rgba(255,255,255,0.48)",
+    "--color": "#8D8D9A",
     color: "var(--color)",
     fill: "var(--color)",
 
@@ -528,7 +528,7 @@ const CategoryBase = styled("div", {
     textTransform: "uppercase",
 
     "&:hover": {
-      "--color": "rgba(255,255,255,0.8)",
+      "--color": "#0A0A0B",
     },
 
     "& svg": {
@@ -648,7 +648,7 @@ const RandCanal = styled("a", {
     padding: "0 8px",
     borderRadius: "6px",
     fontSize: "13px",
-    color: "rgba(255,255,255,0.6)",
+    color: "#6C6C6D",
     fill: "currentColor",
     textDecoration: "none",
     cursor: "pointer",
@@ -668,7 +668,7 @@ const RandCanal = styled("a", {
       boxSizing: "border-box",
       borderRadius: "8px",
       background: "#E5484D",
-      color: "#fff",
+      color: "#0A0A0B",
       fontSize: "10px",
       fontWeight: 700,
       display: "flex",
@@ -677,11 +677,11 @@ const RandCanal = styled("a", {
     },
     "& .actiuni": {
       display: "none",
-      color: "rgba(255,255,255,0.6)",
+      color: "#6C6C6D",
     },
     "&:hover": {
-      background: "rgba(255,255,255,0.05)",
-      color: "rgba(255,255,255,0.85)",
+      background: "#F2F2F3",
+      color: "#0A0A0B",
     },
     "&:hover .actiuni": {
       display: "flex",
@@ -690,13 +690,13 @@ const RandCanal = styled("a", {
   variants: {
     activ: {
       true: {
-        background: "rgba(255,255,255,0.1) !important",
+        background: "#F2F2F3 !important",
         color: "#fff !important",
       },
     },
     stare: {
       selected: {},
-      active: { color: "#fff", fontWeight: 600 },
+      active: { color: "#0A0A0B", fontWeight: 600 },
       muted: { opacity: 0.45 },
       normal: {},
     },

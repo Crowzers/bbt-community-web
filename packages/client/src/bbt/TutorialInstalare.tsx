@@ -19,9 +19,9 @@ import { Telefon, esteSamsung } from "./instalare";
  * ecranul ăla, nu față de telefon, și panoul ar fi glisat odată cu el.
  */
 
-const FOAIE = "#141414";
-const LINIE = "rgba(255,255,255,0.08)";
-const ROZ = "#FFA8CD";
+const FOAIE = "#FFFFFF";
+const LINIE = "#E5E5E5";
+const ROZ = "#FFB3D9";
 
 type Pas = { iconita: () => JSX.Element; text: JSX.Element };
 
@@ -193,7 +193,7 @@ export function TutorialInstalare(props: {
           position: "fixed",
           inset: 0,
           "z-index": 1000,
-          background: "rgba(0,0,0,0.6)",
+          background: "rgba(10,10,11,0.16)",
           display: "flex",
           "align-items": "flex-end",
           "justify-content": "center",
@@ -213,7 +213,7 @@ export function TutorialInstalare(props: {
             border: `1px solid ${LINIE}`,
             "border-bottom": "0",
             background: FOAIE,
-            color: "rgba(255,255,255,0.85)",
+            color: "#0A0A0B",
             "font-size": "15px",
             "line-height": "1.45",
           }}
@@ -224,19 +224,19 @@ export function TutorialInstalare(props: {
               height: "4px",
               margin: "0 auto 16px",
               "border-radius": "2px",
-              background: "rgba(255,255,255,0.2)",
+              background: "#F2F2F3",
             }}
           />
           <div
             style={{
-              color: "#fff",
+              color: "#0A0A0B",
               "font-size": "18px",
               "font-weight": 700,
             }}
           >
             Community pe {NUME[props.telefon]}
           </div>
-          <p style={{ margin: "4px 0 18px", color: "rgba(255,255,255,0.6)" }}>
+          <p style={{ margin: "4px 0 18px", color: "#6C6C6D" }}>
             {props.telefon === "android"
               ? "Trei pași și îl ai pe ecran, cu notificări."
               : "Trei pași și îl ai pe ecran. Doar așa primești notificări pe " +
@@ -273,8 +273,8 @@ export function TutorialInstalare(props: {
                       height: "44px",
                       "flex-shrink": 0,
                       "border-radius": "12px",
-                      background: "rgba(255,255,255,0.06)",
-                      color: "#fff",
+                      background: "#F2F2F3",
+                      color: "#0A0A0B",
                     }}
                   >
                     {p.iconita()}
@@ -312,9 +312,9 @@ export function TutorialInstalare(props: {
               height: "48px",
               "margin-top": "22px",
               "border-radius": "999px",
-              border: `1px solid rgba(255,255,255,0.15)`,
+              border: `1px solid #E5E5E5`,
               background: "transparent",
-              color: "#fff",
+              color: "#0A0A0B",
               "font-family": "inherit",
               "font-size": "15px",
               "font-weight": 600,

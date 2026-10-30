@@ -13,12 +13,12 @@ import { useVoice } from "@revolt/rtc";
 import { useState } from "@revolt/state";
 import { LAYOUT_SECTIONS } from "@revolt/state/stores/Layout";
 import {
+  Avatar,
   Button,
   IconButton,
   NonBreakingText,
   OverflowingText,
   Spacer,
-  UserStatus,
 } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
@@ -111,7 +111,7 @@ export function ChannelHeader(props: Props) {
                 style={{
                   "font-size": "13px",
                   "font-weight": 400,
-                  color: "rgba(255,255,255,0.6)",
+                  color: "#6C6C6D",
                 }}
               >
                 <TextWithEmoji
@@ -122,14 +122,32 @@ export function ChannelHeader(props: Props) {
           </Show>
         </Match>
         <Match when={props.channel.type === "DirectMessage"}>
-          <HeaderIcon>
-            <Symbol>alternate_email</Symbol>
-          </HeaderIcon>
-          <OverflowingText>
-            {/* BBT: numele afișat (ca în lista de prieteni), nu username-ul. */}
-            <TextWithEmoji content={props.channel.recipient?.displayName} />
-          </OverflowingText>
-          <UserStatus status={props.channel.recipient?.presence} size="8px" />
+          {/* BBT (23a, 30 oct 2026): avatarul, numele și sub el „online" verde sau „offline", în locul lui „@" și al
+              punctului de stare. */}
+          <Avatar
+            size={40}
+            src={props.channel.recipient?.animatedAvatarURL}
+            fallback={props.channel.recipient?.displayName}
+            fallbackBackground
+          />
+          <div style={{ "min-width": 0, "line-height": "1.25" }}>
+            <OverflowingText
+              style={{ "font-size": "16px", "font-weight": 700 }}
+            >
+              {/* BBT: numele afișat (ca în lista de prieteni), nu username-ul. */}
+              <TextWithEmoji content={props.channel.recipient?.displayName} />
+            </OverflowingText>
+            <span
+              style={{
+                display: "block",
+                "font-size": "14px",
+                "font-weight": 600,
+                color: props.channel.recipient?.online ? "#1E9E62" : "#8D8D9A",
+              }}
+            >
+              {props.channel.recipient?.online ? "online" : "offline"}
+            </span>
+          </div>
         </Match>
         <Match when={props.channel.type === "SavedMessages"}>
           <HeaderIcon>
@@ -202,7 +220,7 @@ export function ChannelHeader(props: Props) {
         </Button>
       </Show>
 
-      <Show when={props.sidebarState}>
+      <Show when={props.sidebarState && props.channel.type !== "DirectMessage"}>
         <IconButton
           use:floating={{
             tooltip: {
@@ -225,7 +243,49 @@ export function ChannelHeader(props: Props) {
         </IconButton>
       </Show>
 
-      <Show when={props.sidebarState && canIHasSidebar(props.channel)}>
+      {/* BBT (23a): „Vezi profilul" arată și ascunde profilul din dreapta conversației (`ProfilConversatie.tsx`). Pe
+          telefon nu e loc de panou, deci nici de buton. */}
+      <Show
+        when={props.channel.type === "DirectMessage" && layout() !== "phone"}
+      >
+        <button
+          type="button"
+          aria-pressed={state.layout.getSectionState(
+            LAYOUT_SECTIONS.MEMBER_SIDEBAR,
+            true,
+          )}
+          onClick={() =>
+            state.layout.toggleSectionState(
+              LAYOUT_SECTIONS.MEMBER_SIDEBAR,
+              true,
+            )
+          }
+          style={{
+            height: "36px",
+            padding: "0 16px",
+            "border-radius": "999px",
+            border: 0,
+            background: "#F2F2F3",
+            color: "#0A0A0B",
+            "font-family": "inherit",
+            "font-size": "14px",
+            "font-weight": 700,
+            cursor: "pointer",
+          }}
+        >
+          {state.layout.getSectionState(LAYOUT_SECTIONS.MEMBER_SIDEBAR, true)
+            ? "Ascunde profilul"
+            : "Vezi profilul"}
+        </button>
+      </Show>
+
+      <Show
+        when={
+          props.sidebarState &&
+          canIHasSidebar(props.channel) &&
+          props.channel.type !== "DirectMessage"
+        }
+      >
         <IconButton
           onPress={() => {
             if (props.sidebarState!().state === "default") {

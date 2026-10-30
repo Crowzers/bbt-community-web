@@ -24,7 +24,7 @@ export const Header = styled("div", {
     height: "52px",
     borderRadius: 0,
     padding: "0 16px",
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
+    borderBottom: "1px solid var(--md-sys-color-outline-variant)",
 
     color: "var(--md-sys-color-on-surface)",
     fill: "var(--md-sys-color-on-surface)",

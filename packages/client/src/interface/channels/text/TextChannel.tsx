@@ -33,8 +33,10 @@ import { ChannelHeader } from "../ChannelHeader";
 import { ChannelPageProps } from "../ChannelPage";
 
 import { Channel } from "stoat.js";
+import { ProfilConversatie } from "../../../bbt/ProfilConversatie";
 import { MessageComposition } from "./Composition";
 import { isLargeServer } from "./largeServer";
+
 import { MemberSidebar } from "./MemberSidebar";
 import { TextSearchSidebar } from "./TextSearchSidebar";
 
@@ -54,7 +56,8 @@ export type SidebarState =
     };
 
 export function canIHasSidebar(ch: Channel) {
-  return !["SavedMessages", "DirectMessage"].includes(ch.type);
+  // BBT: conversația cu un om are și ea panou în dreapta, profilul lui (23a, `bbt/ProfilConversatie.tsx`).
+  return ch.type !== "SavedMessages";
 }
 
 /**
@@ -212,7 +215,15 @@ export function TextChannel(props: ChannelPageProps) {
         />
       </Header>
       <Content>
-        <main class={main()}>
+        {/* BBT: conversația directă pe gri, cu mesajele pe alb și roz deasupra (23a); canalele rămân albe (21a). */}
+        <main
+          class={main()}
+          style={
+            props.channel.type === "DirectMessage"
+              ? { background: "#F2F2F3" }
+              : undefined
+          }
+        >
           {/* BBT: ultimul mesaj fixat, ca bandă sub antet (pânza TRW). */}
           <BandaFixat
             channel={props.channel}
@@ -306,11 +317,23 @@ export function TextChannel(props: ChannelPageProps) {
             </Show>
             <Switch
               fallback={
-                <MemberSidebar
-                  channel={props.channel}
-                  scrollTargetElement={sidebarScrollTargetElement}
-                  isLargeServer={isLargeServer(props.channel.server)}
-                />
+                <Show
+                  when={
+                    props.channel.type === "DirectMessage" &&
+                    props.channel.recipient
+                  }
+                  fallback={
+                    <MemberSidebar
+                      channel={props.channel}
+                      scrollTargetElement={sidebarScrollTargetElement}
+                      isLargeServer={isLargeServer(props.channel.server)}
+                    />
+                  }
+                >
+                  {(om) => (
+                    <ProfilConversatie user={om()} channel={props.channel} />
+                  )}
+                </Show>
               }
             >
               <Match when={sidebarState().state === "search"}>
@@ -393,7 +416,7 @@ const sidebar = cva({
       zIndex: 5,
       width: "100% !important",
       borderRadius: 0,
-      background: "#000",
+      background: "#FFFFFF",
     },
   },
 });
@@ -432,8 +455,8 @@ const FileePanou = styled("div", {
     alignItems: "center",
     gap: "4px",
     padding: "0 10px",
-    background: "#000",
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
+    background: "#FFFFFF",
+    borderBottom: "1px solid var(--md-sys-color-outline-variant)",
 
     "& button": {
       height: "30px",
@@ -441,15 +464,15 @@ const FileePanou = styled("div", {
       borderRadius: "8px",
       border: 0,
       background: "transparent",
-      color: "rgba(255,255,255,0.6)",
+      color: "#6C6C6D",
       fontFamily: "inherit",
       fontSize: "12px",
       fontWeight: 600,
       cursor: "pointer",
     },
     "& button[data-activ]": {
-      background: "rgba(255,255,255,0.1)",
-      color: "#fff",
+      background: "#F2F2F3",
+      color: "#0A0A0B",
     },
   },
 });

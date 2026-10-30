@@ -56,9 +56,9 @@ const luna = new Intl.DateTimeFormat("ro-RO", {
   year: "numeric",
 });
 
-const ROZ = "#FFA8CD";
-const FUNDAL = "#141414"; // foaia din tema BBT (src/bbt/tema.ts, alb 8% pe negru)
-const LINIE = "rgb(255 255 255 / 10%)";
+const ROZ = "#FFB3D9";
+const FUNDAL = "#FFFFFF"; // foaia din tema BBT (src/bbt/tema.ts, alb 8% pe negru)
+const LINIE = "#E5E5E5";
 
 export function MiniProfilBBT(props: {
   user: User;
@@ -118,7 +118,7 @@ export function MiniProfilBBT(props: {
             width: props.inFoaie ? "100%" : "320px",
             padding: "32px 20px",
             "text-align": "center",
-            color: "rgb(255 255 255 / 60%)",
+            color: "#6C6C6D",
             background: FUNDAL,
             "border-radius": props.inFoaie ? undefined : "16px",
             "font-size": "13px",
@@ -135,7 +135,7 @@ export function MiniProfilBBT(props: {
               width: props.inFoaie ? "100%" : "320px",
               overflow: "hidden",
               background: FUNDAL,
-              color: "#fff",
+              color: "#0A0A0B",
               "border-radius": props.inFoaie ? undefined : "16px",
               border: props.inFoaie ? undefined : `1px solid ${LINIE}`,
               "box-shadow": props.inFoaie
@@ -202,9 +202,7 @@ export function MiniProfilBBT(props: {
                   </span>
                 </Show>
               </div>
-              <div
-                style={{ "font-size": "13px", color: "rgb(255 255 255 / 60%)" }}
-              >
+              <div style={{ "font-size": "13px", color: "#6C6C6D" }}>
                 @{p().username}
               </div>
 
@@ -214,7 +212,7 @@ export function MiniProfilBBT(props: {
                     margin: "8px 0 0",
                     "font-size": "14px",
                     "line-height": 1.5,
-                    color: "rgb(255 255 255 / 80%)",
+                    color: "#0A0A0B",
                     "white-space": "pre-line",
                     display: "-webkit-box",
                     "-webkit-line-clamp": 3,
@@ -243,8 +241,8 @@ export function MiniProfilBBT(props: {
                           padding: "4px 10px",
                           "font-size": "12px",
                           "font-weight": 600,
-                          background: "rgb(255 255 255 / 8%)",
-                          color: "rgb(255 255 255 / 80%)",
+                          background: "#F2F2F3",
+                          color: "#0A0A0B",
                         }}
                       >
                         {ROLURI[rol] ?? rol}
@@ -263,11 +261,11 @@ export function MiniProfilBBT(props: {
                   "padding-top": "12px",
                   "border-top": `1px solid ${LINIE}`,
                   "font-size": "12px",
-                  color: "rgb(255 255 255 / 60%)",
+                  color: "#6C6C6D",
                 }}
               >
                 <span>
-                  <strong style={{ color: "#fff" }}>{p().powerScore}</strong>{" "}
+                  <strong style={{ color: "#0A0A0B" }}>{p().powerScore}</strong>{" "}
                   Power
                 </span>
                 <Show when={p().membruDin}>
@@ -401,8 +399,8 @@ function ButonSecundar(props: {
         padding: "0 14px",
         "border-radius": "10px",
         border: props.plin ? "none" : `1px solid ${LINIE}`,
-        background: props.plin ? "#fff" : "transparent",
-        color: props.plin ? "#000" : "#fff",
+        background: props.plin ? "#0A0A0B" : "transparent",
+        color: props.plin ? "#FFFFFF" : "#0A0A0B",
         "white-space": "nowrap",
         "font-size": "13px",
         "font-weight": 600,

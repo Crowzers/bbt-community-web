@@ -240,14 +240,16 @@ export function Message(props: Props) {
               {(rol) => (
                 <span
                   style={{
-                    "font-size": "10px",
+                    // 21a: rolul e o pastilă galbenă cu text negru („ECHIPA BBT", „MENTOR"), aceeași pentru
+                    // toate rolurile; până pe 30 oct, culoarea rolului din Stoat pe gri închis.
+                    "font-size": "12px",
                     "font-weight": 700,
                     "letter-spacing": "0.04em",
                     "text-transform": "uppercase",
-                    padding: "1px 6px",
-                    "border-radius": "4px",
-                    color: rol().colour ?? "rgba(255,255,255,0.8)",
-                    background: "rgba(255,255,255,0.06)",
+                    padding: "2px 8px",
+                    "border-radius": "999px",
+                    color: "#0A0A0B",
+                    background: "#FFD731",
                   }}
                 >
                   {rol().name}
@@ -402,6 +404,36 @@ export function Message(props: Props) {
         <Switch>
           <Match when={props.editing}>
             <EditMessage message={props.message} />
+          </Match>
+          {/* BBT (23a, 30 oct 2026): în conversațiile directe textul stă în bule — ale tale roz, ale celuilalt albe,
+              pe fundalul gri al conversației. Canalele rămân liniare, fără bule (21a: la lățimea asta bulele irosesc
+              spațiu și îngreunează scanarea). ⚠️ Bulele tale NU trec în dreapta, ca în machetă: rândul mesajului
+              (avatar, nume, oră) e al lui Stoat și ar trebui întors cu totul. */}
+          <Match
+            when={
+              props.message.content &&
+              !isOnlyGIF() &&
+              props.message.channel?.type === "DirectMessage"
+            }
+          >
+            <div
+              style={{
+                display: "inline-block",
+                "max-width": "100%",
+                "box-sizing": "border-box",
+                padding: "10px 14px",
+                "border-radius": "18px",
+                background:
+                  props.message.authorId === client().user?.id
+                    ? "#FFB3D9"
+                    : "#FFFFFF",
+                color: "#0A0A0B",
+              }}
+            >
+              <BreakText>
+                <Markdown content={props.message.content!} />
+              </BreakText>
+            </div>
           </Match>
           <Match when={props.message.content && !isOnlyGIF()}>
             <BreakText>

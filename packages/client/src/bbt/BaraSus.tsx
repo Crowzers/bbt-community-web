@@ -21,14 +21,15 @@ import { BBT_ADMIN_URL, BBT_SITE_URL } from "./config";
  * (5 oct 2026): „logoul să fie mare cum e în Community-ul vechi, iar user card-ul din dreapta
  * sus să fie același cu cel de pe website".
  *
- * - Stânga: sigla BBT completă, albă, 30px, + „COMMUNITY" (15px, majuscule, spațiere 0.18em).
+ * - Stânga: sigla BBT neagră într-un pătrat roz + „Community" în De Fonte (21/23, 30 oct 2026; până atunci
+ *   sigla albă pe negru și „COMMUNITY" cu majuscule rărite).
  * - Dreapta: caseta de cont — avatar 34px, nume, sub el „Artist verificat" (verde) sau
  *   „Completează profilul" (chihlimbar), exact regula de pe site (telefon confirmat). La hover
  *   (desktop) sau atingere, meniul de cont: rândurile contului din hub (`cont/ContulMeu.tsx`),
  *   plus ce ține de Community (setările lui, ieșirea).
  *
- * Înălțimea e 64px, nu 72 ca pe site: compromisul cerut („foarte puțin mai mari, cât să încapă
- * logoul mai mare") față de cei 48 ai primei variante.
+ * Bara e albă, de 72px, ca în 21 și 23 (30 oct 2026). Până atunci: neagră, de 64px (compromisul din 5 oct,
+ * „foarte puțin mai mari, cât să încapă logoul mai mare").
  *
  * Căutarea (în canalul deschis) și clopoțelul (mențiuni + mesaje directe necitite) stau lângă cont,
  * ca în pânza TRW — vezi `CautareSiAlerte.tsx` pentru ce pot și ce nu pot face. Lângă ele, chiar
@@ -45,8 +46,14 @@ type ProfilEu = {
   siteUrl: string;
 };
 
-const LINIE = "rgba(255,255,255,0.08)";
-const FOAIE = "#141414";
+// Bara albă din 21 și 23 (30 oct 2026); până atunci neagră, ca adminul întunecat.
+const LINIE = "#E5E5E5";
+const FOAIE = "#FFFFFF";
+const GRI = "#F2F2F3";
+const ROZ = "#FFB3D9";
+const TEXT = "#0A0A0B";
+const VERDE = "#1E9E62";
+const CHIHLIMBAR = "#A66A00";
 
 /**
  * Rândurile contului, aceleași ca meniul din stânga al contului (`cont/ContulMeu.tsx`, 23 din 30 oct 2026), deschise
@@ -120,7 +127,7 @@ export function BaraSus(props: { compact?: boolean }) {
     padding: "0 16px",
     "font-size": "13.5px",
     "font-weight": 500,
-    color: "rgba(255,255,255,0.8)",
+    color: TEXT,
     "text-decoration": "none",
     background: "transparent",
     border: "0",
@@ -153,7 +160,7 @@ export function BaraSus(props: { compact?: boolean }) {
   return (
     <header
       style={{
-        height: props.compact ? "56px" : "64px",
+        height: props.compact ? "56px" : "72px",
         "flex-shrink": 0,
         // Deasupra conținutului: meniul de cont cade peste lista de canale și mesaje.
         // ⚠️ Pe telefon bara stă în ecranul cu lista de canale, iar ecranul canalului ALUNECĂ peste el:
@@ -179,9 +186,9 @@ export function BaraSus(props: { compact?: boolean }) {
         // `no-drag` mai jos: în zona de tras, Windows nu mai trimite clicuri și nici hover.
         "-webkit-app-region": "drag",
         "-webkit-user-select": "none",
-        background: "#000",
+        background: FOAIE,
         "border-bottom": `1px solid ${LINIE}`,
-        color: "#fff",
+        color: TEXT,
       }}
     >
       {/* BBT: sigla duce mereu în chat, ca butonul Chat din `BaraSectiuni` (cererea userului,
@@ -207,21 +214,31 @@ export function BaraSus(props: { compact?: boolean }) {
           "-webkit-app-region": "no-drag",
         }}
       >
-        <Wordmark
-          aria-label="BBT"
-          style={{
-            height: props.compact ? "24px" : "30px",
-            width: "auto",
-            color: "#fff",
-            "flex-shrink": 0,
-          }}
-        />
+        {/* 21/23: sigla neagră într-un pătrat roz, lângă „Community" în De Fonte (până pe 30 oct, sigla albă
+            pe negru și „COMMUNITY" cu majuscule rărite). */}
         <span
           style={{
-            "font-size": props.compact ? "13px" : "15px",
-            "font-weight": 700,
-            "letter-spacing": "0.18em",
-            "text-transform": "uppercase",
+            width: props.compact ? "34px" : "40px",
+            height: props.compact ? "34px" : "40px",
+            "flex-shrink": 0,
+            display: "flex",
+            "align-items": "center",
+            "justify-content": "center",
+            "border-radius": props.compact ? "12px" : "14px",
+            background: ROZ,
+          }}
+        >
+          <Wordmark
+            aria-label="BBT"
+            style={{ width: "76%", height: "auto", color: TEXT }}
+          />
+        </span>
+        <span
+          style={{
+            "font-family": '"De Fonte BBT", Inter, sans-serif',
+            "font-size": props.compact ? "18px" : "20px",
+            "letter-spacing": "0.01em",
+            "font-synthesis": "none",
           }}
         >
           Community
@@ -274,24 +291,35 @@ export function BaraSus(props: { compact?: boolean }) {
             display: "flex",
             "align-items": "center",
             gap: "10px",
-            padding: props.compact ? "4px" : "6px 16px 6px 6px",
+            padding: props.compact ? "4px" : "4px 14px 4px 4px",
             "border-radius": "999px",
-            border: props.compact ? "0" : `1px solid ${LINIE}`,
-            background:
-              meniu() && !props.compact
-                ? "rgba(255,255,255,0.06)"
-                : "transparent",
-            color: "#fff",
+            border: "0",
+            // Pastila gri din 23, mai închisă cât e deschis meniul.
+            background: props.compact
+              ? "transparent"
+              : meniu()
+                ? "#E9E9EC"
+                : GRI,
+            color: TEXT,
             cursor: "pointer",
             font: "inherit",
           }}
         >
-          <Avatar
-            src={eu()?.animatedAvatarURL}
-            fallback={nume()}
-            fallbackBackground
-            size={34}
-          />
+          {/* Inelul roz din 23, ca în aplicația de telefon. */}
+          <span
+            style={{
+              display: "flex",
+              "border-radius": "999px",
+              "box-shadow": `0 0 0 2px ${ROZ}`,
+            }}
+          >
+            <Avatar
+              src={eu()?.animatedAvatarURL}
+              fallback={nume()}
+              fallbackBackground
+              size={props.compact ? 32 : 36}
+            />
+          </span>
           <Show when={!props.compact}>
             <span
               style={{
@@ -318,7 +346,7 @@ export function BaraSus(props: { compact?: boolean }) {
                   display: "block",
                   "font-size": "12px",
                   "font-weight": 600,
-                  color: profil.data?.verificat ? "#5BD08A" : "#E0A854",
+                  color: profil.data?.verificat ? VERDE : CHIHLIMBAR,
                 }}
               >
                 {profil.data?.verificat
@@ -348,7 +376,7 @@ export function BaraSus(props: { compact?: boolean }) {
                 border: `1px solid ${LINIE}`,
                 background: FOAIE,
                 padding: "8px 0",
-                "box-shadow": "0 16px 48px rgba(0,0,0,0.6)",
+                "box-shadow": "0 16px 48px rgba(10,10,11,0.14)",
               }}
             >
               <a
@@ -364,7 +392,7 @@ export function BaraSus(props: { compact?: boolean }) {
                   "margin-bottom": "4px",
                   "border-bottom": `1px solid ${LINIE}`,
                   "text-decoration": "none",
-                  color: "#fff",
+                  color: TEXT,
                 }}
               >
                 <Avatar
@@ -388,7 +416,7 @@ export function BaraSus(props: { compact?: boolean }) {
                       style={{
                         display: "block",
                         "font-size": "12px",
-                        color: "rgba(255,255,255,0.6)",
+                        color: "#6C6C6D",
                       }}
                     >
                       @{profil.data!.username}
@@ -403,7 +431,7 @@ export function BaraSus(props: { compact?: boolean }) {
                         "margin-top": "2px",
                         "font-size": "12px",
                         "font-weight": 700,
-                        color: "#5BD08A",
+                        color: VERDE,
                       }}
                     >
                       <Symbol size={11}>check_circle</Symbol> Artist verificat
@@ -453,7 +481,7 @@ export function BaraSus(props: { compact?: boolean }) {
                     setMeniu(false);
                     logout();
                   }}
-                  style={{ ...randMeniu, color: "#FF8A80" }}
+                  style={{ ...randMeniu, color: "#CA1A38" }}
                 >
                   <Symbol size={15}>logout</Symbol> Deconectare
                 </button>

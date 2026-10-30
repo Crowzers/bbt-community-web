@@ -138,9 +138,7 @@ export function BulaVocal(props: { file: File; durataMs: number }) {
                 style={{
                   height: `${Math.round(4 + inaltime * 24)}px`,
                   background:
-                    (i() + 0.5) / BETE <= progres()
-                      ? "#ffa8cd"
-                      : "rgba(255,255,255,0.35)",
+                    (i() + 0.5) / BETE <= progres() ? "#FFB3D9" : "#C9C9CE",
                 }}
               />
             )}
@@ -174,8 +172,8 @@ const Bula = styled("div", {
     maxWidth: "100%",
     padding: "8px 12px 6px 8px",
     borderRadius: "18px",
-    background: "rgba(255,255,255,0.06)",
-    border: "1px solid rgba(255,255,255,0.1)",
+    background: "#F2F2F3",
+    border: "1px solid #E5E5E5",
     userSelect: "none",
     WebkitUserSelect: "none",
   },
@@ -189,7 +187,7 @@ const ButonPlay = styled("button", {
     height: "36px",
     border: 0,
     borderRadius: "50%",
-    background: "#ffa8cd",
+    background: "#FFB3D9",
     color: "#000",
     display: "flex",
     alignItems: "center",
@@ -237,7 +235,7 @@ const Jos = styled("div", {
     minHeight: "18px",
     fontSize: "11px",
     lineHeight: "1",
-    color: "rgba(255,255,255,0.55)",
+    color: "#6C6C6D",
     fontVariantNumeric: "tabular-nums",
   },
 });
@@ -247,8 +245,8 @@ const ButonViteza = styled("button", {
     border: 0,
     borderRadius: "9px",
     padding: "3px 7px",
-    background: "rgba(255,255,255,0.1)",
-    color: "rgba(255,255,255,0.85)",
+    background: "#F2F2F3",
+    color: "#0A0A0B",
     fontSize: "11px",
     fontWeight: 600,
     cursor: "pointer",

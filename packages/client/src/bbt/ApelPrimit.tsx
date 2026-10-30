@@ -121,11 +121,11 @@ export function ApelPrimit() {
                 "align-items": "center",
                 gap: "6px",
                 padding: "32px 24px 28px",
-                background: "#141414",
-                color: "#fff",
-                border: "1px solid rgb(255 255 255 / 12%)",
+                background: "#FFFFFF",
+                color: "#0A0A0B",
+                border: "1px solid #E5E5E5",
                 "border-radius": "24px",
-                "box-shadow": "0 24px 64px rgb(0 0 0 / 70%)",
+                "box-shadow": "0 24px 64px rgba(10,10,11,0.16)",
                 "text-align": "center",
               }}
             >
@@ -145,7 +145,7 @@ export function ApelPrimit() {
                     position: "absolute",
                     inset: 0,
                     "border-radius": "50%",
-                    background: "#FFA8CD",
+                    background: "#FFB3D9",
                     animation: "bbt-apel-unda 1.4s ease-out infinite",
                   }}
                 />
@@ -171,9 +171,7 @@ export function ApelPrimit() {
               >
                 {a().apelant?.displayName ?? "Cineva"}
               </div>
-              <div
-                style={{ "font-size": "14px", color: "rgb(255 255 255 / 60%)" }}
-              >
+              <div style={{ "font-size": "14px", color: "#6C6C6D" }}>
                 {a().canal.type === "Group"
                   ? `sună grupul ${a().canal.name ?? ""}`
                   : "te sună…"}
@@ -181,7 +179,7 @@ export function ApelPrimit() {
               <div
                 style={{ display: "flex", gap: "40px", "margin-top": "26px" }}
               >
-                <ButonApel culoare="#E5484D" eticheta="Refuză" onClick={refuza}>
+                <ButonApel culoare="#CA1A38" eticheta="Refuză" onClick={refuza}>
                   <Symbol>call_end</Symbol>
                 </ButonApel>
                 <ButonApel
@@ -234,7 +232,7 @@ function ButonApel(props: {
       >
         {props.children}
       </button>
-      <span style={{ "font-size": "12px", color: "rgb(255 255 255 / 70%)" }}>
+      <span style={{ "font-size": "12px", color: "#6C6C6D" }}>
         {props.eticheta}
       </span>
     </div>

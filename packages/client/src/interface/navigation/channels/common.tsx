@@ -10,7 +10,7 @@ export const SidebarBase = styled("div", {
     flexDirection: "column",
     overflow: "hidden",
     // BBT: plat, cu un fir spre zona de mesaje (pânza TRW), nu ramă rotunjită.
-    borderRight: "1px solid rgba(255,255,255,0.08)",
+    borderRight: "1px solid var(--md-sys-color-outline-variant)",
     // borderRadius: "var(--borderRadius-lg)",
     // margin: "var(--gap-md) var(--gap-md) var(--gap-md) 0",
     width: "var(--layout-width-channel-sidebar)",

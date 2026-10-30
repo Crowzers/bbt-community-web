@@ -117,7 +117,7 @@ export function DeschideDM() {
         "flex-grow": 1,
         padding: "24px",
         "text-align": "center",
-        color: "rgba(255,255,255,0.7)",
+        color: "#6C6C6D",
         "font-size": "14px",
         "line-height": "1.5",
       }}
@@ -129,7 +129,7 @@ export function DeschideDM() {
             <>
               <span>
                 Ca să-i scrii lui{" "}
-                <strong style={{ color: "#fff" }}>{nume(om())}</strong> în
+                <strong style={{ color: "#0A0A0B" }}>{nume(om())}</strong> în
                 Community, trebuie să fiți prieteni.
               </span>
               <Buton
@@ -148,7 +148,7 @@ export function DeschideDM() {
           {(om) => (
             <>
               <span>
-                <strong style={{ color: "#fff" }}>{nume(om())}</strong> ți-a
+                <strong style={{ color: "#0A0A0B" }}>{nume(om())}</strong> ți-a
                 trimis o cerere de prietenie.
               </span>
               <Buton principal onClick={() => accepta(om())} lucrez={lucrez()}>
@@ -161,8 +161,8 @@ export function DeschideDM() {
           {(om) => (
             <span>
               Cererea de prietenie către{" "}
-              <strong style={{ color: "#fff" }}>{nume(om())}</strong> a plecat.
-              Conversația se deschide după ce o acceptă.
+              <strong style={{ color: "#0A0A0B" }}>{nume(om())}</strong> a
+              plecat. Conversația se deschide după ce o acceptă.
             </span>
           )}
         </Match>
@@ -195,8 +195,8 @@ function Buton(props: {
         border: 0,
         "border-radius": "8px",
         padding: "10px 16px",
-        background: props.principal ? "#ffa8cd" : "rgba(255,255,255,0.1)",
-        color: props.principal ? "#000" : "#fff",
+        background: props.principal ? "#FFB3D9" : "#F2F2F3",
+        color: props.principal ? "#000" : "#0A0A0B",
         font: "inherit",
         "font-weight": 600,
         cursor: "pointer",

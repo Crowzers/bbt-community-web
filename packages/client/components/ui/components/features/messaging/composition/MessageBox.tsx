@@ -102,19 +102,25 @@ const Base = styled("div", {
     flexGrow: 1,
     minWidth: 0,
 
-    // BBT (pânza TRW): casetă de 44px, colțuri de 10px, #141414 cu fir — butoanele de 32px stau
-    // înăuntru, inclusiv cel de trimis. 1 + 5 + 32 + 5 + 1 = 44 pe un rând; textul lung crește în sus.
+    // BBT (pânza TRW): casetă de 44px — butoanele de 32px stau înăuntru, inclusiv cel de trimis.
+    // 1 + 5 + 32 + 5 + 1 = 44 pe un rând; textul lung crește în sus.
+    // 🔥 Pastila NEAGRĂ din 21 și 23 (30 oct 2026, „bara de scris e pastila neagră"), ca în aplicația de telefon.
+    // Până atunci: #141414 cu fir, colțuri de 10px. Variabilele de culoare se suprascriu AICI, ca textul și
+    // iconițele dinăuntru (care citesc tema albă) să iasă albe pe negru.
     minHeight: "44px",
     boxSizing: "border-box",
-    padding: "5px 6px",
+    padding: "5px 6px 5px 10px",
     gap: "6px",
-    borderRadius: "10px",
-    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "22px",
+    border: "1px solid transparent",
 
     display: "flex",
     alignItems: "flex-end",
-    background: "#141414",
-    color: "var(--md-sys-color-on-surface)",
+    background: "#0A0A0B",
+    color: "#FFFFFF",
+    "--md-sys-color-on-surface": "#FFFFFF",
+    "--md-sys-color-on-surface-variant": "#C9C9CE",
+    "--md-sys-color-outline": "#A0A0AA",
   },
 });
 

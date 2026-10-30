@@ -234,8 +234,9 @@ export class Theme extends AbstractStore<"theme", TypeTheme> {
           messageSize: opts.messageSize,
           messageGroupSpacing: opts.messageGroupSpacing,
           preset: "you",
-          // BBT: mereu întunecat — tema BBT (src/bbt/tema.ts) are o singură variantă.
-          darkMode: true,
+          // BBT: mereu deschis — tema BBT (src/bbt/tema.ts) are o singură variantă, albă din 30 oct 2026
+          // (până atunci, neagră).
+          darkMode: false,
 
           accent: opts.m3Accent,
           contrast: opts.m3Contrast,

@@ -301,7 +301,7 @@ const CategoryTitle = styled("div", {
     fontWeight: 600,
     letterSpacing: "0.06em",
     textTransform: "uppercase",
-    color: "rgba(255,255,255,0.48)",
+    color: "#8D8D9A",
     whiteSpace: "nowrap",
     overflow: "hidden",
   },
@@ -331,10 +331,10 @@ const RandMembru = styled("div", {
     borderRadius: "6px",
     cursor: "pointer",
     userSelect: "none",
-    color: "#fff",
+    color: "#0A0A0B",
 
     "&:hover": {
-      background: "rgba(255,255,255,0.06)",
+      background: "#F2F2F3",
     },
     "&[data-offline]": {
       opacity: 0.45,
@@ -361,7 +361,7 @@ const RandMembru = styled("div", {
     },
     "& .sub": {
       fontSize: "11px",
-      color: "rgba(255,255,255,0.48)",
+      color: "#8D8D9A",
       whiteSpace: "nowrap",
       overflow: "hidden",
       textOverflow: "ellipsis",

@@ -34,10 +34,10 @@ import { BBT_ADMIN_URL, BBT_INTRARE, BBT_SITE_URL } from "./config";
 
 type Ecran = "formular" | "fara-acces" | "inchis" | "indisponibil";
 
-const LINIE = "rgba(255,255,255,0.08)";
-const FOAIE = "#141414";
-const ROZ = "#FFA8CD";
-const STINS = "rgba(255,255,255,0.6)";
+const LINIE = "#E5E5E5";
+const FOAIE = "#FFFFFF";
+const ROZ = "#FFB3D9";
+const STINS = "#6C6C6D";
 
 /** Drumurile spre acces, în ordinea de pe site. Se deschid în browser, nu în locul hub-ului. */
 const PRODUSE = [
@@ -156,8 +156,8 @@ export function PanouLogin() {
         "overflow-y": "auto",
         padding: "24px 16px",
         "box-sizing": "border-box",
-        background: "#000",
-        color: "#fff",
+        background: "#FFFFFF",
+        color: "#0A0A0B",
       }}
     >
       <div style={{ width: "100%", "max-width": "380px" }}>
@@ -172,7 +172,7 @@ export function PanouLogin() {
         >
           <Wordmark
             aria-label="BBT"
-            style={{ height: "30px", width: "auto", color: "#fff" }}
+            style={{ height: "30px", width: "auto", color: "#0A0A0B" }}
           />
           <span
             style={{
@@ -280,7 +280,7 @@ function Formular(props: {
           role="alert"
           style={{
             margin: "12px 0 0",
-            color: "#FF8A80",
+            color: "#CA1A38",
             "font-size": "13.5px",
             "line-height": "1.45",
           }}
@@ -349,7 +349,7 @@ function Formular(props: {
           href={`${BBT_SITE_URL}/register`}
           target="_blank"
           rel="noopener"
-          style={{ color: "#fff" }}
+          style={{ color: "#0A0A0B" }}
         >
           Fă-ți unul pe beanbagtheory.ro
         </a>
@@ -392,8 +392,8 @@ function FaraAcces(props: { laAltCont: () => void }) {
                 padding: "0 16px",
                 "border-radius": "12px",
                 border: `1px solid ${LINIE}`,
-                background: "rgba(255,255,255,0.03)",
-                color: "#fff",
+                background: "#F2F2F3",
+                color: "#0A0A0B",
                 "text-decoration": "none",
                 "font-size": "14.5px",
                 "font-weight": 600,
@@ -479,8 +479,8 @@ function Camp(props: {
           "box-sizing": "border-box",
           "border-radius": "10px",
           border: `1px solid ${LINIE}`,
-          background: "#0D0D0D",
-          color: "#fff",
+          background: "#FFFFFF",
+          color: "#0A0A0B",
           outline: "none",
           "font-family": "inherit",
           "font-size": "15px",
@@ -505,7 +505,7 @@ function ButonSecundar(props: {
     "border-radius": "999px",
     border: `1px solid ${LINIE}`,
     background: "transparent",
-    color: "#fff",
+    color: "#0A0A0B",
     "font-family": "inherit",
     "font-size": "14px",
     "font-weight": 600,
