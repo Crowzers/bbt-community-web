@@ -263,7 +263,8 @@ export function GroupMemberSidebar(props: Props) {
  * BBT (pânza TRW): o singură înălțime pentru rânduri ȘI titlurile de categorie — lista e virtuală,
  * cu pas fix, deci titlul își ia aerul de sus din aceeași înălțime (aliniat jos).
  */
-const INALTIME_RAND = 32;
+// 44 = 6 + avatarul de 32 + 6, ca în 21a (până pe 30 oct, 32 cu avatarul de 28).
+const INALTIME_RAND = 44;
 
 /**
  * Container styles
@@ -272,7 +273,8 @@ const Container = styled("div", {
   base: {
     padding: "0 8px 8px",
     boxSizing: "border-box",
-    width: "var(--layout-width-channel-sidebar)",
+    // 260, ca în 21a (lista de canale are 280, dar panoul membrilor nu o mai urmează).
+    width: "260px",
     // Pe telefon panoul acoperă tot canalul (TextChannel.tsx, `sidebar`).
     _phone: { width: "100%" },
   },
@@ -285,16 +287,17 @@ const CategoryTitle = styled("div", {
   base: {
     height: `${INALTIME_RAND}px`,
     boxSizing: "border-box",
-    padding: "0 8px 4px",
+    padding: "0 10px 6px",
     display: "flex",
     alignItems: "flex-end",
     gap: "4px",
 
-    fontSize: "11px",
-    fontWeight: 600,
+    // 21a: 11 / 800 cu majuscule; 12 la noi, pragul casei.
+    fontSize: "12px",
+    fontWeight: 800,
     letterSpacing: "0.06em",
     textTransform: "uppercase",
-    color: "#8D8D9A",
+    color: "#6C6C6D",
     whiteSpace: "nowrap",
     overflow: "hidden",
   },
@@ -319,9 +322,9 @@ const RandMembru = styled("div", {
     boxSizing: "border-box",
     display: "flex",
     alignItems: "center",
-    gap: "8px",
-    padding: "0 6px",
-    borderRadius: "6px",
+    gap: "10px",
+    padding: "0 10px",
+    borderRadius: "14px",
     cursor: "pointer",
     userSelect: "none",
     color: "#0A0A0B",
@@ -329,8 +332,10 @@ const RandMembru = styled("div", {
     "&:hover": {
       background: "#F2F2F3",
     },
-    "&[data-offline]": {
-      opacity: 0.45,
+    // 21a: cine e offline are numele gri și subțire, nu tot rândul șters.
+    "&[data-offline] .nume": {
+      color: "#6C6C6D",
+      fontWeight: 500,
     },
 
     "& .text": {
@@ -344,8 +349,8 @@ const RandMembru = styled("div", {
       alignItems: "center",
       gap: "4px",
       minWidth: 0,
-      fontSize: "13px",
-      fontWeight: 500,
+      fontSize: "14px",
+      fontWeight: 700,
     },
     "& .nume > span:first-child": {
       whiteSpace: "nowrap",
@@ -353,7 +358,7 @@ const RandMembru = styled("div", {
       textOverflow: "ellipsis",
     },
     "& .sub": {
-      fontSize: "11px",
+      fontSize: "12px",
       color: "#8D8D9A",
       whiteSpace: "nowrap",
       overflow: "hidden",
@@ -421,7 +426,7 @@ function Member(props: {
         >
           <Avatar
             src={user().avatar}
-            size={28}
+            size={32}
             holepunch="bottom-right"
             overlay={
               <UserStatus.Graphic

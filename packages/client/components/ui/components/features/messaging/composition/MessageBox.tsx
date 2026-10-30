@@ -102,16 +102,17 @@ const Base = styled("div", {
     flexGrow: 1,
     minWidth: 0,
 
-    // BBT (pânza TRW): casetă de 44px — butoanele de 32px stau înăuntru, inclusiv cel de trimis.
-    // 1 + 5 + 32 + 5 + 1 = 44 pe un rând; textul lung crește în sus.
+    // BBT: proporțiile din 21a (30 oct 2026, „păstrăm proporțiile la tot ce a făcut el"): pastila are 56 pe un
+    // rând = 6 + 44 (microfonul rotund) + 6, cu „+" și emoji în cercuri de 40. Textul lung crește în sus. Până atunci
+    // 44 (casetă de 44 cu butoane pătrate de 32, pânza TRW).
     // 🔥 Pastila NEAGRĂ din 21 și 23 (30 oct 2026, „bara de scris e pastila neagră"), ca în aplicația de telefon.
     // Până atunci: #141414 cu fir, colțuri de 10px. Variabilele de culoare se suprascriu AICI, ca textul și
     // iconițele dinăuntru (care citesc tema albă) să iasă albe pe negru.
-    minHeight: "44px",
+    minHeight: "56px",
     boxSizing: "border-box",
-    padding: "5px 6px 5px 10px",
+    padding: "6px 6px 6px 8px",
     gap: "6px",
-    borderRadius: "22px",
+    borderRadius: "28px",
     border: "1px solid transparent",
 
     display: "flex",
@@ -131,8 +132,12 @@ const Parent = styled("div", {
 
     display: "flex",
     gap: "var(--gap-md)",
-    // BBT: zona de mesaje n-are padding lateral (e plată, pânza TRW) — marginea o pune caseta.
-    margin: "0 16px 14px",
+    // BBT: zona de mesaje n-are padding lateral (e plată, pânza TRW) — marginea o pune caseta. 12 / 24 / 20 ca în
+    // 21a; pe telefon, mai strâns.
+    margin: "12px 24px 20px",
+    _phone: {
+      margin: "0 12px 12px",
+    },
     maxHeight: "var(--layout-height-message-box)",
   },
 });
@@ -161,20 +166,20 @@ export const InlineIcon = styled("div", {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    height: "32px",
+    height: "44px",
 
-    // BBT: „+" și emoji = butoane pătrate de 32px cu colțuri de 8px (pânza), nu cercuri de 40px.
+    // BBT: „+" și emoji = cercuri de 40 (21a, 30 oct 2026). Până atunci pătrate de 32 cu colțuri de 8 (pânza TRW).
     "& > button": {
-      width: "32px",
-      height: "32px",
+      width: "40px",
+      height: "40px",
       paddingInline: 0,
-      borderRadius: "8px",
+      borderRadius: "50%",
     },
   },
   variants: {
     size: {
       short: { width: "4px" },
-      normal: { width: "32px" },
+      normal: { width: "40px" },
     },
   },
   defaultVariants: {

@@ -342,40 +342,57 @@ function ServerInfo(
     <Row align grow minWidth={0}>
       <ServerBadge flags={props.server.flags} />
       <ServerName onClick={props.openServerInfo}>
+        {/* 21a: „Canale" mare, nu numele serverului (în BBT Community e unul singur). */}
         <span
           style={{
             display: "block",
-            "font-size": "14px",
-            "font-weight": 700,
-            "line-height": "1.25",
+            "font-family": '"De Fonte BBT", Inter, sans-serif',
+            "font-size": "22px",
+            "font-weight": 400,
+            "letter-spacing": "0.01em",
+            "font-synthesis": "none",
+            "line-height": "1.15",
           }}
         >
-          <TextWithEmoji content={props.server.name} />
+          Canale
         </span>
         <Show when={numarare().total > 0}>
           <span
             style={{
               display: "block",
-              "font-size": "11px",
-              "font-weight": 400,
+              "font-size": "12px",
+              "font-weight": 700,
               "line-height": "1.3",
-              color: "#6C6C6D",
+              color: "#1E9E62",
             }}
           >
-            <span style={{ color: "#30A46C" }}>●</span>{" "}
+            ●{" "}
             {numar(numarare().online)} online · {numar(numarare().total)} membri
           </span>
         </Show>
       </ServerName>
       <Show when={props.canManageServer}>
-        <IconButton
-          size="xs"
-          width="narrow"
-          variant={props.server.banner ? "_header" : "standard"}
-          onPress={props.openServerSettings}
+        {/* Cercul gri de 34 din 21a. */}
+        <button
+          type="button"
+          aria-label="Setările serverului"
+          onClick={() => props.openServerSettings()}
+          style={{
+            width: "34px",
+            height: "34px",
+            "flex-shrink": 0,
+            display: "flex",
+            "align-items": "center",
+            "justify-content": "center",
+            "border-radius": "50%",
+            border: 0,
+            background: "#F2F2F3",
+            color: "#0A0A0B",
+            cursor: "pointer",
+          }}
         >
           <MdSettings {...symbolSize(18)} />
-        </IconButton>
+        </button>
       </Show>
     </Row>
   );
@@ -590,19 +607,29 @@ function Entry(
         activ={props.active}
         stare={attentionState()}
       >
-        <Switch fallback={<Symbol size={15}>grid_3x3</Symbol>}>
-          <Match when={props.channel.isVoice}>
-            <Symbol
-              size={15}
-              color={inCall() ? "var(--md-sys-color-primary)" : undefined}
-            >
-              volume_up
-            </Symbol>
-          </Match>
-        </Switch>
-        <Show when={props.channel.icon}>
-          <ChannelIcon src={props.channel.iconURL} />
-        </Show>
+        {/* 21a: iconița canalului stă într-un cerc colorat de 28 — roz pe canalul deschis, în rest o culoare a
+            canalului, aceeași de fiecare dată (din id). */}
+        <span
+          class="cerc"
+          style={{
+            background: props.active
+              ? "#FFB3D9"
+              : CULORI_CANAL[culoareCanal(props.channel.id)],
+          }}
+        >
+          <Show
+            when={props.channel.icon}
+            fallback={
+              <Switch fallback={<Symbol size={14}>grid_3x3</Symbol>}>
+                <Match when={props.channel.isVoice}>
+                  <Symbol size={14}>volume_up</Symbol>
+                </Match>
+              </Switch>
+            }
+          >
+            <ChannelIcon src={props.channel.iconURL} />
+          </Show>
+        </span>
         <span class="nume">
           <TextWithEmoji content={props.channel.name!} />
         </span>
@@ -634,6 +661,21 @@ function Entry(
   );
 }
 
+/** Culorile cercurilor din 21a (paleta Slush deschisă) și alegerea uneia după id, stabilă între porniri. */
+const CULORI_CANAL = [
+  "#FFEFAD",
+  "#DCEEFF",
+  "#99E9C4",
+  "#E9CCFF",
+  "#F2F2F3",
+  "#FFE4F1",
+];
+function culoareCanal(id: string) {
+  let h = 0;
+  for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return h % CULORI_CANAL.length;
+}
+
 /**
  * BBT: rândul de canal din pânza TRW — 28px, 13px, colțuri de 6px. Stări: activ (alb 10%), necitit
  * (alb, îngroșat), mut (stins), normal (alb 60%). Mențiunile = pastilă roșie cu numărul.
@@ -643,13 +685,27 @@ const RandCanal = styled("a", {
   base: {
     display: "flex",
     alignItems: "center",
-    // BBT (21a, 30 oct 2026): rânduri de 40, colțuri de 14, text de 15, pe alb. Până atunci 28 / 6 / 13, pe negru.
+    // BBT (21a, 30 oct 2026): rânduri de 44 (8 + cercul de 28 + 8), colțuri de 14, text de 14, pe alb. Până atunci
+    // 28 / 6 / 13, pe negru.
     gap: "10px",
-    height: "40px",
-    padding: "0 12px",
+    height: "44px",
+    padding: "0 10px",
     borderRadius: "14px",
-    fontSize: "15px",
+    fontSize: "14px",
+    fontWeight: 500,
     color: "#6C6C6D",
+
+    "& .cerc": {
+      width: "28px",
+      height: "28px",
+      flexShrink: 0,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderRadius: "50%",
+      color: "#0A0A0B",
+      overflow: "hidden",
+    },
     fill: "currentColor",
     textDecoration: "none",
     cursor: "pointer",

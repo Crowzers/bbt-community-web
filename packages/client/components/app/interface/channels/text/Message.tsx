@@ -173,6 +173,8 @@ export function Message(props: Props) {
               // BBT (21a, 30 oct 2026): numele au O singură culoare, movul #5C4ADE, nu culoarea rolului din Stoat
               // (portocaliul și rozul pal ale rolurilor nu se citeau pe alb). Rolul se vede din pastila galbenă.
               colour="#5C4ADE"
+              // 15 / 800, ca în 21a.
+              style={{ "font-size": "15px", "font-weight": 800 }}
             />
           </div>
         }
@@ -181,8 +183,9 @@ export function Message(props: Props) {
             class={avatarContainer()}
             use:floating={floatingUserMenusFromMessage(props.message)}
           >
+            {/* 40, ca în 21a (până pe 30 oct, 36); coloana avatarului are 54 = 40 + 14. */}
             <Avatar
-              size={36}
+              size={40}
               src={
                 isHovering()
                   ? props.message.animatedAvatarURL
@@ -248,10 +251,11 @@ export function Message(props: Props) {
                     "font-weight": 700,
                     "letter-spacing": "0.04em",
                     "text-transform": "uppercase",
-                    padding: "2px 8px",
+                    padding: "2px 7px",
                     "border-radius": "999px",
                     color: "#0A0A0B",
-                    background: "#FFD731",
+                    // Galbenul pal din 21a (#FFEFAD), nu cel plin.
+                    background: "#FFEFAD",
                   }}
                 >
                   {rol().name}
@@ -424,10 +428,12 @@ export function Message(props: Props) {
                 display: "inline-block",
                 width: "fit-content",
                 "align-self": "flex-start",
-                "max-width": "100%",
+                // 23a: colțul de jos-stânga ascuțit (6), cel mult 420 lățime, text de 15.
+                "max-width": "min(420px, 100%)",
                 "box-sizing": "border-box",
                 padding: "10px 14px",
-                "border-radius": "18px",
+                "border-radius": "22px 22px 22px 6px",
+                "font-size": "15px",
                 background:
                   props.message.authorId === client().user?.id
                     ? "#FFB3D9"

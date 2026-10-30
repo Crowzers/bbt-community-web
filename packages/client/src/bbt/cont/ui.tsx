@@ -78,7 +78,8 @@ export function TitluPagina(props: {
         style={{
           ...DE_FONTE,
           margin: 0,
-          "font-size": "40px",
+          // 36, ca în 23b.
+          "font-size": "36px",
           "line-height": "1.05",
           color: C.text,
         }}
@@ -97,7 +98,7 @@ export function Card(props: {
   return (
     <div
       style={{
-        "border-radius": "24px",
+        "border-radius": "28px",
         background: C.foaie,
         overflow: "hidden",
         ...props.style,
@@ -130,6 +131,8 @@ const CULORI_PASTILA = {
   asteapta: { bg: C.galben, text: C.negru },
   neutru: { bg: C.fundal, text: C.stins },
   roz: { bg: C.roz, text: C.negru },
+  // „Plătit" de pe biletul de azi (23b).
+  negru: { bg: C.negru, text: C.peNegru },
 };
 
 export function Pastila(props: {
@@ -143,12 +146,13 @@ export function Pastila(props: {
         display: "inline-flex",
         "align-items": "center",
         gap: "4px",
-        padding: "4px 10px",
+        // 23b: pastile mici, 5 / 10, text gros de 12 (11 în machetă; 12 e pragul casei).
+        padding: "5px 10px",
         "border-radius": "999px",
         background: culori().bg,
         color: culori().text,
-        "font-size": "14px",
-        "font-weight": 700,
+        "font-size": "12px",
+        "font-weight": 800,
         "white-space": "nowrap",
       }}
     >
@@ -187,6 +191,7 @@ export function Buton(props: {
     "justify-content": "center",
     gap: "8px",
     width: props.lat ? "100%" : undefined,
+    // Butonul mic = 11 / 16 cu text de 13, ca în 23b („Plătește", „Deschide", „Vezi site ↗").
     height: props.mic ? "38px" : "46px",
     padding: props.mic ? "0 16px" : "0 22px",
     "box-sizing": "border-box",
@@ -195,8 +200,8 @@ export function Buton(props: {
     background: props.dezactivat ? C.foaie : piele().bg,
     color: props.dezactivat ? C.slab : piele().text,
     "font-family": "inherit",
-    "font-size": props.mic ? "14px" : "16px",
-    "font-weight": 700,
+    "font-size": props.mic ? "13px" : "16px",
+    "font-weight": 800,
     "white-space": "nowrap",
     "text-decoration": "none",
     cursor: props.dezactivat ? "default" : "pointer",
@@ -240,15 +245,16 @@ export function FileActivIstoric(props: {
       onClick={() => setFila(cheie)}
       aria-pressed={fila() === cheie}
       style={{
-        height: "40px",
-        padding: "0 18px",
+        // 23b: 9 / 16, text gros de 13.
+        height: "34px",
+        padding: "0 16px",
         "border-radius": "999px",
         border: "0",
         background: fila() === cheie ? C.negru : C.foaie,
         color: fila() === cheie ? C.peNegru : C.stins,
         "font-family": "inherit",
-        "font-size": "14px",
-        "font-weight": 700,
+        "font-size": "13px",
+        "font-weight": 800,
         cursor: "pointer",
       }}
     >
@@ -509,7 +515,18 @@ export function CampText(props: {
   inputmode?: "numeric" | "tel" | "text" | "url";
   inainte?: string;
   randuri?: number;
+  /** Pe pagina albă (23f): pastilă gri de 48, nu câmp alb pe cardul gri. */
+  peAlb?: boolean;
 }) {
+  const stil = (): JSX.CSSProperties =>
+    props.peAlb
+      ? {
+          ...stilCamp,
+          background: C.foaie,
+          "border-radius": "999px",
+          padding: "0 18px",
+        }
+      : stilCamp;
   return (
     <label style={{ display: "block" }}>
       <Eticheta2>{props.eticheta}</Eticheta2>
@@ -527,7 +544,7 @@ export function CampText(props: {
                 autocomplete={props.autocomplete}
                 inputMode={props.inputmode}
                 onInput={(e) => props.laSchimbare(e.currentTarget.value)}
-                style={stilCamp}
+                style={stil()}
               />
             }
           >
@@ -538,9 +555,10 @@ export function CampText(props: {
               maxLength={props.maxim}
               onInput={(e) => props.laSchimbare(e.currentTarget.value)}
               style={{
-                ...stilCamp,
+                ...stil(),
                 height: "auto",
-                padding: "12px 16px",
+                padding: props.peAlb ? "14px 18px" : "12px 16px",
+                "border-radius": props.peAlb ? "24px" : "14px",
                 resize: "none",
                 "line-height": "1.45",
               }}
@@ -550,7 +568,7 @@ export function CampText(props: {
       >
         <div
           style={{
-            ...stilCamp,
+            ...stil(),
             display: "flex",
             "align-items": "center",
             gap: "2px",

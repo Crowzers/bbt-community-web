@@ -88,7 +88,7 @@ export function Experiente() {
                   "grid-template-columns":
                     // `auto-fit`: două carduri umplu rândul, ca în 23b (cu `auto-fill` rămânea un loc gol).
                     "repeat(auto-fit, minmax(min(360px, 100%), 1fr))",
-                  gap: "16px",
+                  gap: "14px",
                 }}
               >
                 <For each={active()}>{(e) => <CardExperienta e={e} />}</For>
@@ -161,7 +161,7 @@ function CardExperienta(props: { e: Experienta }) {
         "flex-direction": "column",
         gap: "14px",
         padding: "22px",
-        "border-radius": "24px",
+        "border-radius": "28px",
         background: e().azi ? C.roz : C.foaie,
       }}
     >
@@ -182,7 +182,7 @@ function CardExperienta(props: { e: Experienta }) {
                 style={{
                   ...DE_FONTE,
                   margin: "6px 0 0",
-                  "font-size": "30px",
+                  "font-size": "28px",
                   "line-height": "1.05",
                 }}
               >
@@ -203,7 +203,7 @@ function CardExperienta(props: { e: Experienta }) {
                 style={{
                   ...DE_FONTE,
                   margin: "6px 0 0",
-                  "font-size": "30px",
+                  "font-size": "28px",
                   "line-height": "1.05",
                 }}
               >
@@ -232,7 +232,7 @@ function CardExperienta(props: { e: Experienta }) {
           }
         >
           {/* Workshopul de azi are deja „AZI" în etichetă; pastila spune ce contează la ușă (23b). */}
-          <Pastila fel="neutru">
+          <Pastila fel={e().fel === "workshop" ? "negru" : "neutru"}>
             {e().fel === "workshop" ? "Plătit" : "În desfășurare"}
           </Pastila>
         </Show>
@@ -247,8 +247,8 @@ function CardExperienta(props: { e: Experienta }) {
             {/* Fundal ALB sub cod, oricât de colorat ar fi cardul: scanerele citesc prost un QR pe roz. */}
             <div
               style={{
-                padding: "10px",
-                "border-radius": "16px",
+                padding: "7px",
+                "border-radius": "14px",
                 background: "#fff",
                 display: "flex",
               }}
@@ -256,8 +256,8 @@ function CardExperienta(props: { e: Experienta }) {
               <QRCodeSVG
                 value={cod()}
                 level="medium"
-                width={112}
-                height={112}
+                width={90}
+                height={90}
                 backgroundColor="white"
                 foregroundColor="black"
                 backgroundAlpha={1}
@@ -274,7 +274,7 @@ function CardExperienta(props: { e: Experienta }) {
             >
               <div>
                 <p
-                  style={{ margin: 0, "font-size": "16px", "font-weight": 700 }}
+                  style={{ margin: 0, "font-size": "15px", "font-weight": 800 }}
                 >
                   Acces #{cod()}
                 </p>
@@ -282,7 +282,7 @@ function CardExperienta(props: { e: Experienta }) {
                   style={{
                     margin: "2px 0 0",
                     color: e().azi ? C.text : C.stins,
-                    "font-size": "14px",
+                    "font-size": "12px",
                   }}
                 >
                   Arată codul la intrare.
@@ -311,7 +311,11 @@ function CardExperienta(props: { e: Experienta }) {
           <div
             style={{ display: "flex", "flex-direction": "column", gap: "8px" }}
           >
-            <BaraPlata platit={pr().platit} total={pr().total} />
+            <BaraPlata
+              platit={pr().platit}
+              total={pr().total}
+              nrTranse={pr().nrTranse}
+            />
             <div
               style={{
                 display: "flex",
@@ -328,8 +332,8 @@ function CardExperienta(props: { e: Experienta }) {
                     <p
                       style={{
                         margin: 0,
-                        "font-size": "16px",
-                        "font-weight": 700,
+                        "font-size": "15px",
+                        "font-weight": 800,
                       }}
                     >
                       Plătit integral
@@ -340,8 +344,8 @@ function CardExperienta(props: { e: Experienta }) {
                     <p
                       style={{
                         margin: 0,
-                        "font-size": "16px",
-                        "font-weight": 700,
+                        "font-size": "15px",
+                        "font-weight": 800,
                         color: p().intarziat ? C.rosu : C.text,
                       }}
                     >
@@ -361,14 +365,14 @@ function CardExperienta(props: { e: Experienta }) {
                   style={{
                     margin: "2px 0 0",
                     color: C.stins,
-                    "font-size": "14px",
+                    "font-size": "12px",
                   }}
                 >
                   {pr().platit.toLocaleString("ro-RO")} / {lei(pr().total)}{" "}
                   plătiți
                 </p>
               </div>
-              <div style={{ display: "flex", gap: "8px" }}>
+              <div style={{ display: "flex", gap: "6px" }}>
                 <Show when={e().plata}>
                   {(p) => <ButonPlateste mic plata={p()} progres={pr()} />}
                 </Show>
@@ -394,22 +398,23 @@ function CardExperienta(props: { e: Experienta }) {
 
       {/* Scurtăturile din 23b spre secțiunile paginii taberei (23e). */}
       <Show when={e().fel === "camp"}>
-        <div style={{ display: "flex", gap: "8px", "flex-wrap": "wrap" }}>
+        <div style={{ display: "flex", gap: "6px", "flex-wrap": "wrap" }}>
           <For each={["Program", "Documente", "Cazare"]}>
             {(t) => (
               <button
                 type="button"
                 onClick={deschide}
                 style={{
-                  height: "34px",
-                  padding: "0 14px",
+                  // 23b: 6 / 12, text gros de 12.
+                  height: "28px",
+                  padding: "0 12px",
                   "border-radius": "999px",
                   border: "0",
                   background: C.fundal,
                   color: C.text,
                   "font-family": "inherit",
-                  "font-size": "14px",
-                  "font-weight": 600,
+                  "font-size": "12px",
+                  "font-weight": 700,
                   cursor: "pointer",
                 }}
               >
@@ -423,31 +428,41 @@ function CardExperienta(props: { e: Experienta }) {
   );
 }
 
-/** Bara de rate (23b): verde cât s-a plătit, gri restul. */
-export function BaraPlata(props: { platit: number; total: number }) {
-  const procent = () =>
-    props.total > 0 ? Math.min(100, (props.platit / props.total) * 100) : 0;
+/**
+ * Bara de rate (23b): câte un segment pe rată, verde cât s-a plătit. Plata integrală = un singur segment.
+ * Segmentele verzi = partea plătită din total, rotunjită la rate (ratele nu sunt egale, dar nici adminul nu dă suma
+ * fiecăreia aici; o rată plătită pe jumătate nu există).
+ */
+export function BaraPlata(props: {
+  platit: number;
+  total: number;
+  nrTranse?: number;
+}) {
+  const n = () => Math.max(1, props.nrTranse ?? 1);
+  const verzi = () =>
+    props.total > 0
+      ? Math.min(n(), Math.round((props.platit / props.total) * n()))
+      : 0;
   return (
     <div
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={props.total}
       aria-valuenow={props.platit}
-      style={{
-        height: "8px",
-        "border-radius": "999px",
-        background: C.linie,
-        overflow: "hidden",
-      }}
+      style={{ display: "flex", gap: "5px" }}
     >
-      <div
-        style={{
-          width: `${procent()}%`,
-          height: "100%",
-          "border-radius": "999px",
-          background: C.verdeBara,
-        }}
-      />
+      <For each={Array.from({ length: n() }, (_, i) => i)}>
+        {(i) => (
+          <div
+            style={{
+              flex: 1,
+              height: "8px",
+              "border-radius": "4px",
+              background: i < verzi() ? C.verdeBara : C.linie,
+            }}
+          />
+        )}
+      </For>
     </div>
   );
 }

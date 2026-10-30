@@ -220,8 +220,11 @@ const ReactionBase = styled("div", {
     cursor: "pointer",
     userSelect: "none",
     verticalAlign: "middle",
-    padding: "var(--gap-md)",
-    borderRadius: "var(--borderRadius-md)",
+    // BBT (21a, 30 oct 2026): pastile rotunde; a ta = roz pal cu chenar roz, a altora = gri.
+    padding: "4px 10px",
+    borderRadius: "999px",
+    border: "1.5px solid transparent",
+    fontSize: "14px",
 
     transition: "var(--transitions-fast) all",
     fontWeight: 600,
@@ -238,12 +241,13 @@ const ReactionBase = styled("div", {
   variants: {
     active: {
       true: {
-        color: "var(--md-sys-color-on-secondary-container)",
-        background: "var(--md-sys-color-secondary-container)",
+        color: "#0A0A0B",
+        background: "#FFEEF5",
+        borderColor: "#FFB3D9",
       },
       false: {
-        color: "var(--md-sys-color-on-surface)",
-        background: "var(--md-sys-color-surface-container-low)",
+        color: "#0A0A0B",
+        background: "#F2F2F3",
       },
     },
   },

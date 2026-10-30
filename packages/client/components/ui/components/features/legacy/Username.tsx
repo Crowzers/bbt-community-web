@@ -1,4 +1,4 @@
-import { splitProps } from "solid-js";
+import { JSX, splitProps } from "solid-js";
 
 import { typography } from "../../design/Text";
 import { ColouredText } from "../../utils/ColouredText";
@@ -13,6 +13,9 @@ type Props = {
    * Text colour
    */
   colour?: string;
+
+  /** BBT: mărimea și grosimea din 21a (15 / 800) se dau din mesaj. */
+  style?: JSX.CSSProperties;
 };
 
 /**

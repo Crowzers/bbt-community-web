@@ -132,15 +132,43 @@ export function BaraSectiuni(props: {
     badge?: () => number;
   }) => (
     <>
-      <Symbol size={22}>{s.simbol}</Symbol>
-      {/* 14, nu 11 ca în machetă: pragul casei pentru textul din interfață. */}
-      <span style={{ "font-size": "14px", "font-weight": 700 }}>{s.nume}</span>
+      {/* Iconița într-o cutie fixă de 22: glifa singură aducea înălțimea rândului de text și urca. */}
+      <span
+        style={{
+          width: "22px",
+          height: "22px",
+          display: "flex",
+          "align-items": "center",
+          "justify-content": "center",
+        }}
+      >
+        <Symbol size={22}>{s.simbol}</Symbol>
+      </span>
+      {/* Pe rail, proporțiile din 21/23 (cererea userului, 30 oct: „nu se vede frumos centrat în pătrat"): pătrat de
+          88 × 61, iconița sus la 10, numele pe un rând de 14, cu aer pe laterale. Cu numele la 14px, „Comunitate"
+          umplea pătratul până la margini. 12, nu 11 ca în machetă: sub 12 nu scriem nimic. */}
+      <span
+        style={
+          props.orizontal
+            ? { "font-size": "14px", "font-weight": 700 }
+            : {
+                "font-size": "12px",
+                "line-height": "14px",
+                "font-weight": 700,
+                "letter-spacing": "-0.01em",
+              }
+        }
+      >
+        {s.nume}
+      </span>
       <Show when={(s.badge?.() ?? 0) > 0}>
         <span
           style={{
             position: "absolute",
-            top: "6px",
-            left: "calc(50% + 6px)",
+            top: props.orizontal ? "6px" : "8px",
+            ...(props.orizontal
+              ? { left: "calc(50% + 6px)" }
+              : { right: "14px" }),
             "min-width": "18px",
             height: "18px",
             padding: "0 5px",

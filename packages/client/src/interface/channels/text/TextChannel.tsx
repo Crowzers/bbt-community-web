@@ -450,33 +450,36 @@ const SidebarTitle = styled("div", {
  */
 const FileePanou = styled("div", {
   base: {
+    // BBT (21a, 30 oct 2026): o pastilă gri cu fila aleasă neagră, cât lățimea panoului. Până atunci file mici pe un
+    // rând alb cu fir dedesubt.
     position: "sticky",
     top: 0,
     zIndex: 2,
-    height: "52px",
     flexShrink: 0,
     display: "flex",
     alignItems: "center",
     gap: "4px",
-    padding: "0 10px",
-    background: "#FFFFFF",
-    borderBottom: "1px solid var(--md-sys-color-outline-variant)",
+    margin: "16px 12px 10px",
+    padding: "4px",
+    borderRadius: "999px",
+    background: "#F2F2F3",
 
     "& button": {
-      height: "30px",
+      flex: 1,
+      height: "34px",
       padding: "0 10px",
-      borderRadius: "8px",
+      borderRadius: "999px",
       border: 0,
       background: "transparent",
       color: "#6C6C6D",
       fontFamily: "inherit",
-      fontSize: "12px",
-      fontWeight: 600,
+      fontSize: "14px",
+      fontWeight: 800,
       cursor: "pointer",
     },
     "& button[data-activ]": {
-      background: "#F2F2F3",
-      color: "#0A0A0B",
+      background: "#0A0A0B",
+      color: "#FFFFFF",
     },
   },
 });

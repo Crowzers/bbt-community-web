@@ -71,10 +71,11 @@
 }
 .bbt-tranzactie {
   display: grid;
-  grid-template-columns: 110px minmax(0, 1fr) auto auto 40px;
+  /* 120 · restul · 120 · 120 · 44, ca în 23d. */
+  grid-template-columns: 120px minmax(0, 1fr) 120px 120px 44px;
   grid-template-areas: "data titlu suma stare factura";
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 .bbt-tranzactie > .data {
   grid-area: data;
@@ -102,5 +103,22 @@
   }
   .bbt-tranzactie > .titlu {
     white-space: normal !important;
+  }
+}
+
+/* Lista de canale are 280 ca în 21a; pe ferestre înguste revine la 240, ca să rămână loc de chat. */
+@media (min-width: 601px) and (max-width: 1100px) {
+  .main_bar {
+    --layout-width-channel-sidebar: 240px;
+  }
+}
+
+/* Lista din Mesaje are 320, ca în 23a; pe ferestre înguste, 260. */
+.bbt-lista-mesaje {
+  --layout-width-channel-sidebar: 320px;
+}
+@media (min-width: 601px) and (max-width: 1100px) {
+  .bbt-lista-mesaje {
+    --layout-width-channel-sidebar: 260px;
   }
 }

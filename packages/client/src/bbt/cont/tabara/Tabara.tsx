@@ -187,8 +187,8 @@ export function Tabara(props: { id: string }) {
                 "justify-content": "space-between",
                 gap: "16px",
                 "flex-wrap": "wrap",
-                padding: "26px 28px",
-                "border-radius": "28px",
+                padding: "28px",
+                "border-radius": "32px",
                 background: C.roz,
               }}
             >
@@ -201,7 +201,7 @@ export function Tabara(props: { id: string }) {
                   style={{
                     ...DE_FONTE,
                     margin: "8px 0 14px",
-                    "font-size": "52px",
+                    "font-size": "48px",
                     "line-height": "1",
                   }}
                 >
@@ -211,11 +211,12 @@ export function Tabara(props: { id: string }) {
                   <span
                     style={{
                       display: "inline-flex",
-                      padding: "6px 14px",
+                      // 23e: 11 / 16, text gros de 13.
+                      padding: "11px 16px",
                       "border-radius": "999px",
                       background: C.rozDeschis,
-                      "font-size": "14px",
-                      "font-weight": 600,
+                      "font-size": "13px",
+                      "font-weight": 800,
                     }}
                   >
                     {d().participanti.length} participanți
@@ -242,7 +243,7 @@ export function Tabara(props: { id: string }) {
               style={{
                 display: "grid",
                 "grid-template-columns": "repeat(auto-fit, minmax(260px, 1fr))",
-                gap: "16px",
+                gap: "12px",
                 "align-items": "start",
               }}
             >
@@ -341,7 +342,7 @@ function PlataSiDocumente(props: {
   return (
     <Card
       style={{
-        padding: "20px 22px",
+        padding: "18px",
         display: "flex",
         "flex-direction": "column",
         gap: "12px",
@@ -366,7 +367,11 @@ function PlataSiDocumente(props: {
                 {p().platit.toLocaleString("ro-RO")} / {lei(p().total)}
               </span>
             </div>
-            <BaraPlata platit={p().platit} total={p().total} />
+            <BaraPlata
+              platit={p().platit}
+              total={p().total}
+              nrTranse={p().nrTranse}
+            />
             <Show
               when={props.experienta?.plata}
               fallback={
@@ -493,7 +498,7 @@ function ProgramAzi(props: { d: InfoTabara; laToate: () => void }) {
       (a, b) => a.ora.localeCompare(b.ora),
     );
   return (
-    <Card style={{ padding: "20px 22px" }}>
+    <Card style={{ padding: "18px" }}>
       <div
         style={{
           display: "flex",
@@ -539,23 +544,25 @@ function ProgramAzi(props: { d: InfoTabara; laToate: () => void }) {
             <div
               style={{
                 display: "flex",
-                gap: "14px",
-                padding: "8px 0",
-                "border-top": `1px solid ${C.linie}`,
+                gap: "10px",
+                padding: "8px 10px",
+                "border-radius": "14px",
               }}
             >
               <span
                 style={{
-                  width: "46px",
+                  width: "40px",
                   "flex-shrink": 0,
-                  "font-size": "14px",
-                  "font-weight": 700,
+                  "font-size": "13px",
+                  "font-weight": 800,
                   "font-variant-numeric": "tabular-nums",
                 }}
               >
                 {i.ora || "-"}
               </span>
-              <span style={{ "font-size": "14px" }}>{i.titlu}</span>
+              <span style={{ "font-size": "14px", "font-weight": 700 }}>
+                {i.titlu}
+              </span>
             </div>
           )}
         </For>
@@ -573,7 +580,7 @@ function CameraPeScurt(props: { d: InfoTabara; laDetalii: () => void }) {
   return (
     <Card
       style={{
-        padding: "20px 22px",
+        padding: "18px",
         display: "flex",
         "flex-direction": "column",
         gap: "8px",

@@ -67,7 +67,7 @@ export const HomeSidebar = (props: Props) => {
   );
 
   return (
-    <SidebarBase class="channel_bar home">
+    <SidebarBase class="channel_bar home bbt-lista-mesaje">
       <div ref={scrollTargetElement} use:invisibleScrollable>
         <List>
           {/* BBT (23a, 30 oct 2026): „Mesaje" mare + „+" negru, filtrele, apoi conversațiile ca rânduri cu avatar,
@@ -79,7 +79,7 @@ export const HomeSidebar = (props: Props) => {
               display: "flex",
               "align-items": "center",
               "justify-content": "space-between",
-              padding: "20px 16px 12px 20px",
+              padding: "16px 22px 10px",
             }}
           >
             <h2
@@ -87,7 +87,7 @@ export const HomeSidebar = (props: Props) => {
                 margin: 0,
                 "font-family": '"De Fonte BBT", Inter, sans-serif',
                 "font-weight": 400,
-                "font-size": "28px",
+                "font-size": "22px",
                 "letter-spacing": "0.01em",
                 "font-synthesis": "none",
                 color: "#0A0A0B",
@@ -119,7 +119,7 @@ export const HomeSidebar = (props: Props) => {
           </div>
 
           <div
-            style={{ display: "flex", gap: "6px", padding: "0 16px 12px 20px" }}
+            style={{ display: "flex", gap: "6px", padding: "0 18px 10px" }}
           >
             <Filtru
               activ={filtru() === "toate"}
@@ -183,14 +183,14 @@ export const HomeSidebar = (props: Props) => {
               <VirtualContainer
                 items={conversatii()}
                 scrollTarget={scrollTargetElement}
-                itemSize={{ height: 76 }}
+                itemSize={{ height: 58 }}
               >
                 {(item) => (
                   <div
                     style={{
                       ...item.style,
                       width: "100%",
-                      padding: "2px 8px",
+                      padding: "1px 12px",
                       "box-sizing": "border-box",
                     }}
                   >
@@ -225,14 +225,15 @@ function Filtru(props: {
       aria-pressed={props.activ}
       onClick={() => props.onClick()}
       style={{
-        height: "34px",
-        padding: "0 14px",
+        // 23a: 6 / 12, text de 12 gros.
+        height: "28px",
+        padding: "0 12px",
         "border-radius": "999px",
         border: 0,
         background: props.activ ? "#0A0A0B" : "#F2F2F3",
         color: props.activ ? "#FFFFFF" : "#6C6C6D",
         "font-family": "inherit",
-        "font-size": "14px",
+        "font-size": "12px",
         "font-weight": 700,
         cursor: "pointer",
       }}
@@ -343,8 +344,9 @@ function Entry(
         display: "flex",
         "align-items": "center",
         gap: "12px",
-        height: "72px",
-        padding: "0 12px",
+        // 23a: 8 + avatarul de 40 + 8, colțuri de 16.
+        height: "56px",
+        padding: "0 10px",
         "box-sizing": "border-box",
         "border-radius": "16px",
         background: local.active ? "#F2F2F3" : "transparent",
@@ -366,7 +368,7 @@ function Entry(
       <Switch>
         <Match when={local.channel.type === "Group"}>
           <Avatar
-            size={44}
+            size={40}
             shape="rounded-square"
             fallback={local.channel.name}
             src={local.channel.iconURL}
@@ -375,7 +377,7 @@ function Entry(
         </Match>
         <Match when={local.channel.type === "DirectMessage"}>
           <Avatar
-            size={44}
+            size={40}
             src={local.channel.iconURL}
             fallback={nume()}
             fallbackBackground
@@ -395,8 +397,8 @@ function Entry(
               overflow: "hidden",
               "text-overflow": "ellipsis",
               "white-space": "nowrap",
-              "font-size": "16px",
-              "font-weight": 700,
+              "font-size": "14px",
+              "font-weight": 800,
             }}
           >
             <TextWithEmoji content={nume()} />
@@ -405,8 +407,8 @@ function Entry(
             <span
               style={{
                 "flex-shrink": 0,
-                "font-size": "14px",
-                color: "#8D8D9A",
+                "font-size": "12px",
+                color: "#6C6C6D",
               }}
             >
               {cand(local.channel.lastMessageAt!)}
@@ -421,7 +423,7 @@ function Entry(
               overflow: "hidden",
               "text-overflow": "ellipsis",
               "white-space": "nowrap",
-              "font-size": "14px",
+              "font-size": "13px",
               color: necitit() ? "#0A0A0B" : "#6C6C6D",
               "font-weight": necitit() ? 600 : 400,
             }}
@@ -447,8 +449,8 @@ function Entry(
               style={{
                 "flex-shrink": 0,
                 "min-width": "20px",
-                height: "20px",
-                padding: "0 6px",
+                height: "18px",
+                padding: "0 7px",
                 "box-sizing": "border-box",
                 display: "flex",
                 "align-items": "center",

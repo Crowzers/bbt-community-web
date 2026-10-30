@@ -95,7 +95,7 @@ const themeConstants = {
     xxl: "64px",
   },
   layout: {
-    "width-channel-sidebar": "240px", // BBT: 240, ca în pânza TRW
+    "width-channel-sidebar": "280px", // BBT: 280, ca în 21a (30 oct 2026; până atunci 240, pânza TRW)
     "width-user-context-menu-truncate": "300px",
     "height-message-box": "32vh",
   },

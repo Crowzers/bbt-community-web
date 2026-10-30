@@ -86,14 +86,17 @@ export function ProfilConversatie(props: { user: User; channel: Channel }) {
         display: "flex",
         "flex-direction": "column",
         "align-items": "center",
+        // 23a: 300 lățime, 24 / 20, avatar de 80, numele la 22.
+        width: "300px",
+        "box-sizing": "border-box",
         gap: "12px",
-        padding: "28px 20px",
+        padding: "24px 20px",
         color: TEXT,
         "font-family": "Inter, sans-serif",
       }}
     >
       <Avatar
-        size={96}
+        size={80}
         src={props.user.animatedAvatarURL}
         fallback={props.user.displayName}
         fallbackBackground
@@ -103,7 +106,7 @@ export function ProfilConversatie(props: { user: User; channel: Channel }) {
           style={{
             margin: 0,
             "font-family": '"De Fonte BBT", Inter, sans-serif',
-            "font-size": "26px",
+            "font-size": "22px",
             "letter-spacing": "0.01em",
             "font-synthesis": "none",
             "line-height": "1.1",
@@ -111,7 +114,7 @@ export function ProfilConversatie(props: { user: User; channel: Channel }) {
         >
           {props.user.displayName}
         </p>
-        <p style={{ margin: "4px 0 0", color: STINS, "font-size": "14px" }}>
+        <p style={{ margin: "4px 0 0", color: STINS, "font-size": "13px" }}>
           {[
             profil.data?.mainRole
               ? (ROLURI[profil.data.mainRole] ?? profil.data.mainRole)
@@ -125,11 +128,11 @@ export function ProfilConversatie(props: { user: User; channel: Channel }) {
       <Show when={profil.data?.verificat}>
         <span
           style={{
-            padding: "4px 10px",
+            padding: "5px 10px",
             "border-radius": "999px",
             background: "#99E9C4",
-            "font-size": "14px",
-            "font-weight": 700,
+            "font-size": "12px",
+            "font-weight": 800,
           }}
         >
           ✓ Verificat
@@ -140,7 +143,7 @@ export function ProfilConversatie(props: { user: User; channel: Channel }) {
           style={{
             margin: 0,
             "text-align": "center",
-            "font-size": "14px",
+            "font-size": "13px",
             "line-height": "1.5",
             color: TEXT,
             "white-space": "pre-line",
@@ -157,12 +160,12 @@ export function ProfilConversatie(props: { user: User; channel: Channel }) {
           style={{
             display: "inline-flex",
             "align-items": "center",
-            height: "38px",
-            padding: "0 16px",
+            height: "34px",
+            padding: "0 14px",
             "border-radius": "999px",
             background: "#F2F2F3",
             color: TEXT,
-            "font-size": "14px",
+            "font-size": "13px",
             "font-weight": 700,
             "text-decoration": "none",
           }}
@@ -175,11 +178,11 @@ export function ProfilConversatie(props: { user: User; channel: Channel }) {
         <div style={{ width: "100%", "margin-top": "12px" }}>
           <p
             style={{
-              margin: "0 0 8px",
-              "text-align": "center",
+              margin: "0",
+              padding: "10px 8px 4px",
               color: STINS,
               "font-size": "12px",
-              "font-weight": 700,
+              "font-weight": 800,
               "letter-spacing": "0.06em",
               "text-transform": "uppercase",
             }}
@@ -188,9 +191,10 @@ export function ProfilConversatie(props: { user: User; channel: Channel }) {
           </p>
           <div
             style={{
-              "border-radius": "20px",
+              // 23a: card de 24 cu 6 înăuntru, rânduri de 12 / 14 cu colțuri de 18.
+              "border-radius": "24px",
               background: "#F2F2F3",
-              padding: "4px 14px",
+              padding: "6px",
             }}
           >
             <For each={fisiere()}>
@@ -203,7 +207,8 @@ export function ProfilConversatie(props: { user: User; channel: Channel }) {
                     display: "flex",
                     "align-items": "center",
                     gap: "10px",
-                    padding: "10px 0",
+                    padding: "12px 14px",
+                    "border-radius": "18px",
                     "border-top": i() === 0 ? "0" : "1px solid #E5E5E5",
                     color: TEXT,
                     "text-decoration": "none",
@@ -222,7 +227,9 @@ export function ProfilConversatie(props: { user: User; channel: Channel }) {
                   >
                     {f.filename ?? "Fișier"}
                   </span>
-                  <span style={{ color: STINS, "flex-shrink": 0 }}>
+                  <span
+                    style={{ color: STINS, "flex-shrink": 0, "font-size": "13px" }}
+                  >
                     {f.humanReadableSize}
                   </span>
                   <Symbol size={18}>download</Symbol>

@@ -202,51 +202,63 @@ function FormularProfil(props: { p: Participant }) {
       >
         Profil public
       </TitluPagina>
-      <div style={coloana}>
+      {/* 23f: în stânga cardul de 320 cu poza și cum te văd ceilalți, în dreapta formularul pe alb, pe două
+          coloane. Pe îngust, cardul urcă deasupra formularului. */}
+      <div
+        style={{
+          display: "flex",
+          "flex-wrap": "wrap",
+          gap: "24px",
+          "align-items": "flex-start",
+        }}
+      >
         <div
           style={{
+            flex: "0 1 320px",
+            "min-width": 0,
             display: "flex",
+            "flex-direction": "column",
             "align-items": "center",
-            gap: "18px",
-            padding: "22px",
-            "border-radius": "24px",
+            gap: "10px",
+            padding: "24px",
+            "box-sizing": "border-box",
+            "border-radius": "28px",
             background: C.foaie,
-            "flex-wrap": "wrap",
+            "text-align": "center",
           }}
         >
           <SchimbaPoza p={props.p} />
-          <div style={{ "min-width": 0, "flex-grow": 1 }}>
-            <p
+          <p
+            style={{
+              ...DE_FONTE,
+              margin: "4px 0 0",
+              "font-size": "22px",
+              "line-height": "1.1",
+            }}
+          >
+            {props.p.numeAfisat ?? props.p.numeComplet}
+          </p>
+          <p style={{ margin: 0, color: C.stins, "font-size": "13px" }}>
+            {[rol(), genuri(), props.p.oras].filter(Boolean).join(" · ")}
+          </p>
+          <Show when={props.p.phoneVerified}>
+            <span
               style={{
-                ...DE_FONTE,
-                margin: 0,
-                "font-size": "28px",
-                "line-height": "1.1",
+                display: "inline-flex",
+                padding: "5px 10px",
+                "border-radius": "999px",
+                background: C.verdeDeschis,
+                "font-size": "12px",
+                "font-weight": 800,
               }}
             >
-              {props.p.numeAfisat ?? props.p.numeComplet}
-            </p>
-            <p
-              style={{ margin: "4px 0 0", color: C.stins, "font-size": "14px" }}
-            >
-              {[rol(), genuri(), props.p.oras].filter(Boolean).join(" · ")}
-            </p>
-            <Show when={props.p.phoneVerified}>
-              <span
-                style={{
-                  display: "inline-flex",
-                  "margin-top": "8px",
-                  padding: "4px 10px",
-                  "border-radius": "999px",
-                  background: C.verdeDeschis,
-                  "font-size": "14px",
-                  "font-weight": 700,
-                }}
-              >
-                ✓ Artist verificat
-              </span>
-            </Show>
-          </div>
+              ✓ Artist verificat
+            </span>
+          </Show>
+          <p style={{ margin: "4px 0 0", color: C.stins, "font-size": "12px" }}>
+            Așa te văd ceilalți membri. Numele real, CNP-ul și adresa sunt în
+            Date personale.
+          </p>
           <Show when={props.p.username}>
             <Buton
               piele="alb"
@@ -258,22 +270,19 @@ function FormularProfil(props: { p: Participant }) {
             </Buton>
           </Show>
         </div>
-        <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
-          Așa te văd ceilalți membri. Numele real, CNP-ul și adresa sunt în Date
-          personale.
-        </p>
         <form
           onSubmit={salveaza}
           style={{
-            display: "flex",
-            "flex-direction": "column",
-            gap: "16px",
-            padding: "22px",
-            "border-radius": "24px",
-            background: C.foaie,
+            flex: "1 1 360px",
+            "min-width": 0,
+            display: "grid",
+            "grid-template-columns":
+              "repeat(auto-fit, minmax(min(240px, 100%), 1fr))",
+            gap: "14px",
           }}
         >
           <CampText
+            peAlb
             eticheta="Nume de scenă"
             valoare={numeScena()}
             laSchimbare={setNumeScena}
@@ -282,6 +291,7 @@ function FormularProfil(props: { p: Participant }) {
           />
           <div>
             <CampText
+              peAlb
               eticheta="Adresa profilului"
               inainte="/u/"
               valoare={username()}
@@ -301,33 +311,28 @@ function FormularProfil(props: { p: Participant }) {
             </p>
           </div>
           {/* Rolul și genurile se aleg la înscriere și n-au încă un editor nici pe site; aici doar se văd. */}
-          <Show when={rol() || genuri()}>
-            <div
-              style={{
-                display: "grid",
-                "grid-template-columns": "repeat(auto-fit, minmax(200px, 1fr))",
-                gap: "14px",
-              }}
-            >
-              <Show when={rol()}>
-                <ValoareFixa eticheta="Rol" valoare={rol()!} />
-              </Show>
-              <Show when={genuri()}>
-                <ValoareFixa eticheta="Genuri" valoare={genuri()} />
-              </Show>
-            </div>
+          <Show when={rol()}>
+            <ValoareFixa eticheta="Rol" valoare={rol()!} />
           </Show>
-          <CampText
-            eticheta="Despre tine"
-            randuri={3}
-            maxim={300}
-            valoare={bio()}
-            laSchimbare={setBio}
-            placeholder="Două rânduri despre ce faci și ce cauți."
-          />
+          <Show when={genuri()}>
+            <ValoareFixa eticheta="Genuri" valoare={genuri()} />
+          </Show>
+          {/* „Despre tine" pe toată lățimea, ca în 23f. */}
+          <div style={{ "grid-column": "1 / -1" }}>
+            <CampText
+              peAlb
+              eticheta="Despre tine"
+              randuri={3}
+              maxim={300}
+              valoare={bio()}
+              laSchimbare={setBio}
+              placeholder="Două rânduri despre ce faci și ce cauți."
+            />
+          </div>
           <For each={RETELE}>
             {(r) => (
               <CampText
+                peAlb
                 eticheta={r.nume}
                 tip="url"
                 inputmode="url"
@@ -366,9 +371,9 @@ function ValoareFixa(props: { eticheta: string; valoare: string }) {
           display: "flex",
           "align-items": "center",
           height: "48px",
-          padding: "0 16px",
-          "border-radius": "14px",
-          background: C.fundal,
+          padding: "0 18px",
+          "border-radius": "999px",
+          background: C.foaie,
           "font-size": "16px",
         }}
       >
@@ -423,12 +428,31 @@ function SchimbaPoza(props: { p: Participant }) {
         gap: "8px",
       }}
     >
-      <Avatar
-        src={props.p.avatarUrl ?? undefined}
-        fallback={props.p.numeAfisat ?? props.p.numeComplet}
-        fallbackBackground
-        size={84}
-      />
+      {/* Inelul roz din 23f, ca în meniul contului. */}
+      <div
+        style={{
+          display: "flex",
+          padding: "3px",
+          "border-radius": "999px",
+          background: C.roz,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            padding: "2px",
+            "border-radius": "999px",
+            background: C.fundal,
+          }}
+        >
+          <Avatar
+            src={props.p.avatarUrl ?? undefined}
+            fallback={props.p.numeAfisat ?? props.p.numeComplet}
+            fallbackBackground
+            size={86}
+          />
+        </div>
+      </div>
       <input
         ref={fisier}
         type="file"
@@ -439,14 +463,24 @@ function SchimbaPoza(props: { p: Participant }) {
           if (f) void urca(f);
         }}
       />
-      <Buton
-        piele="alb"
-        mic
+      {/* 23f: „Schimbă poza" e un link de 13 gros sub poză, nu un buton. */}
+      <button
+        type="button"
         onClick={() => fisier?.click()}
-        dezactivat={lucrez()}
+        disabled={lucrez()}
+        style={{
+          padding: 0,
+          border: 0,
+          background: "transparent",
+          color: C.text,
+          "font-family": "inherit",
+          "font-size": "13px",
+          "font-weight": 700,
+          cursor: lucrez() ? "default" : "pointer",
+        }}
       >
         {lucrez() ? "Se urcă…" : "Schimbă poza"}
-      </Buton>
+      </button>
       <Show when={eroare()}>
         <p
           role="alert"

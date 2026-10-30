@@ -148,7 +148,7 @@ export function ContulMeu() {
             "flex-grow": 1,
             "min-width": 0,
             "overflow-y": "auto",
-            padding: telefon() ? "12px 16px 32px" : "32px 36px 48px",
+            padding: telefon() ? "12px 16px 32px" : "32px 40px 48px",
           }}
         >
           {/* Pagina taberei are „‹ Experiențele mele" și pe desktop (23e); restul, doar pe telefon. */}
@@ -240,8 +240,8 @@ function Meniu(props: { activ?: string; lat: boolean }) {
               "align-items": "center",
               gap: "10px",
               width: "100%",
-              height: "48px",
-              padding: "0 16px",
+              height: props.lat ? "48px" : "38px",
+              padding: "0 12px",
               "box-sizing": "border-box",
               "border-radius": "14px",
               border: "0",
@@ -251,8 +251,8 @@ function Meniu(props: { activ?: string; lat: boolean }) {
               transition: "color 200ms ease",
               color: activ() ? C.text : C.stins,
               "font-family": "inherit",
-              "font-size": "16px",
-              "font-weight": activ() ? 700 : 500,
+              "font-size": props.lat ? "16px" : "14px",
+              "font-weight": activ() ? 800 : 600,
               "text-align": "left",
               cursor: "pointer",
             }}
@@ -294,24 +294,24 @@ function Meniu(props: { activ?: string; lat: boolean }) {
       aria-label="Contul meu"
       class="bbt-meniu-cont"
       style={{
-        width: props.lat ? "100%" : "280px",
+        width: props.lat ? "100%" : "260px",
         height: "100%",
         "flex-shrink": 0,
         "overflow-y": "auto",
-        padding: props.lat ? "16px" : "28px 16px",
+        padding: props.lat ? "16px" : "16px 12px",
         "box-sizing": "border-box",
         "border-right": props.lat ? "0" : `1px solid ${C.linie}`,
         display: "flex",
         "flex-direction": "column",
-        gap: "4px",
+        gap: "2px",
       }}
     >
       <div
         style={{
           display: "flex",
           "align-items": "center",
-          gap: "12px",
-          padding: "0 8px 20px",
+          gap: "10px",
+          padding: "6px 10px 14px",
         }}
       >
         {/* Inelul roz din 23, ca în aplicația de telefon. */}
@@ -335,15 +335,15 @@ function Meniu(props: { activ?: string; lat: boolean }) {
               src={cont.data?.avatarUrl ?? undefined}
               fallback={cont.data?.numeAfisat ?? cont.data?.numeComplet ?? "?"}
               fallbackBackground
-              size={48}
+              size={40}
             />
           </div>
         </div>
         <div style={{ "min-width": 0, "line-height": "1.3" }}>
           <div
             style={{
-              "font-weight": 700,
-              "font-size": "16px",
+              "font-weight": 800,
+              "font-size": "15px",
               overflow: "hidden",
               "text-overflow": "ellipsis",
               "white-space": "nowrap",
@@ -354,8 +354,8 @@ function Meniu(props: { activ?: string; lat: boolean }) {
           <div
             style={{
               color: cont.data?.phoneVerified ? C.verde : C.chihlimbar,
-              "font-size": "14px",
-              "font-weight": 600,
+              "font-size": "12px",
+              "font-weight": 700,
             }}
           >
             {cont.data
@@ -371,13 +371,13 @@ function Meniu(props: { activ?: string; lat: boolean }) {
           position: "relative",
           display: "flex",
           "flex-direction": "column",
-          gap: "4px",
+          gap: "2px",
         }}
       >
         <alunecare.Strat culoare={C.foaie} raza="14px" />
         <Grup randuri={ACTIVITATE} dela={0} />
         <div
-          style={{ margin: "10px 8px", "border-top": `1px solid ${C.linie}` }}
+          style={{ margin: "8px 10px", "border-top": `1px solid ${C.linie}` }}
         />
         <Grup randuri={CONT} dela={ACTIVITATE.length} />
       </div>
@@ -386,14 +386,14 @@ function Meniu(props: { activ?: string; lat: boolean }) {
         type="button"
         onClick={() => setIesire(true)}
         style={{
-          height: "44px",
-          padding: "0 16px",
+          height: "38px",
+          padding: "0 12px",
           border: "0",
           background: "transparent",
           color: C.rosu,
           "font-family": "inherit",
-          "font-size": "16px",
-          "font-weight": 700,
+          "font-size": "14px",
+          "font-weight": 800,
           "text-align": "left",
           cursor: "pointer",
         }}

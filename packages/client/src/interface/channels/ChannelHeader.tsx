@@ -75,51 +75,75 @@ export function ChannelHeader(props: Props) {
             props.channel.type === "Group"
           }
         >
+          {/* BBT (21a, 30 oct 2026): „#" într-un cerc roz de 36, numele mare în De Fonte și descrierea dedesubt, nu
+              alături după o linie. */}
           <HeaderIcon>
-            <Symbol>grid_3x3</Symbol>
+            <span
+              style={{
+                width: "36px",
+                height: "36px",
+                display: "flex",
+                "align-items": "center",
+                "justify-content": "center",
+                "border-radius": "50%",
+                background: "#FFB3D9",
+                color: "#0A0A0B",
+              }}
+            >
+              <Symbol size={18}>grid_3x3</Symbol>
+            </span>
           </HeaderIcon>
-          <NonBreakingText
-            class={mobileOverflow}
-            style={{ "font-size": "15px", "font-weight": 700 }}
-            onClick={() =>
-              openModal({
-                type: "channel_info",
-                channel: props.channel,
-              })
-            }
-          >
-            <TextWithEmoji content={props.channel.name!} />
-          </NonBreakingText>
-          <Show when={layout() !== "phone" && props.channel.description}>
-            <Divider />
-            <a
-              class={descriptionLink}
+          <div style={{ "min-width": 0, "line-height": "1.2" }}>
+            <NonBreakingText
+              class={mobileOverflow}
+              style={{
+                display: "block",
+                "font-family": '"De Fonte BBT", Inter, sans-serif',
+                "font-size": "20px",
+                "font-weight": 400,
+                "letter-spacing": "0.01em",
+                "font-synthesis": "none",
+                cursor: "pointer",
+              }}
               onClick={() =>
                 openModal({
                   type: "channel_info",
                   channel: props.channel,
                 })
               }
-              use:floating={{
-                tooltip: {
-                  placement: "bottom",
-                  content: t`Click to show full description`,
-                },
-              }}
             >
-              <OverflowingText
-                style={{
-                  "font-size": "13px",
-                  "font-weight": 400,
-                  color: "#6C6C6D",
+              <TextWithEmoji content={props.channel.name!} />
+            </NonBreakingText>
+            <Show when={layout() !== "phone" && props.channel.description}>
+              <a
+                class={descriptionLink}
+                onClick={() =>
+                  openModal({
+                    type: "channel_info",
+                    channel: props.channel,
+                  })
+                }
+                use:floating={{
+                  tooltip: {
+                    placement: "bottom",
+                    content: t`Click to show full description`,
+                  },
                 }}
               >
-                <TextWithEmoji
-                  content={props.channel.description?.split("\n").shift()}
-                />
-              </OverflowingText>
-            </a>
-          </Show>
+                <OverflowingText
+                  style={{
+                    "font-size": "12px",
+                    "font-weight": 400,
+                    color: "#6C6C6D",
+                  }}
+                >
+                  <TextWithEmoji
+                    content={props.channel.description?.split("\n").shift()}
+                  />
+                </OverflowingText>
+              </a>
+            </Show>
+          </div>
         </Match>
         <Match when={props.channel.type === "DirectMessage"}>
           {/* BBT (23a, 30 oct 2026): avatarul, numele și sub el „online" verde sau „offline", în locul lui „@" și al
@@ -131,8 +155,15 @@ export function ChannelHeader(props: Props) {
             fallbackBackground
           />
           <div style={{ "min-width": 0, "line-height": "1.25" }}>
+            {/* 23a: numele la 18, titlu (De Fonte la noi), sub el starea la 12 gros. */}
             <OverflowingText
-              style={{ "font-size": "16px", "font-weight": 700 }}
+              style={{
+                "font-family": '"De Fonte BBT", Inter, sans-serif',
+                "font-size": "18px",
+                "font-weight": 400,
+                "letter-spacing": "0.01em",
+                "font-synthesis": "none",
+              }}
             >
               {/* BBT: numele afișat (ca în lista de prieteni), nu username-ul. */}
               <TextWithEmoji content={props.channel.recipient?.displayName} />
@@ -140,8 +171,8 @@ export function ChannelHeader(props: Props) {
             <span
               style={{
                 display: "block",
-                "font-size": "14px",
-                "font-weight": 600,
+                "font-size": "12px",
+                "font-weight": 700,
                 color: props.channel.recipient?.online ? "#1E9E62" : "#8D8D9A",
               }}
             >
@@ -262,14 +293,15 @@ export function ChannelHeader(props: Props) {
             )
           }
           style={{
-            height: "36px",
-            padding: "0 16px",
+            // 23a: 8 / 14, text de 13 gros, gri.
+            height: "34px",
+            padding: "0 14px",
             "border-radius": "999px",
             border: 0,
             background: "#F2F2F3",
-            color: "#0A0A0B",
+            color: "#6C6C6D",
             "font-family": "inherit",
-            "font-size": "14px",
+            "font-size": "13px",
             "font-weight": 700,
             cursor: "pointer",
           }}

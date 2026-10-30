@@ -493,7 +493,7 @@ export function MessageComposition(props: Props) {
                         disabled={!canSend()}
                         onClick={() => sendMessage()}
                       >
-                        <Symbol size={16}>send</Symbol>
+                        <Symbol size={20}>send</Symbol>
                       </ButonTrimite>
                     }
                   >
@@ -543,17 +543,18 @@ export function MessageComposition(props: Props) {
 }
 
 /**
- * BBT: butonul de trimis din casetă — pătrat roz de 32px (pânza TRW). Stins cât nu ai ce trimite.
+ * BBT: butonul de trimis din casetă — CERC roz de 44, ca microfonul (21a și aplicația de telefon, 30 oct 2026; până
+ * atunci pătrat de 32, pânza TRW). Stins cât nu ai ce trimite.
  */
 const ButonTrimite = styled("button", {
   base: {
     flexShrink: 0,
-    width: "32px",
-    height: "32px",
+    width: "44px",
+    height: "44px",
     border: 0,
-    borderRadius: "8px",
-    background: "#ffa8cd",
-    color: "#000",
+    borderRadius: "50%",
+    background: "#FFB3D9",
+    color: "#0A0A0B",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",

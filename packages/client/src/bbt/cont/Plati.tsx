@@ -184,9 +184,11 @@ export function Plati() {
           <div
             style={{
               display: "grid",
-              "grid-template-columns": "repeat(auto-fit, minmax(240px, 1fr))",
+              // 23d: trei pe rând, fiecare cât o treime, chiar dacă al treilea (cardul salvat) lipsește la noi.
+              "grid-template-columns":
+                "repeat(auto-fill, minmax(min(220px, 100%), 1fr))",
               gap: "12px",
-              "margin-bottom": "28px",
+              "margin-bottom": "24px",
             }}
           >
             <Rezumat
@@ -217,7 +219,7 @@ export function Plati() {
             style={{
               "border-radius": "24px",
               background: C.foaie,
-              padding: "6px 20px",
+              padding: "6px",
               "margin-bottom": "28px",
             }}
           >
@@ -255,7 +257,7 @@ function Rezumat(props: {
   return (
     <div
       style={{
-        padding: "20px 22px",
+        padding: "18px",
         "border-radius": "24px",
         background: props.fundal,
       }}
@@ -265,13 +267,13 @@ function Rezumat(props: {
         style={{
           ...DE_FONTE,
           margin: "6px 0 2px",
-          "font-size": "34px",
+          "font-size": "26px",
           "line-height": "1.1",
         }}
       >
         {lei(props.suma)}
       </p>
-      <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
+      <p style={{ margin: 0, color: C.stins, "font-size": "12px" }}>
         {props.sub}
       </p>
     </div>
@@ -309,8 +311,9 @@ function RandTranzactie(props: {
     <div
       class="bbt-tranzactie"
       style={{
-        padding: "14px 0",
-        "border-top": props.primul ? "0" : `1px solid ${C.linie}`,
+        // 23d: rânduri de 12 / 14 cu colțuri de 18, fără linii între ele.
+        padding: "12px 14px",
+        "border-radius": "18px",
       }}
     >
       <span class="data" style={{ color: C.stins, "font-size": "14px" }}>
@@ -319,8 +322,8 @@ function RandTranzactie(props: {
       <span
         class="titlu"
         style={{
-          "font-size": "16px",
-          "font-weight": 600,
+          "font-size": "14px",
+          "font-weight": 500,
           "min-width": 0,
           overflow: "hidden",
           "text-overflow": "ellipsis",
@@ -339,8 +342,8 @@ function RandTranzactie(props: {
       <span
         class="suma"
         style={{
-          "font-size": "16px",
-          "font-weight": 700,
+          "font-size": "14px",
+          "font-weight": 800,
           "white-space": "nowrap",
         }}
       >
@@ -379,8 +382,8 @@ function RandTranzactie(props: {
           title={`Factura ${p().fgoFacturaSerie ?? ""}-${p().fgoFacturaNumar ?? ""}`}
           aria-label="Descarcă factura"
           style={{
-            width: "38px",
-            height: "38px",
+            width: "36px",
+            height: "36px",
             display: "flex",
             "align-items": "center",
             "justify-content": "center",

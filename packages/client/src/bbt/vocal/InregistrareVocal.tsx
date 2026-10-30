@@ -271,17 +271,20 @@ export function ButonMicrofon(props: { onClick: () => void }) {
       aria-label="Înregistrează un vocal"
       onClick={() => props.onClick()}
     >
-      <Symbol size={16}>mic</Symbol>
+      <Symbol size={20}>mic</Symbol>
     </ButonRoz>
   );
 }
 
-// Aceleași măsuri ca bara de scris (`MessageBox.tsx`, pânza TRW): caseta de 44px, #141414, colțuri de 10px.
+// Aceleași măsuri ca bara de scris (`MessageBox.tsx`): pastila neagră de 56, cu cercul roz de 44 (21a, 30 oct 2026).
 const Parinte = styled("div", {
   base: {
     flexShrink: 0,
     display: "flex",
-    margin: "0 16px 14px",
+    margin: "12px 24px 20px",
+    _phone: {
+      margin: "0 12px 12px",
+    },
   },
 });
 
@@ -289,16 +292,16 @@ const Caseta = styled("div", {
   base: {
     flexGrow: 1,
     minWidth: 0,
-    minHeight: "44px",
+    minHeight: "56px",
     boxSizing: "border-box",
-    padding: "5px 6px",
+    padding: "6px 6px 6px 16px",
     gap: "10px",
-    borderRadius: "10px",
-    border: "1px solid rgba(255,255,255,0.1)",
+    borderRadius: "28px",
+    border: "0",
     display: "flex",
     alignItems: "center",
-    background: "#141414",
-    color: "var(--md-sys-color-on-surface)",
+    background: "#0A0A0B",
+    color: "#FFFFFF",
   },
 });
 
@@ -336,16 +339,19 @@ const Nivele = styled("div", {
   },
 });
 
-/** Pătratul roz de 32px al barei de scris (`--color-bbt-pink`), același ca butonul de trimis. */
+/**
+ * Cercul roz de 44 al barei de scris, același ca butonul de trimis. ROTUND, ca în aplicația de telefon și în 21a
+ * (cererea userului, 30 oct 2026); până atunci pătrat de 32 cu colțuri de 8.
+ */
 const ButonRoz = styled("button", {
   base: {
     flexShrink: 0,
-    width: "32px",
-    height: "32px",
+    width: "44px",
+    height: "44px",
     border: 0,
-    borderRadius: "8px",
-    background: "#ffa8cd",
-    color: "#000",
+    borderRadius: "50%",
+    background: "#FFB3D9",
+    color: "#0A0A0B",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
