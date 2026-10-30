@@ -58,24 +58,34 @@ function ajungeLaPagina(tinta: EventTarget | null, dy: number) {
 function arataMasuratorile(vv: VisualViewport) {
   try {
     if (location.search.includes("ecran"))
-      sessionStorage.setItem("bbt-ecran", "1");
-    if (!sessionStorage.getItem("bbt-ecran")) return;
+      localStorage.setItem("bbt-ecran", "1");
+    if (!localStorage.getItem("bbt-ecran")) return;
   } catch {
     return;
   }
   const el = document.createElement("div");
   el.style.cssText =
-    "position:fixed;left:50%;top:4px;transform:translateX(-50%);z-index:99999;padding:4px 8px;border-radius:8px;" +
+    "position:fixed;left:50%;transform:translateX(-50%);z-index:99999;padding:4px 8px;border-radius:8px;" +
     "background:#0A0A0B;color:#fff;font:12px/1.3 monospace;white-space:pre;pointer-events:none";
   document.body.append(el);
   const root = document.getElementById("root")!;
   setInterval(() => {
     const b = root.getBoundingClientRect();
+    // ⚠️ Lipită de ecranul vizibil: cu pagina mutată de Safari, un `top` fix iese din ecran (capturile din 31 oct).
+    el.style.top = `${Math.round(vv.offsetTop) + 4}px`;
     el.textContent =
       `vv h ${Math.round(vv.height)} sus ${Math.round(vv.offsetTop)} zoom ${vv.scale}\n` +
       `fereastra h ${innerHeight} scroll ${Math.round(scrollY)}\n` +
-      `root sus ${Math.round(b.top)} h ${Math.round(b.height)}`;
+      `root sus ${Math.round(b.top)} h ${Math.round(b.height)}\n` +
+      `tastatura ${document.documentElement.classList.contains("bbt-tastatura")} camp ${campActiv()}`;
   }, 200);
+}
+
+/** Dacă e activ un câmp care scoate tastatura. */
+function campActiv() {
+  return !!document.activeElement?.matches(
+    "textarea,[contenteditable='true'],mdui-text-field,input:not([type='checkbox'],[type='radio'],[type='file'],[type='button'])",
+  );
 }
 
 export function legaEcranulVizibil() {
@@ -141,7 +151,11 @@ export function legaEcranulVizibil() {
     if (s !== sus) r.style.setProperty("--bbt-ecran-sus", (sus = s));
     // Cu tastatura sus, bara de „home" a iPhone-ului e sub tastatură: marginea ei de jos
     // (`safe-area-inset-bottom`, 34px) ar lăsa o fâșie goală între câmpul de scris și tastatură.
-    const tastatura = window.innerHeight - vv.height > 120;
+    // ⚠️ Câmpul activ contează cât diferența: dacă iOS micșorează și `innerHeight`, diferența rămâne mică și tastatura
+    // n-ar fi văzută deloc, deci nici tragerile n-ar fi oprite. `coarse`: pe calculator nu e nicio tastatură pe ecran.
+    const tastatura =
+      window.innerHeight - vv.height > 120 ||
+      (window.matchMedia("(pointer: coarse)").matches && campActiv());
     if (tastatura !== r.classList.contains("bbt-tastatura")) {
       r.classList.toggle("bbt-tastatura", tastatura);
       urmaresteAtingerile(tastatura);
@@ -168,7 +182,11 @@ export function legaEcranulVizibil() {
   // ⚠️ Fără `window.scrollTo(0, 0)` la derularea ferestrei: pe iOS s-ar bate cu Safari, care
   // derulează singur spre câmpul în care scrii. Site-ul nu o face și nu are nevoie.
   window.addEventListener("scroll", remasoara, { passive: true });
-  document.addEventListener("focusin", remasoara);
+  // Pe loc, nu la cadrul următor: prima tragere de după apăsarea pe câmp trebuie să găsească ascultătorii puși.
+  document.addEventListener("focusin", () => {
+    aplica();
+    remasoara();
+  });
   document.addEventListener("touchend", remasoara, { passive: true });
   document.addEventListener("focusout", () => {
     remasoara();
