@@ -9,6 +9,7 @@ import { useState } from "@revolt/state";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { C } from "./cont/ui";
+import { setMembriDeschisi } from "./MembriComunitate";
 import { AvatarOm, CERC_40, IconInapoi, UN_RAND } from "./telefon";
 
 /**
@@ -41,7 +42,8 @@ export function AntetFirTelefon(props: { channel: Channel }) {
       .filter((m) => m.channelId === props.channel.id && m.authorId !== eu)
       .sort((a, b) => b.id.localeCompare(a.id));
     for (const m of mesaje) {
-      if (m.author && !oameni.has(m.author.id)) oameni.set(m.author.id, m.author);
+      if (m.author && !oameni.has(m.author.id))
+        oameni.set(m.author.id, m.author);
     }
     return [...oameni.values()];
   });
@@ -161,7 +163,23 @@ export function AntetFirTelefon(props: { channel: Channel }) {
 
       {/* Doar în canale, ca în aplicație: într-o conversație, omul e deja în pastilă. */}
       <Show when={!om() && autori().length}>
-        <div style={{ display: "flex", "align-items": "center" }}>
+        {/* ⚠️ `width` și `height` scrise aici: altfel regula din `Header.tsx` îl face cerc de 40. */}
+        <button
+          type="button"
+          aria-label="Membrii comunității"
+          onClick={() => setMembriDeschisi(true)}
+          style={{
+            display: "flex",
+            "align-items": "center",
+            width: "auto",
+            height: "44px",
+            padding: 0,
+            border: 0,
+            background: "transparent",
+            cursor: "pointer",
+            "-webkit-tap-highlight-color": "transparent",
+          }}
+        >
           <For each={autori().slice(0, 2)}>
             {(a, i) => (
               <span
@@ -195,7 +213,7 @@ export function AntetFirTelefon(props: { channel: Channel }) {
               +{rest() > 99 ? 99 : rest()}
             </span>
           </Show>
-        </div>
+        </button>
       </Show>
     </>
   );

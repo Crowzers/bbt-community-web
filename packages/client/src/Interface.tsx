@@ -28,6 +28,7 @@ import { SlideDrawer } from "../components/ui/components/navigation/SlideDrawer"
 import { ApelPrimit } from "./bbt/ApelPrimit";
 import { BaraSus } from "./bbt/BaraSus";
 import { firDeschis } from "./bbt/fir";
+import { membriDeschisi } from "./bbt/MembriComunitate";
 import { PastilaDeJos } from "./bbt/PastilaDeJos";
 import { Sidebar } from "./interface/Sidebar";
 
@@ -84,7 +85,9 @@ const Interface = (props: { children: JSX.Element }) => {
     if (cont && !sDrawer) {
       sDrawer = new SlideDrawer(cont, rootRef!, false);
       sDrawer.poateGlisa = () =>
-        location.pathname.includes("/channel/") && !firDeschis();
+        location.pathname.includes("/channel/") &&
+        !firDeschis() &&
+        !membriDeschisi();
       sDrawer.faraAnimatie = true;
     }
     //Update on layout change

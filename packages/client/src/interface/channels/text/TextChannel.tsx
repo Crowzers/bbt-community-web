@@ -30,6 +30,11 @@ import { VoiceChannelCallCardMount } from "@revolt/ui/components/features/voice/
 
 import { BandaFixat } from "../../../bbt/BandaFixat";
 import { FirRaspunsuri } from "../../../bbt/FirRaspunsuri";
+import {
+  MembriComunitate,
+  membriDeschisi,
+  setMembriDeschisi,
+} from "../../../bbt/MembriComunitate";
 import { cautareCeruta } from "../../../bbt/cautare";
 import { firDeschis, inchideFir } from "../../../bbt/fir";
 import { ChannelHeader } from "../ChannelHeader";
@@ -184,10 +189,14 @@ export function TextChannel(props: ChannelPageProps) {
       () => {
         setSidebarState({ state: "default" });
         inchideFir();
+        setMembriDeschisi(false);
       },
     ),
   );
-  onCleanup(inchideFir);
+  onCleanup(() => {
+    inchideFir();
+    setMembriDeschisi(false);
+  });
 
   // BBT: căutarea din bara de sus deschide panoul de căutare al canalului (src/bbt/cautare.ts).
   createEffect(
@@ -217,6 +226,9 @@ export function TextChannel(props: ChannelPageProps) {
     <>
       <Show when={layout() === "phone" && firDeschis()}>
         <FirRaspunsuri channel={props.channel} />
+      </Show>
+      <Show when={layout() === "phone" && membriDeschisi()}>
+        <MembriComunitate channel={props.channel} />
       </Show>
       <Header placement="primary">
         <ChannelHeader

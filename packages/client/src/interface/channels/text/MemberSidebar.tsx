@@ -27,6 +27,11 @@ interface Props {
    * Whether the server is very large and should not display all member information
    */
   isLargeServer?: boolean;
+
+  /**
+   * BBT: toți membrii serverului, și dintr-un canal restricționat (`bbt/MembriComunitate.tsx`)
+   */
+  totaComunitatea?: boolean;
 }
 
 /**
@@ -46,6 +51,7 @@ export function MemberSidebar(props: Props) {
           channel={props.channel}
           scrollTargetElement={props.scrollTargetElement}
           isLargeServer={props.isLargeServer}
+          totaComunitatea={props.totaComunitatea}
         />
       </Match>
     </Switch>
@@ -70,7 +76,8 @@ export function ServerMemberSidebar(props: Props) {
     // BBT (ca la TRW, 6 oct 2026): TOATĂ lumea pe grupe de rol — Echipa BBT, Moderatori, rolurile
     // din onboarding (admin, lib/stoat/roluri.ts) — online ȘI offline în aceeași grupă (offline
     // estompați, mai jos în grupă). Fără grupa separată „Offline", care ascundea rolul omului.
-    const restricted = props.channel.potentiallyRestrictedChannel;
+    const restricted =
+      !props.totaComunitatea && props.channel.potentiallyRestrictedChannel;
     const byRole: Map<
       string,
       { member: ServerMember; displayName: string; online: boolean }[]
