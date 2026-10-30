@@ -122,3 +122,78 @@
     --layout-width-channel-sidebar: 260px;
   }
 }
+
+/*
+ * Bula de pe telefon (19b, `ContainerBula` din `Container.tsx`): text 16/22 la 500, autorul deasupra, ora în colț.
+ * ⚠️ `::after` e locul orei pe ultimul rând: text transparent, cât ora, ca ora reală (poziționată peste colț) să nu stea
+ * peste cuvinte și să nu ceară un rând în plus. Cifrele vin din `mobil/src/fir/RandMesaj.tsx`.
+ */
+.bbt-bula {
+  --message-size: 16px;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.bbt-bula p {
+  margin: 0;
+}
+.bbt-bula > div:not(.bbt-bula-autor):last-of-type > :last-child::after {
+  content: var(--bbt-ora);
+  font-size: 11px;
+  color: transparent;
+}
+.bbt-bula-autor {
+  margin-bottom: 2px;
+  line-height: 15px;
+}
+.bbt-bula-ora {
+  position: absolute;
+  right: 16px;
+  bottom: 9px;
+  color: #6c6c6d;
+  font-size: 11px;
+  line-height: 13px;
+  font-weight: 400;
+}
+.bbt-bula-ora-media {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  color: #fff;
+  font-size: 11px;
+  line-height: 13px;
+  font-weight: 400;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.6);
+}
+
+/* Reacțiile stau sub bulă, lipite de ea (`RandMesaj.tsx`: `reactii`). */
+.bbt-reactii {
+  position: relative;
+  margin: -4px 8px 0;
+}
+.bbt-reactii:empty {
+  display: none;
+}
+
+/* Fără text, ora are nevoie de rândul ei sub vocal sau fișier (`randOra`); peste o poză stă în colțul ei. */
+.bbt-bula:not(.bbt-bula-media):not(:has(p))::after {
+  content: "";
+  display: block;
+  height: 12px;
+}
+/* Vocalul stă direct pe bulă, ca în aplicație; cardul gri rămâne pentru firul liniar de pe desktop. */
+.bbt-bula .bbt-vocal {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.bbt-bula .bbt-vocal > button:first-child {
+  width: 36px;
+  height: 36px;
+}
+/* Pe bula ta, un Play roz s-ar pierde: e negru cu triunghi alb, ca în `mobil/src/fir/BulaVocal.tsx`. */
+.bbt-bula-mea .bbt-vocal > button:first-child {
+  background: #0a0a0b;
+  color: #fff;
+}

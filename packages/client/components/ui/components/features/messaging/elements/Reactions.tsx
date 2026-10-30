@@ -237,6 +237,13 @@ const ReactionBase = styled("div", {
       height: "1.2em",
       objectFit: "contain",
     },
+
+    // Cipul de sub bulă din aplicație (`RandMesaj.tsx`, `reactie`): alb, lipit de bulă, cu chenar în culoarea firului.
+    _phone: {
+      padding: "2px 7px",
+      borderRadius: "12px",
+      fontSize: "13px",
+    },
   },
   variants: {
     active: {
@@ -244,10 +251,17 @@ const ReactionBase = styled("div", {
         color: "#0A0A0B",
         background: "#FFEEF5",
         borderColor: "#FFB3D9",
+        _phone: {
+          background: "#FFFFFF",
+        },
       },
       false: {
         color: "#0A0A0B",
         background: "#F2F2F3",
+        _phone: {
+          background: "#FFFFFF",
+          borderColor: "#F2F2F3",
+        },
       },
     },
   },

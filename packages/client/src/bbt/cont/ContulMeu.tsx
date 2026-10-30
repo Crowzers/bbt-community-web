@@ -21,7 +21,9 @@ import { useAlunecare } from "../Alunecare";
 import { useCont, useExperiente } from "./date";
 import { Diplome } from "./Diplome";
 import { Experiente } from "./Experiente";
+import { ExperienteTelefon } from "./ExperienteTelefon";
 import { Plati } from "./Plati";
+import { ProfilTelefon } from "./ProfilTelefon";
 import { DatePersonaleCont, NotificariCont, ProfilPublic } from "./Setari";
 import { Tabara } from "./tabara/Tabara";
 import { Buton, C, Fereastra } from "./ui";
@@ -38,8 +40,8 @@ import { Buton, C, Fereastra } from "./ui";
  * ⚠️ Adresele vechi (`/cont/mycamps`, `/cont/setari`…) duc în pagina nouă care le-a luat locul: cineva le are în
  * istoric sau într-un link primit.
  *
- * Telefon: `/cont` = lista, `/cont/<pagina>` = pagina cu „înapoi" sus. Desktop: meniul stă mereu în stânga, iar
- * `/cont` simplu deschide Experiențele mele.
+ * Telefon: `/cont` = tab-ul Profil, `/cont/experiente` = tab-ul Experiențe, ca în aplicație; restul paginilor, cu
+ * „înapoi" sus. Desktop: meniul stă mereu în stânga, iar `/cont` simplu deschide Experiențele mele.
  */
 
 type Rand = { pagina: string; nume: string };
@@ -94,7 +96,7 @@ export function ContulMeu() {
     ),
   );
 
-  // Pe desktop `/cont` simplu = Experiențele mele; pe telefon = lista (vezi antetul).
+  // Pe desktop `/cont` simplu = Experiențele mele; pe telefon = Profil (vezi antetul).
   const pagina = () => {
     const p = params.pagina;
     if (!p) return telefon() ? undefined : "experiente";
@@ -109,6 +111,10 @@ export function ContulMeu() {
     </Show>
   );
 
+  // BBT: pe telefon, Profil și Experiențe sunt tab-uri, ca în aplicație: fără „înapoi", cu pastila de meniu jos.
+  const ecranTab = () =>
+    telefon() && (!pagina() || pagina() === "experiente");
+
   return (
     <div
       style={{
@@ -121,27 +127,15 @@ export function ContulMeu() {
         "font-family": "Inter, sans-serif",
       }}
     >
-      <Show when={!telefon() || !pagina()}>
-        <div
-          style={{
-            display: "flex",
-            "flex-direction": "column",
-            width: telefon() ? "100%" : undefined,
-          }}
-        >
-          <Show when={telefon()}>
-            <Inapoi
-              text="Înapoi"
-              laApasare={() => state.appDrawer()?.setShown(false)}
-            />
-          </Show>
-          <Meniu
-            activ={pagina() === "tabara" ? "experiente" : pagina()}
-            lat={telefon()}
-          />
-        </div>
+      <Show when={ecranTab()}>
+        <Show when={pagina()} fallback={<ProfilTelefon />}>
+          <ExperienteTelefon />
+        </Show>
       </Show>
-      <Show when={pagina()}>
+      <Show when={!telefon()}>
+        <Meniu activ={pagina() === "tabara" ? "experiente" : pagina()} />
+      </Show>
+      <Show when={pagina() && !ecranTab()}>
         <div
           class="bbt-pagina-cont"
           style={{
@@ -156,7 +150,7 @@ export function ContulMeu() {
             when={pagina() === "tabara"}
             fallback={
               <Show when={telefon()}>
-                <Inapoi text="Contul meu" laApasare={() => navigate("/cont")} />
+                <Inapoi text="Profil" laApasare={() => navigate("/cont")} />
               </Show>
             }
           >
@@ -210,7 +204,7 @@ function Inapoi(props: { text: string; laApasare: () => void }) {
   );
 }
 
-function Meniu(props: { activ?: string; lat: boolean }) {
+function Meniu(props: { activ?: string }) {
   const navigate = useNavigate();
   const cont = useCont();
   const experiente = useExperiente();
@@ -240,7 +234,7 @@ function Meniu(props: { activ?: string; lat: boolean }) {
               "align-items": "center",
               gap: "10px",
               width: "100%",
-              height: props.lat ? "48px" : "38px",
+              height: "38px",
               padding: "0 12px",
               "box-sizing": "border-box",
               "border-radius": "14px",
@@ -251,7 +245,7 @@ function Meniu(props: { activ?: string; lat: boolean }) {
               transition: "color 200ms ease",
               color: activ() ? C.text : C.stins,
               "font-family": "inherit",
-              "font-size": props.lat ? "16px" : "14px",
+              "font-size": "14px",
               "font-weight": activ() ? 800 : 600,
               "text-align": "left",
               cursor: "pointer",
@@ -278,11 +272,6 @@ function Meniu(props: { activ?: string; lat: boolean }) {
                 {deFacut()}
               </span>
             </Show>
-            <Show when={props.lat}>
-              <span style={{ color: C.slab, display: "flex" }}>
-                <Symbol size={16}>chevron_right</Symbol>
-              </span>
-            </Show>
           </button>
         );
       }}
@@ -294,13 +283,13 @@ function Meniu(props: { activ?: string; lat: boolean }) {
       aria-label="Contul meu"
       class="bbt-meniu-cont"
       style={{
-        width: props.lat ? "100%" : "260px",
+        width: "260px",
         height: "100%",
         "flex-shrink": 0,
         "overflow-y": "auto",
-        padding: props.lat ? "16px" : "16px 12px",
+        padding: "16px 12px",
         "box-sizing": "border-box",
-        "border-right": props.lat ? "0" : `1px solid ${C.linie}`,
+        "border-right": `1px solid ${C.linie}`,
         display: "flex",
         "flex-direction": "column",
         gap: "2px",

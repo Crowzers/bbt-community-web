@@ -14,6 +14,7 @@ import { decodeTime, ulid } from "ulid";
 
 import { DraftMessages, Messages } from "@revolt/app";
 import { useClient } from "@revolt/client";
+import { useDevice } from "@revolt/common";
 import { Keybind, KeybindAction, createKeybind } from "@revolt/keybinds";
 import { useNavigate, useSmartParams } from "@revolt/routing";
 import { useState } from "@revolt/state";
@@ -66,6 +67,7 @@ export function canIHasSidebar(ch: Channel) {
 export function TextChannel(props: ChannelPageProps) {
   const state = useState();
   const client = useClient();
+  const { layout } = useDevice();
 
   // Last unread message id
   const [lastId, setLastId] = createSignal<string>();
@@ -215,11 +217,12 @@ export function TextChannel(props: ChannelPageProps) {
         />
       </Header>
       <Content>
-        {/* BBT: conversația directă pe gri, cu mesajele pe alb și roz deasupra (23a); canalele rămân albe (21a). */}
+        {/* BBT: conversația directă pe gri, cu mesajele pe alb și roz deasupra (23a); canalele rămân albe (21a). Pe
+            telefon, gri peste tot: bulele sunt și în canale, ca în aplicație (19b). */}
         <main
           class={main()}
           style={
-            props.channel.type === "DirectMessage"
+            props.channel.type === "DirectMessage" || layout() === "phone"
               ? { background: "#F2F2F3" }
               : undefined
           }

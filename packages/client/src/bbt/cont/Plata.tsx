@@ -1,4 +1,4 @@
-import { Show, createSignal, onCleanup, onMount } from "solid-js";
+import { JSX, Show, createSignal, onCleanup, onMount } from "solid-js";
 
 import { useQueryClient } from "@tanstack/solid-query";
 
@@ -256,13 +256,26 @@ export function ButonPlateste(props: {
   plata: PlataExperienta;
   progres?: { platit: number; total: number; nrTranse: number } | null;
   mic?: boolean;
+  /** Alt buton pentru aceeași fereastră: pe telefon e pastila neagră din aplicație (19c), nu cea galbenă din 23. */
+  buton?: (deschide: () => void) => JSX.Element;
 }) {
   const [deschisa, setDeschisa] = createSignal(false);
   return (
     <>
-      <Buton piele="galben" mic={props.mic} onClick={() => setDeschisa(true)}>
-        {props.plata.actiune === "contract" ? "Semnează" : "Plătește"}
-      </Buton>
+      <Show
+        when={props.buton}
+        fallback={
+          <Buton
+            piele="galben"
+            mic={props.mic}
+            onClick={() => setDeschisa(true)}
+          >
+            {props.plata.actiune === "contract" ? "Semnează" : "Plătește"}
+          </Buton>
+        }
+      >
+        {(b) => b()(() => setDeschisa(true))}
+      </Show>
       <Show when={deschisa()}>
         <FereastraPlata
           plata={props.plata}

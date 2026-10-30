@@ -122,6 +122,20 @@ const Base = styled("div", {
     "--md-sys-color-on-surface": "#FFFFFF",
     "--md-sys-color-on-surface-variant": "#C9C9CE",
     "--md-sys-color-outline": "#A0A0AA",
+
+    // Pe telefon, aceeași pastilă ca meniul de jos (`bbt/PastilaDeJos.tsx`), ca în aplicație (`ui/morf.ts`): 60 de
+    // înălțime = 6 + 48 + 6. Textul rămâne la 16, nu 15 ca în aplicație: sub 16, iOS mărește pagina la focus.
+    _phone: {
+      minHeight: "60px",
+      padding: "6px",
+      gap: "4px",
+      borderRadius: "30px",
+      border: 0,
+      background: "rgba(10,10,11,0.92)",
+      backdropFilter: "blur(20px) saturate(1.6)",
+      boxShadow: "0 8px 18px rgba(0,0,0,0.28)",
+      "--message-size": "16px",
+    },
   },
 });
 
@@ -136,7 +150,7 @@ const Parent = styled("div", {
     // 21a; pe telefon, mai strâns.
     margin: "12px 24px 20px",
     _phone: {
-      margin: "0 12px 12px",
+      margin: "6px 12px",
     },
     maxHeight: "var(--layout-height-message-box)",
   },
@@ -179,7 +193,15 @@ export const InlineIcon = styled("div", {
   variants: {
     size: {
       short: { width: "4px" },
-      normal: { width: "40px" },
+      normal: {
+        width: "40px",
+        // „+" și camera din aplicație: 44 × 48, fără cerc în jur.
+        _phone: {
+          width: "44px",
+          height: "48px",
+          "& > button": { width: "44px", height: "48px" },
+        },
+      },
     },
   },
   defaultVariants: {

@@ -17,7 +17,8 @@ import { LAYOUT_SECTIONS } from "@revolt/state/stores/Layout";
 import { useDevice } from "@revolt/common";
 
 import { BaraSectiuni } from "../bbt/BaraSectiuni";
-import { BaraSus } from "../bbt/BaraSus";
+import { ComunitateTelefon } from "../bbt/ComunitateTelefon";
+import { MesajeTelefon } from "../bbt/MesajeTelefon";
 import { HomeSidebar, ServerSidebar } from "./navigation";
 
 const MainBar = styled("div", {
@@ -65,9 +66,8 @@ export const Sidebar = (_props: {
       class="main_bar"
       style={telefon() ? { "flex-direction": "column" } : undefined}
     >
-      <Show when={telefon()}>
-        <BaraSus compact />
-      </Show>
+      {/* BBT: pe telefon, fără bară de sus și bară de tab-uri: ecranele sunt ale aplicației mobile, cu pastila
+          plutitoare (`bbt/PastilaDeJos.tsx`, montată în `Interface.tsx`). Cererea userului, 30 oct 2026. */}
       <Show when={!telefon()}>
         <BaraSectiuni necititeMesaje={necititeMesaje()} />
       </Show>
@@ -92,15 +92,16 @@ export const Sidebar = (_props: {
           }
         >
           <Switch fallback={<Home />}>
+            {/* BBT: pe telefon, ecranul Comunitate din aplicație (19a); `ServerSidebar` rămâne pe desktop (21a). */}
+            <Match when={params.server && telefon()}>
+              <ComunitateTelefon />
+            </Match>
             <Match when={params.server}>
               <Server />
             </Match>
           </Switch>
         </Show>
       </div>
-      <Show when={telefon()}>
-        <BaraSectiuni orizontal necititeMesaje={necititeMesaje()} />
-      </Show>
     </MainBar>
   );
 };
@@ -115,33 +116,42 @@ const Home: Component = () => {
   const conversations = createMemo(() =>
     state.ordering.orderedConversations(client()),
   );
+  const { layout } = useDevice();
 
   return (
-    <HomeSidebar
-      conversations={conversations}
-      channelId={params().channelId}
-      openSavedNotes={(navigate) => {
-        // Check whether the saved messages channel exists already
-        const channelId = [...client()!.channels.values()].find(
-          (channel) => channel.type === "SavedMessages",
-        )?.id;
+    <Show
+      when={layout() === "phone"}
+      fallback={
+        <HomeSidebar
+          conversations={conversations}
+          channelId={params().channelId}
+          openSavedNotes={(navigate) => {
+            // Check whether the saved messages channel exists already
+            const channelId = [...client()!.channels.values()].find(
+              (channel) => channel.type === "SavedMessages",
+            )?.id;
 
-        if (navigate) {
-          if (channelId) {
-            // Navigate if exists
-            navigate(`/channel/${channelId}`);
-          } else {
-            // If not, try to create one but only if navigating
-            client()!
-              .user!.openDM()
-              .then((channel) => navigate(`/channel/${channel.id}`));
-          }
-        }
+            if (navigate) {
+              if (channelId) {
+                // Navigate if exists
+                navigate(`/channel/${channelId}`);
+              } else {
+                // If not, try to create one but only if navigating
+                client()!
+                  .user!.openDM()
+                  .then((channel) => navigate(`/channel/${channel.id}`));
+              }
+            }
 
-        // Otherwise return channel ID if available
-        return channelId;
-      }}
-    />
+            // Otherwise return channel ID if available
+            return channelId;
+          }}
+        />
+      }
+    >
+      {/* BBT: pe telefon, ecranul Mesaje din aplicație (20a). */}
+      <MesajeTelefon conversations={conversations} />
+    </Show>
   );
 };
 

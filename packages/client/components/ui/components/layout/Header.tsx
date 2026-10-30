@@ -48,6 +48,14 @@ export const Header = styled("div", {
     placement: {
       primary: {
         margin: 0,
+        // Antetul firului din aplicație (19b): alb, fără fir dedesubt, 6 + pastila de 48 + 6, 12 pe laterale.
+        _phone: {
+          height: "60px",
+          padding: "0 12px",
+          gap: "8px",
+          borderBottom: "0",
+          background: "#FFFFFF",
+        },
       },
       // Capul listei de canale: fără fir dedesubt, titlul stă în coloană (21a).
       secondary: {

@@ -109,7 +109,7 @@ export function BulaVocal(props: { file: File; durataMs: number }) {
   });
 
   return (
-    <Bula ref={bula}>
+    <Bula ref={bula} class="bbt-vocal">
       <ButonPlay
         type="button"
         aria-label={canta() ? "Pauză" : "Ascultă vocalul"}

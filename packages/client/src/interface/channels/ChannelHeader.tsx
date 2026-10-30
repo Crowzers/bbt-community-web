@@ -26,6 +26,7 @@ import MdGroup from "@material-design-icons/svg/outlined/group.svg?component-sol
 import MdPersonAdd from "@material-design-icons/svg/outlined/person_add.svg?component-solid";
 import MdSettings from "@material-design-icons/svg/outlined/settings.svg?component-solid";
 
+import { AntetFirTelefon } from "../../bbt/AntetFirTelefon";
 import { HeaderIcon } from "../common/CommonHeader";
 
 import { canIHasSidebar, SidebarState } from "./text/TextChannel";
@@ -51,6 +52,16 @@ interface Props {
  * Common channel header component
  */
 export function ChannelHeader(props: Props) {
+  const { layout } = useDevice();
+  // BBT: pe telefon, antetul firului din aplicație (19b).
+  return (
+    <Show when={layout() === "phone"} fallback={<AntetLat {...props} />}>
+      <AntetFirTelefon channel={props.channel} />
+    </Show>
+  );
+}
+
+function AntetLat(props: Props) {
   const { openModal } = useModals();
   const client = useClient();
   const { t } = useLingui();

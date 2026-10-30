@@ -120,6 +120,7 @@ export interface Participant {
   numeAfisat: string | null;
   bio: string | null;
   mainRole: string | null;
+  mainGenre?: string | null;
   musicGenres: string[];
   /** Rețea → adresă (`instagram`, `spotify`, `soundcloud`…), curățate de admin la salvare. */
   socialLinks: Record<string, string> | null;

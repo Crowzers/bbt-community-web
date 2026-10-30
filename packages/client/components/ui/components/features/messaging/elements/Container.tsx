@@ -118,6 +118,21 @@ type Props = CommonProps & {
    * Reference time to render timestamps from
    */
   _referenceTime?: number;
+
+  /**
+   * BBT: pe telefon, mesajul e bulă ca în aplicație (19b): `mea` în dreapta, roz; `altii` în stânga, albă.
+   */
+  bula?: "mea" | "altii";
+
+  /**
+   * BBT: bula e doar poză sau video: fără padding de text, cu ora peste imagine.
+   */
+  doarMedia?: boolean;
+
+  /**
+   * BBT: ce stă sub bulă, în afara ei (reacțiile).
+   */
+  subBula?: JSX.Element;
 };
 
 /**
@@ -190,6 +205,17 @@ const base = cva({
         },
       },
       hide: {},
+    },
+    // BBT: bula de pe telefon (`ContainerBula`) își pune singură distanțele și n-are fundal la atingere.
+    bula: {
+      true: {
+        padding: 0,
+        marginTop: "0 !important",
+
+        "&:hover": {
+          background: "transparent",
+        },
+      },
     },
     iOSTouch: {
       true: {
@@ -327,9 +353,108 @@ const CompactInfo = styled(Row, {
 });
 
 /**
+ * Mesajul pe telefon, ca bulă. Copia lui `mobil/src/fir/RandMesaj.tsx`, cu măsurile de acolo (19b): raza 26, colțul
+ * cozii 8, padding 12/16, text 16/22 la 500, autorul 12 gros, avatarul 32, cel mult 80% din lățime.
+ *
+ * ⚠️ Ora stă peste colțul bulei, ca la WhatsApp. Pe ultimul rând de text îi ține locul `--bbt-ora`, un text transparent
+ * adăugat după paragraf (`src/bbt/raspuns.css`), ca să nu ceară un rând în plus și să nu se suprapună peste cuvinte.
+ */
+function ContainerBula(props: Props) {
+  const { message } = useMessage();
+  const mea = () => props.bula === "mea";
+
+  const ceas = () => {
+    if (!(props.timestamp instanceof Date)) return "";
+    const ora = props.timestamp.toLocaleTimeString("ro-RO", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return props.edited ? `editat ${ora}` : ora;
+  };
+
+  return (
+    <div
+      id={message?.id}
+      ref={props.ref}
+      class={
+        "group " +
+        base({
+          tail: props.tail,
+          highlight: props.highlight,
+          sendStatus: props.sendStatus,
+          bula: true,
+          iOSTouch: true,
+        })
+      }
+      use:floating={{ contextMenu: props.contextMenu }}
+      style={{
+        display: "flex",
+        "flex-direction": "row",
+        "align-items": "flex-start",
+        "justify-content": mea() ? "flex-end" : undefined,
+        gap: "6px",
+        padding: `${props.tail ? 2 : 8}px 8px 0`,
+      }}
+    >
+      <Show when={!mea()}>
+        <div style={{ width: "32px", "flex-shrink": 0 }}>
+          <Show when={!props.tail}>{props.avatar}</Show>
+        </div>
+      </Show>
+      <div
+        style={{
+          display: "flex",
+          "flex-direction": "column",
+          "align-items": mea() ? "flex-end" : "flex-start",
+          "max-width": "80%",
+          "min-width": 0,
+        }}
+      >
+        <div
+          class={`bbt-bula${mea() ? " bbt-bula-mea" : ""}${props.doarMedia ? " bbt-bula-media" : ""}`}
+          style={{
+            position: "relative",
+            "max-width": "100%",
+            "min-width": "72px",
+            padding: props.doarMedia ? "6px" : "12px 16px",
+            "box-sizing": "border-box",
+            "border-radius": mea() ? "26px 26px 8px 26px" : "26px 26px 26px 8px",
+            background: mea() ? "#FFB3D9" : "#FFFFFF",
+            color: "#0A0A0B",
+            "--bbt-ora": `"  ${ceas()}"`,
+          }}
+        >
+          <Show when={!mea() && !props.tail}>
+            <div class="bbt-bula-autor">{props.username}</div>
+          </Show>
+          {props.header}
+          {props.children}
+          <Show when={ceas()}>
+            <span
+              class={props.doarMedia ? "bbt-bula-ora-media" : "bbt-bula-ora"}
+            >
+              {ceas()}
+            </span>
+          </Show>
+        </div>
+        {props.subBula}
+      </div>
+    </div>
+  );
+}
+
+/**
  * Component to show avatar, username, timestamp and content
  */
 export function MessageContainer(props: Props) {
+  return (
+    <Show when={props.bula} fallback={<ContainerLiniar {...props} />}>
+      <ContainerBula {...props} />
+    </Show>
+  );
+}
+
+function ContainerLiniar(props: Props) {
   const { t } = useLingui();
   const { message } = useMessage();
   const { isMobile, isIOSTouch } = useDevice();

@@ -27,6 +27,7 @@ import { LoadingScreen } from "@revolt/ui";
 import { SlideDrawer } from "../components/ui/components/navigation/SlideDrawer";
 import { ApelPrimit } from "./bbt/ApelPrimit";
 import { BaraSus } from "./bbt/BaraSus";
+import { PastilaDeJos } from "./bbt/PastilaDeJos";
 import { Sidebar } from "./interface/Sidebar";
 
 /**
@@ -37,7 +38,8 @@ const Interface = (props: { children: JSX.Element }) => {
   const client = useClient();
   const { openModal } = useModals();
   const { isLoggedIn, lifecycle } = useClientLifecycle();
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
   const { layout } = useDevice();
 
   useBeforeLeave((e) => {
@@ -78,7 +80,10 @@ const Interface = (props: { children: JSX.Element }) => {
     //Create drawer
     const cont = contRef();
     // BBT: pe telefon, intrarea în aplicație arată lista de canale, nu canalul (vezi SlideDrawer).
-    if (cont && !sDrawer) sDrawer = new SlideDrawer(cont, rootRef!, false);
+    if (cont && !sDrawer) {
+      sDrawer = new SlideDrawer(cont, rootRef!, false);
+      sDrawer.poateGlisa = () => location.pathname.includes("/channel/");
+    }
     //Update on layout change
     if (sDrawer) {
       const en = sDrawer.enabled;
@@ -102,8 +107,7 @@ const Interface = (props: { children: JSX.Element }) => {
             <Navigate href="/login" />
           </Match>
           <Match when={lifecycle.loadedOnce()}>
-            {/* BBT: bara de sus cu contul separat — doar desktop; pe telefon stă în capul listei
-                de canale (src/interface/Sidebar.tsx). src/bbt/BaraSus.tsx */}
+            {/* BBT: bara de sus cu contul separat — doar desktop; pe telefon, pastila de jos. src/bbt/BaraSus.tsx */}
             <Show when={layout() !== "phone"}>
               <BaraSus />
             </Show>
@@ -145,6 +149,10 @@ const Interface = (props: { children: JSX.Element }) => {
         </Switch>
 
         <NotificationsWorker />
+        {/* BBT: pastila de meniu de pe telefon, ca în aplicația mobilă — src/bbt/PastilaDeJos.tsx */}
+        <Show when={lifecycle.loadedOnce() && layout() === "phone"}>
+          <PastilaDeJos />
+        </Show>
         {/* BBT: „X te sună" — src/bbt/ApelPrimit.tsx */}
         <Show when={lifecycle.loadedOnce()}>
           <ApelPrimit />

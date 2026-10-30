@@ -43,6 +43,13 @@ export class SlideDrawer {
   private lShow = true;
   private ofs = 0;
 
+  /**
+   * BBT: dacă glisarea cu degetul mută ecranul acum. `Interface.tsx` o lasă doar în fir: pe liste și pe Profil, tab-urile
+   * se schimbă din pastila de jos, ca în aplicație, iar o glisare ar fi scos la iveală o pagină goală, respectiv ar fi
+   * lăsat omul pe o listă fără meniu.
+   */
+  poateGlisa: () => boolean = () => true;
+
   private dispose!: () => void;
   private eGet!: Accessor<boolean>;
   private eSet!: Setter<boolean>;
@@ -99,7 +106,7 @@ export class SlideDrawer {
   private start(e: TouchEvent) {
     //Cancel if more than one finger
     if (e.touches.length > 1) return this.endTouch();
-    if (this.touch || !this.eGet()) return;
+    if (this.touch || !this.eGet() || !this.poateGlisa()) return;
 
     //Track this touch
     const t = e.touches[0];

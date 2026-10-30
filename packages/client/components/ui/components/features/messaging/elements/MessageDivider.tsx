@@ -25,6 +25,11 @@ const Base = styled("div", {
 
       color: "#8D8D9A",
       background: "#FFFFFF",
+
+      // Pe telefon, firul e gri (19b), iar eticheta rupe linia cu fundalul lui.
+      _phone: {
+        background: "#F2F2F3",
+      },
     },
   },
   variants: {

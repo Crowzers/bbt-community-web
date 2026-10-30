@@ -13,7 +13,7 @@ import { Channel } from "stoat.js";
 import { styled } from "styled-system/jsx";
 
 import { useClient } from "@revolt/client";
-import { debounce } from "@revolt/common";
+import { debounce, useDevice } from "@revolt/common";
 import { createIsTimedOut } from "@revolt/common/lib/createIsTimedOut";
 import { useInstance } from "@revolt/instance";
 import { createKeybind, Keybind, KeybindAction } from "@revolt/keybinds";
@@ -32,6 +32,7 @@ import {
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 import { useSearchSpace } from "@revolt/ui/components/utils/autoComplete";
 
+import { IconCamera, IconPlus } from "../../../bbt/telefon";
 import {
   BaraVocal,
   ButonMicrofon,
@@ -61,6 +62,8 @@ export function MessageComposition(props: Props) {
   const client = useClient();
   const { limits } = useInstance();
   const { openModal } = useModals();
+  const { layout } = useDevice();
+  const telefon = () => layout() === "phone";
 
   const isTimedOut = createIsTimedOut(
     () => props.channel.server?.member?.timeout,
@@ -283,12 +286,14 @@ export function MessageComposition(props: Props) {
 
   /**
    * Add a file to the message
+   * @param sursa BBT: `camera` deschide direct camera telefonului (`capture`), în loc de alegerea de fișiere
    */
-  function addFile() {
+  function addFile(sursa?: "camera") {
     if (!canUploadFiles()) return;
 
     const input = document.createElement("input");
-    input.accept = "*";
+    input.accept = sursa === "camera" ? "image/*,video/*" : "*";
+    if (sursa === "camera") input.setAttribute("capture", "environment");
     input.type = "file";
     input.multiple = true;
     input.style.display = "none";
@@ -395,7 +400,7 @@ export function MessageComposition(props: Props) {
       <FileCarousel
         files={draft().files ?? []}
         getFile={state.draft.getFile}
-        addFile={addFile}
+        addFile={() => addFile()}
         removeFile={removeFile}
         isSpoiler={isSpoiler}
         toggleSpoiler={toggleSpoiler}
@@ -446,8 +451,10 @@ export function MessageComposition(props: Props) {
                 fallback={<MessageBox.InlineIcon size="short" />}
               >
                 <MessageBox.InlineIcon>
-                  <IconButton onPress={addFile}>
-                    <Symbol>add</Symbol>
+                  <IconButton onPress={() => addFile()}>
+                    <Show when={telefon()} fallback={<Symbol>add</Symbol>}>
+                      <IconPlus />
+                    </Show>
                   </IconButton>
                 </MessageBox.InlineIcon>
               </Show>
@@ -473,11 +480,25 @@ export function MessageComposition(props: Props) {
                     {(triggerProps) => (
                       <>
                         {/* BBT: fără butonul GIF (cererea userului, 5 oct 2026). */}
-                        <MessageBox.InlineIcon>
-                          <IconButton onPress={triggerProps.onClickEmoji}>
-                            <Symbol>mood</Symbol>
-                          </IconButton>
-                        </MessageBox.InlineIcon>
+                        {/* Pe telefon, ca în aplicație: camera în locul emoji-urilor, pe care le dă tastatura. */}
+                        <Show
+                          when={telefon()}
+                          fallback={
+                            <MessageBox.InlineIcon>
+                              <IconButton onPress={triggerProps.onClickEmoji}>
+                                <Symbol>mood</Symbol>
+                              </IconButton>
+                            </MessageBox.InlineIcon>
+                          }
+                        >
+                          <Show when={canUploadFiles()}>
+                            <MessageBox.InlineIcon>
+                              <IconButton onPress={() => addFile("camera")}>
+                                <IconCamera />
+                              </IconButton>
+                            </MessageBox.InlineIcon>
+                          </Show>
+                        </Show>
                         <div ref={triggerProps.ref} />
                       </>
                     )}
@@ -563,6 +584,11 @@ const ButonTrimite = styled("button", {
     "&:disabled": {
       opacity: 0.35,
       cursor: "default",
+    },
+    // 48, ca în aplicație (19b).
+    _phone: {
+      width: "48px",
+      height: "48px",
     },
   },
 });

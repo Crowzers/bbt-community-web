@@ -19,6 +19,7 @@ import { styled } from "styled-system/jsx";
 import { decodeTime } from "ulid";
 
 import { useClient } from "@revolt/client";
+import { useDevice } from "@revolt/common";
 import { isGif } from "@revolt/common/lib/gifs";
 import { useTime } from "@revolt/i18n";
 import { Markdown } from "@revolt/markdown";
@@ -47,6 +48,7 @@ import {
 } from "../../../menus/UserContextMenu";
 
 import { createIsTimedOut } from "@revolt/common/lib/createIsTimedOut";
+import { AvatarOm } from "../../../../../src/bbt/telefon";
 import { EditMessage } from "./EditMessage";
 
 /**
@@ -115,6 +117,7 @@ export function Message(props: Props) {
   const state = useState();
   const { t } = useLingui();
   const client = useClient();
+  const { layout } = useDevice();
 
   const [isHovering, setIsHovering] = createSignal(false);
   const [reactPicker, setReactPicker] = createSignal<MediaPickerProps>();
@@ -155,10 +158,45 @@ export function Message(props: Props) {
     ),
   );
 
+  // BBT: pe telefon firul e cel din aplicație (19b): bule și în canale, ale tale în dreapta. Pe desktop rămân 21a și
+  // 23a. Mesajele de sistem, editarea și rezultatele din căutare își păstrează rândul lor.
+  const bula = () =>
+    layout() === "phone" &&
+    !props.isLink &&
+    !props.editing &&
+    !props.message.systemMessage &&
+    !state.settings.getValue("appearance:compact_mode")
+      ? props.message.authorId === client().user?.id
+        ? ("mea" as const)
+        : ("altii" as const)
+      : undefined;
+
+  // Doar poze sau video: bula se strânge pe imagine, iar ora stă peste ea, ca în aplicație.
+  const doarMedia = () =>
+    !props.message.content &&
+    !props.message.embeds?.length &&
+    !!props.message.attachments?.length &&
+    props.message.attachments.every(
+      (f) => f.metadata.type === "Image" || f.metadata.type === "Video",
+    );
+
+  const reactii = () => (
+    <Reactions
+      reactions={props.message.reactions as never as Map<string, Set<string>>}
+      interactions={props.message.interactions}
+      userId={client().user!.id}
+      addReaction={react}
+      removeReaction={unreact}
+    />
+  );
+
   return (
     <MessageContext message={props.message} reactPicker={reactPicker}>
       <MessageContainer
         ref={msgRef}
+        bula={bula()}
+        doarMedia={doarMedia()}
+        subBula={<div class="bbt-reactii">{reactii()}</div>}
         onHover={setIsHovering}
         username={
           <div use:floating={floatingUserMenusFromMessage(props.message)}>
@@ -173,8 +211,11 @@ export function Message(props: Props) {
               // BBT (21a, 30 oct 2026): numele au O singură culoare, movul #5C4ADE, nu culoarea rolului din Stoat
               // (portocaliul și rozul pal ale rolurilor nu se citeau pe alb). Rolul se vede din pastila galbenă.
               colour="#5C4ADE"
-              // 15 / 800, ca în 21a.
-              style={{ "font-size": "15px", "font-weight": 800 }}
+              // 15 / 800, ca în 21a; în bulă, 12 / 800, ca în 19b.
+              style={{
+                "font-size": bula() ? "12px" : "15px",
+                "font-weight": 800,
+              }}
             />
           </div>
         }
@@ -183,15 +224,22 @@ export function Message(props: Props) {
             class={avatarContainer()}
             use:floating={floatingUserMenusFromMessage(props.message)}
           >
-            {/* 40, ca în 21a (până pe 30 oct, 36); coloana avatarului are 54 = 40 + 14. */}
-            <Avatar
-              size={40}
-              src={
-                isHovering()
-                  ? props.message.animatedAvatarURL
-                  : props.message.avatarURL
+            {/* 40, ca în 21a (până pe 30 oct, 36); coloana avatarului are 54 = 40 + 14. Lângă bulă, 32, ca în 19b. */}
+            <Show
+              when={bula()}
+              fallback={
+                <Avatar
+                  size={40}
+                  src={
+                    isHovering()
+                      ? props.message.animatedAvatarURL
+                      : props.message.avatarURL
+                  }
+                />
               }
-            />
+            >
+              <AvatarOm om={props.message.author} marime={32} />
+            </Show>
           </div>
         }
         pronouns={pronouns()}
@@ -419,6 +467,7 @@ export function Message(props: Props) {
             when={
               props.message.content &&
               !isOnlyGIF() &&
+              !bula() &&
               props.message.channel?.type === "DirectMessage"
             }
           >
@@ -460,15 +509,7 @@ export function Message(props: Props) {
         <For each={props.message.embeds}>
           {(embed) => <Embed embed={embed} />}
         </For>
-        <Reactions
-          reactions={
-            props.message.reactions as never as Map<string, Set<string>>
-          }
-          interactions={props.message.interactions}
-          userId={client().user!.id}
-          addReaction={react}
-          removeReaction={unreact}
-        />
+        <Show when={!bula()}>{reactii()}</Show>
       </MessageContainer>
     </MessageContext>
   );

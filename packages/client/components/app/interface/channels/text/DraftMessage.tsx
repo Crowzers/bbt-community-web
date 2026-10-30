@@ -5,6 +5,7 @@ import type { Channel } from "stoat.js";
 import { styled } from "styled-system/jsx";
 
 import { useClient, useUser } from "@revolt/client";
+import { useDevice } from "@revolt/common";
 import { Markdown } from "@revolt/markdown";
 import { userInformation } from "@revolt/markdown/users";
 import { useState } from "@revolt/state";
@@ -34,9 +35,12 @@ export function DraftMessage(props: Props) {
   const state = useState();
   const client = useClient();
   const userInfo = () => userInformation(user(), props.channel.server?.member);
+  const { layout } = useDevice();
 
   return (
     <MessageContainer
+      // BBT: mesajul care pleacă arată ca bula în care se va transforma (19b), altfel ar sări la confirmare.
+      bula={layout() === "phone" ? "mea" : undefined}
       tail={
         props.tail && (!props.draft.replies || props.draft.replies.length === 0)
       }

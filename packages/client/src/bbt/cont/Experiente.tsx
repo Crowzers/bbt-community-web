@@ -468,7 +468,7 @@ export function BaraPlata(props: {
 }
 
 /** QR-ul mare, pe roz, ca ecranul 20c din aplicație. */
-function QrMare(props: {
+export function QrMare(props: {
   cod: string;
   titlu: string;
   laInchidere: () => void;

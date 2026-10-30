@@ -102,7 +102,7 @@ const RETELE = [
  * Numele rolurilor și genurilor („sound_engineer" → „Sound Engineer"). În bază stau slug-urile; lista cu nume e în
  * admin, aceeași pe care o citesc onboardingul site-ului și aplicația de telefon.
  */
-function useEtichete() {
+export function useEtichete() {
   return useQuery(() => ({
     queryKey: ["bbt-etichete-profil"],
     staleTime: Infinity,

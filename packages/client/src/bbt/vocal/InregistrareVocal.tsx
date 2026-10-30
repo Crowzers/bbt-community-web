@@ -1,9 +1,12 @@
-import { createSignal, For, onCleanup, onMount } from "solid-js";
+import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 
 import { styled } from "styled-system/jsx";
 
+import { useDevice } from "@revolt/common";
 import { IconButton, MessageBox } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
+
+import { IconMicrofon } from "../telefon";
 
 import { codecM4a, refaM4a, VocalM4a } from "./m4a";
 import { formateazaDurata, numeVocal } from "./nume";
@@ -265,25 +268,29 @@ export function BaraVocal(props: {
 
 /** Butonul de microfon, în locul celui de trimis când n-ai scris nimic (ca la WhatsApp). */
 export function ButonMicrofon(props: { onClick: () => void }) {
+  const { layout } = useDevice();
   return (
     <ButonRoz
       type="button"
       aria-label="Înregistrează un vocal"
       onClick={() => props.onClick()}
     >
-      <Symbol size={20}>mic</Symbol>
+      <Show when={layout() === "phone"} fallback={<Symbol size={20}>mic</Symbol>}>
+        <IconMicrofon />
+      </Show>
     </ButonRoz>
   );
 }
 
-// Aceleași măsuri ca bara de scris (`MessageBox.tsx`): pastila neagră de 56, cu cercul roz de 44 (21a, 30 oct 2026).
+// Aceleași măsuri ca bara de scris (`MessageBox.tsx`): pastila neagră de 56, cu cercul roz de 44 (21a, 30 oct 2026);
+// pe telefon, 60 cu cercul de 48, ca în aplicație.
 const Parinte = styled("div", {
   base: {
     flexShrink: 0,
     display: "flex",
     margin: "12px 24px 20px",
     _phone: {
-      margin: "0 12px 12px",
+      margin: "6px 12px",
     },
   },
 });
@@ -302,6 +309,13 @@ const Caseta = styled("div", {
     alignItems: "center",
     background: "#0A0A0B",
     color: "#FFFFFF",
+    _phone: {
+      minHeight: "60px",
+      borderRadius: "30px",
+      background: "rgba(10,10,11,0.92)",
+      backdropFilter: "blur(20px) saturate(1.6)",
+      boxShadow: "0 8px 18px rgba(0,0,0,0.28)",
+    },
   },
 });
 
@@ -356,5 +370,10 @@ const ButonRoz = styled("button", {
     alignItems: "center",
     justifyContent: "center",
     cursor: "pointer",
+    // Microfonul din aplicație (19b): 48, în pastila de 60.
+    _phone: {
+      width: "48px",
+      height: "48px",
+    },
   },
 });
