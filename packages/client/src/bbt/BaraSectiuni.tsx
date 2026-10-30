@@ -5,6 +5,7 @@ import { useLocation, useNavigate, useParams } from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
+import { useAlunecare } from "./Alunecare";
 import { BBT_SITE_URL } from "./config";
 import { tintaSite } from "./instalare";
 
@@ -86,6 +87,8 @@ export function BaraSectiuni(props: {
     },
   ];
 
+  const alunecare = useAlunecare(() => sectiuni.findIndex((s) => s.activ()));
+
   const stilElement = (activ: boolean) =>
     props.orizontal
       ? {
@@ -113,7 +116,10 @@ export function BaraSectiuni(props: {
           "align-items": "center",
           gap: "5px",
           color: activ ? "#FFFFFF" : STINS,
-          background: activ ? NEGRU : "transparent",
+          // Fundalul negru e stratul care alunecă (`Alunecare.tsx`), nu al butonului.
+          background: "transparent",
+          "z-index": 1,
+          transition: "color 200ms ease",
           "text-decoration": "none",
           border: "0",
           font: "inherit",
@@ -182,18 +188,37 @@ export function BaraSectiuni(props: {
             }
       }
     >
-      <For each={sectiuni}>
-        {(s) => (
-          <button
-            type="button"
-            aria-current={s.activ() ? "page" : undefined}
-            onClick={() => s.laApasare()}
-            style={stilElement(s.activ())}
-          >
-            {continut(s)}
-          </button>
-        )}
-      </For>
+      {/* Pe desktop, pătratul negru al intrării active alunecă spre cea nouă, ca pastila roz din aplicația de
+          telefon (30 oct 2026). Pe telefon bara de jos n-are fundal pe activ, deci nici ce să alunece. */}
+      <div
+        style={
+          props.orizontal
+            ? { display: "contents" }
+            : {
+                position: "relative",
+                display: "flex",
+                "flex-direction": "column",
+                gap: "6px",
+              }
+        }
+      >
+        <Show when={!props.orizontal}>
+          <alunecare.Strat culoare={NEGRU} raza="20px" />
+        </Show>
+        <For each={sectiuni}>
+          {(s, i) => (
+            <button
+              ref={alunecare.rand(i())}
+              type="button"
+              aria-current={s.activ() ? "page" : undefined}
+              onClick={() => s.laApasare()}
+              style={stilElement(s.activ())}
+            >
+              {continut(s)}
+            </button>
+          )}
+        </For>
+      </div>
       <Show when={!props.orizontal}>
         <div style={{ "flex-grow": 1 }} />
       </Show>

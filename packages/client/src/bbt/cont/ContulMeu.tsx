@@ -16,6 +16,8 @@ import { useState } from "@revolt/state";
 import { Avatar } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
+import { useAlunecare } from "../Alunecare";
+
 import { useCont, useExperiente } from "./date";
 import { Diplome } from "./Diplome";
 import { Experiente } from "./Experiente";
@@ -218,12 +220,18 @@ function Meniu(props: { activ?: string; lat: boolean }) {
   const deFacut = () =>
     (experiente.data?.active ?? []).filter((e) => e.plata).length;
 
-  const Grup = (p: { randuri: Rand[] }) => (
+  // Fundalul gri al rândului activ alunecă spre rândul nou, peste ambele grupuri (`Alunecare.tsx`, 30 oct 2026).
+  const alunecare = useAlunecare(() =>
+    [...ACTIVITATE, ...CONT].findIndex((r) => r.pagina === props.activ),
+  );
+
+  const Grup = (p: { randuri: Rand[]; dela: number }) => (
     <For each={p.randuri}>
-      {(r) => {
+      {(r, i) => {
         const activ = () => props.activ === r.pagina;
         return (
           <button
+            ref={alunecare.rand(p.dela + i())}
             type="button"
             onClick={() => navigate(`/cont/${r.pagina}`)}
             aria-current={activ() ? "page" : undefined}
@@ -237,7 +245,10 @@ function Meniu(props: { activ?: string; lat: boolean }) {
               "box-sizing": "border-box",
               "border-radius": "14px",
               border: "0",
-              background: activ() ? C.foaie : "transparent",
+              background: "transparent",
+              position: "relative",
+              "z-index": 1,
+              transition: "color 200ms ease",
               color: activ() ? C.text : C.stins,
               "font-family": "inherit",
               "font-size": "16px",
@@ -355,11 +366,21 @@ function Meniu(props: { activ?: string; lat: boolean }) {
           </div>
         </div>
       </div>
-      <Grup randuri={ACTIVITATE} />
       <div
-        style={{ margin: "10px 8px", "border-top": `1px solid ${C.linie}` }}
-      />
-      <Grup randuri={CONT} />
+        style={{
+          position: "relative",
+          display: "flex",
+          "flex-direction": "column",
+          gap: "4px",
+        }}
+      >
+        <alunecare.Strat culoare={C.foaie} raza="14px" />
+        <Grup randuri={ACTIVITATE} dela={0} />
+        <div
+          style={{ margin: "10px 8px", "border-top": `1px solid ${C.linie}` }}
+        />
+        <Grup randuri={CONT} dela={ACTIVITATE.length} />
+      </div>
       <div style={{ "flex-grow": 1, "min-height": "24px" }} />
       <button
         type="button"
