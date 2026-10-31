@@ -1,6 +1,6 @@
 import { JSX, Show } from "solid-js";
 
-import type { Message, User } from "stoat.js";
+import type { Client, Message, User } from "stoat.js";
 
 import { C, DE_FONTE } from "./cont/ui";
 import { mesajSistem } from "./mesajSistem";
@@ -239,11 +239,7 @@ export function Cip(props: {
         padding: "7px 14px",
         border: 0,
         "border-radius": "999px",
-        background: !props.activ
-          ? C.foaie
-          : props.peNegru
-            ? C.negru
-            : C.fundal,
+        background: !props.activ ? C.foaie : props.peNegru ? C.negru : C.fundal,
         "box-shadow":
           props.activ && !props.peNegru
             ? "0 2px 8px rgba(0,0,0,0.1)"
@@ -267,16 +263,55 @@ export function Cip(props: {
  * Rândul de sub numele canalului sau al omului în liste: „Dianka: Mesaj vocal (0:05)", „Tu: am pus beat-ul". Copie
  * după `mobil/src/fir/rezumat.ts`; tipul fișierului se citește la fel, vocalul după nume.
  */
+export type NumeMentiuni = {
+  om: (id: string) => string | undefined;
+  rol: (id: string) => string | undefined;
+  canal: (id: string) => string | undefined;
+};
+
+/** Numele din cache-ul clientului. Un om necunoscut rămâne „cineva": mai bine atât decât un id într-un rând de listă. */
+export function numeDin(client: Client): NumeMentiuni {
+  return {
+    om: (id) => client.users.get(id)?.displayName,
+    rol: (id) =>
+      client.servers
+        .toList()
+        .map((s) => s.roles?.get(id)?.name)
+        .find(Boolean),
+    canal: (id) => client.channels.get(id)?.name,
+  };
+}
+
+const ULID = "[0-9A-HJKMNP-TV-Z]{26}";
+const OM = new RegExp(`<@(${ULID})>`, "g");
+const ROL = new RegExp(`<%(${ULID})>`, "g");
+const CANAL = new RegExp(`<#(${ULID})>`, "g");
+const EMOJI = new RegExp(`:${ULID}:`, "g");
+
+/**
+ * Textul unui mesaj, pentru rândurile din liste și rezultatele căutării: mențiunile cu nume, fără semnele de markdown. Mai
+ * simplu decât `mobil/src/fir/textMesaj.ts`: firul de aici e desenat de Stoat, iar pe hub rămân doar rândurile astea.
+ */
+export function textRezumat(text: string, nume: NumeMentiuni): string {
+  return text
+    .replace(OM, (_, id) => `@${nume.om(id) ?? "cineva"}`)
+    .replace(ROL, (_, id) => `@${nume.rol(id) ?? "rol"}`)
+    .replace(CANAL, (_, id) => `#${nume.canal(id) ?? "canal"}`)
+    .replace(EMOJI, "")
+    .replace(/\*\*|~~|`/g, "");
+}
+
 export function rezumatMesaj(
   m: Message | undefined,
   euId: string | undefined,
   cuAutor: boolean,
+  nume: NumeMentiuni,
 ): string {
   if (!m) return "";
   const sistem = mesajSistem(m, euId);
   if (sistem) return sistem.text;
   const f = m.attachments?.[0];
-  let text = (m.content ?? "").trim();
+  let text = textRezumat(m.content ?? "", nume).trim();
   if (!text && f) {
     const durata = durataVocal(f.filename);
     const tip = f.metadata.type;

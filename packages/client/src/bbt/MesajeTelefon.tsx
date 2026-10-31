@@ -33,6 +33,7 @@ import {
   UN_RAND,
   deFonte,
   dupaNavigare,
+  numeDin,
   oraRand,
   rezumatMesaj,
 } from "./telefon";
@@ -61,9 +62,7 @@ export function MesajeTelefon(props: { conversations: () => Channel[] }) {
   const cereri = createMemo(() =>
     client()
       .users.toList()
-      .filter(
-        (u) => u.relationship === "Incoming" && potrivit(u.displayName),
-      ),
+      .filter((u) => u.relationship === "Incoming" && potrivit(u.displayName)),
   );
 
   const conversatii = createMemo(() =>
@@ -111,7 +110,10 @@ export function MesajeTelefon(props: { conversations: () => Channel[] }) {
           onClick={() => setCauta(cauta() === null ? "" : null)}
           style={{ ...CERC_40, background: C.fundal }}
         >
-          <Show when={cauta() === null} fallback={<Symbol size={18}>close</Symbol>}>
+          <Show
+            when={cauta() === null}
+            fallback={<Symbol size={18}>close</Symbol>}
+          >
             <IconCautare />
           </Show>
         </button>
@@ -136,67 +138,67 @@ export function MesajeTelefon(props: { conversations: () => Channel[] }) {
           "padding-bottom": LOC_PASTILA,
         }}
       >
-      <Show when={cauta() !== null}>
-        <label
-          style={{
-            display: "flex",
-            "align-items": "center",
-            gap: "8px",
-            height: "42px",
-            margin: "0 16px 6px",
-            padding: "0 14px",
-            "border-radius": "999px",
-            background: C.foaieTare,
-            color: C.slab,
-          }}
-        >
-          <IconCautare size={16} />
-          {/* 16 în câmp: sub 16, iOS mărește pagina la focus. */}
-          <input
-            ref={(el) => setTimeout(() => el.focus())}
-            value={cauta() ?? ""}
-            onInput={(e) => setCauta(e.currentTarget.value)}
-            placeholder="Caută o persoană"
+        <Show when={cauta() !== null}>
+          <label
             style={{
-              flex: 1,
-              "min-width": 0,
-              padding: 0,
-              border: 0,
-              outline: 0,
-              background: "transparent",
-              color: C.text,
-              "font-family": "inherit",
-              "font-size": "16px",
+              display: "flex",
+              "align-items": "center",
+              gap: "8px",
+              height: "42px",
+              margin: "0 16px 6px",
+              padding: "0 14px",
+              "border-radius": "999px",
+              background: C.foaieTare,
+              color: C.slab,
             }}
-          />
-        </label>
-      </Show>
+          >
+            <IconCautare size={16} />
+            {/* 16 în câmp: sub 16, iOS mărește pagina la focus. */}
+            <input
+              ref={(el) => setTimeout(() => el.focus())}
+              value={cauta() ?? ""}
+              onInput={(e) => setCauta(e.currentTarget.value)}
+              placeholder="Caută o persoană"
+              style={{
+                flex: 1,
+                "min-width": 0,
+                padding: 0,
+                border: 0,
+                outline: 0,
+                background: "transparent",
+                color: C.text,
+                "font-family": "inherit",
+                "font-size": "16px",
+              }}
+            />
+          </label>
+        </Show>
 
-      <div
-        role="tablist"
-        style={{ display: "flex", gap: "8px", padding: "0 16px 8px" }}
-      >
-        <Cip
-          peNegru
-          text="Toate"
-          activ={filtru() === "toate"}
-          laApasare={() => setFiltru("toate")}
-        />
-        <Cip
-          peNegru
-          text="Necitite"
-          activ={filtru() === "necitite"}
-          laApasare={() => setFiltru("necitite")}
-        />
-        <Show when={cereri().length}>
+        <div
+          role="tablist"
+          style={{ display: "flex", gap: "8px", padding: "0 16px 8px" }}
+        >
           <Cip
             peNegru
-            text={`Cereri ${cereri().length}`}
-            activ={filtru() === "cereri"}
-            laApasare={() => setFiltru("cereri")}
+            text="Toate"
+            activ={filtru() === "toate"}
+            laApasare={() => setFiltru("toate")}
           />
-        </Show>
-      </div>
+          <Cip
+            peNegru
+            text="Necitite"
+            activ={filtru() === "necitite"}
+            laApasare={() => setFiltru("necitite")}
+          />
+          <Show when={cereri().length}>
+            <Cip
+              peNegru
+              text={`Cereri ${cereri().length}`}
+              activ={filtru() === "cereri"}
+              laApasare={() => setFiltru("cereri")}
+            />
+          </Show>
+        </div>
 
         <Show
           when={filtru() !== "cereri"}
@@ -249,6 +251,7 @@ const RAND = {
 } as const;
 
 function RandConversatie(props: { canal: Channel; euId: string | undefined }) {
+  const client = useClient();
   const state = useState();
   const navigate = useNavigate();
   const necitit = () => props.canal.unread;
@@ -329,7 +332,7 @@ function RandConversatie(props: { canal: Channel; euId: string | undefined }) {
               "font-weight": necitit() ? 600 : 400,
             }}
           >
-            {rezumatMesaj(ultim(), props.euId, false)}
+            {rezumatMesaj(ultim(), props.euId, false, numeDin(client()))}
           </span>
           <Show when={necitit()}>
             <span

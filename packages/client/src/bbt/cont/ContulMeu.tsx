@@ -17,6 +17,7 @@ import { Avatar } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { useAlunecare } from "../Alunecare";
+import { BBT_SITE_URL } from "../config";
 import { CERC_40, IconInapoi, UN_RAND } from "../telefon";
 
 import { useCont, useExperiente, useRapoarte } from "./date";
@@ -304,6 +305,17 @@ function Inapoi(props: { text: string; laApasare: () => void }) {
   );
 }
 
+const LINK_MENIU: JSX.CSSProperties = {
+  display: "flex",
+  "align-items": "center",
+  height: "38px",
+  padding: "0 12px",
+  color: C.stins,
+  "font-size": "14px",
+  "font-weight": 600,
+  "text-decoration": "none",
+};
+
 function Meniu(props: { activ?: string }) {
   const navigate = useNavigate();
   const cont = useCont();
@@ -485,6 +497,18 @@ function Meniu(props: { activ?: string }) {
         </Show>
       </div>
       <div style={{ "flex-grow": 1, "min-height": "24px" }} />
+      {/* Ca în Profilul de pe telefon. Linkuri, nu rânduri din listă: nu sunt pagini din cont, deci nu primesc fundalul care alunecă. */}
+      <a href="mailto:contact@beanbagtheory.ro" style={LINK_MENIU}>
+        Ajutor și contact BBT
+      </a>
+      <a
+        href={`${BBT_SITE_URL}/termeni`}
+        target="_blank"
+        rel="noopener"
+        style={LINK_MENIU}
+      >
+        Termeni și confidențialitate
+      </a>
       <button
         type="button"
         onClick={() => setIesire(true)}

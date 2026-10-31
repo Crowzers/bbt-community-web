@@ -26,7 +26,6 @@ import {
   Column,
   Draggable,
   Header,
-  IconButton,
   Row,
   Tooltip,
   iconSize,
@@ -41,6 +40,8 @@ import MdChevronRight from "@material-design-icons/svg/filled/chevron_right.svg?
 import MdSettings from "@material-symbols/svg-400/outlined/settings-fill.svg?component-solid";
 
 import { AvatarCanal } from "../../../bbt/AvatarCanal";
+import { CardAzi, experientaDeAzi } from "../../../bbt/CardAzi";
+import { useExperiente } from "../../../bbt/cont/date";
 import { SidebarBase } from "./common";
 import {
   OrderedCategory,
@@ -98,7 +99,9 @@ type OrderingEvent =
  */
 export const ServerSidebar = (props: Props) => {
   const navigate = useNavigate();
-  const { isMobile } = useDevice();
+  const { isMobile, layout } = useDevice();
+  const experiente = useExperiente();
+  const azi = () => experientaDeAzi(experiente.data?.active);
 
   // Users can manage certain parts of the server individually, regardless of their ManageServer Permission
   const canManageServer = () =>
@@ -252,6 +255,18 @@ export const ServerSidebar = (props: Props) => {
           </Header>
         </Match>
       </Switch>
+      {/* BBT: cardul de azi (21a), deasupra canalelor. Pe telefon stă în `ComunitateTelefon`. */}
+      <Show when={layout() !== "phone" && azi()}>
+        {(e) => (
+          <div style={{ "padding-top": "8px" }}>
+            <CardAzi
+              e={e()}
+              margine={12}
+              laTabara={() => navigate("/cont/experiente")}
+            />
+          </div>
+        )}
+      </Show>
       <ChannelList>
         <UnreadCallout list={list} />
         <div
@@ -367,8 +382,8 @@ function ServerInfo(
               color: "#216043",
             }}
           >
-            ●{" "}
-            {numar(numarare().online)} online · {numar(numarare().total)} membri
+            ● {numar(numarare().online)} online · {numar(numarare().total)}{" "}
+            membri
           </span>
         </Show>
       </ServerName>

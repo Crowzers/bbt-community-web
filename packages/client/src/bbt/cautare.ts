@@ -15,7 +15,10 @@ const [cautareCeruta, setCautareCeruta] = createSignal<{
   n: number;
 } | null>(null);
 
-export { cautareCeruta };
+/** Ecranul de căutare de pe telefon (`CautareTelefon.tsx`): acolo panoul din dreapta n-are loc. */
+const [cautareTelefon, setCautareTelefon] = createSignal(false);
+
+export { cautareCeruta, cautareTelefon, setCautareTelefon };
 
 export function cereCautare(q: string) {
   const text = q.trim();

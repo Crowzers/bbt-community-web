@@ -7,11 +7,18 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 import { AntetPagina, LOC_SUB_ANTET } from "../AntetPagina";
 import { BBT_SITE_URL } from "../config";
 import { LOC_PASTILA } from "../PastilaDeJos";
-import { CERC_40, IconCamera, IconRotita, TITLU_PAGINA, deFonte, UN_RAND } from "../telefon";
+import {
+  CERC_40,
+  IconCamera,
+  IconRotita,
+  TITLU_PAGINA,
+  UN_RAND,
+  deFonte,
+} from "../telefon";
 
 import { comutaSunetele, sunetePornite } from "../sunete";
 
-import { useCont, useExperiente, useRapoarte } from "./date";
+import { useCont, useExperiente, useNotificari, useRapoarte } from "./date";
 import { useEtichete } from "./Setari";
 import { Buton, C, Fereastra } from "./ui";
 
@@ -21,7 +28,6 @@ import { Buton, C, Fereastra } from "./ui";
  *
  * Ce e altfel decât în aplicație, dinadins:
  * - Rândurile duc la paginile din hub, nu la site: aici contul există întreg, plus sesiunea e deja deschisă.
- * - „Notificări" în plus: în aplicație așteaptă push-ul; pe hub pagina există și altfel n-ar mai avea drum pe telefon.
  * - Poza se schimbă din „Profil public": hub-ul n-are alegerea cu camera din aplicație.
  */
 export function ProfilTelefon() {
@@ -29,6 +35,7 @@ export function ProfilTelefon() {
   const cont = useCont();
   const experiente = useExperiente();
   const rapoarte = useRapoarte();
+  const notificari = useNotificari();
   const etichete = useEtichete();
   const { logout } = useClientLifecycle();
   const [iesire, setIesire] = createSignal(false);
@@ -81,242 +88,246 @@ export function ProfilTelefon() {
         </button>
       </AntetPagina>
       <div style={{ "flex-grow": 1, "min-height": 0, "overflow-y": "auto" }}>
-      <div
-        style={{
-          display: "flex",
-          "flex-direction": "column",
-          gap: "10px",
-          padding: `${LOC_SUB_ANTET} 12px ${LOC_PASTILA}`,
-        }}
-      >
-
-        {/* Cardul de sus: raza 32, 16 de jur împrejur, totul centrat. Tot el duce la profilul public. */}
-        <a
-          href={
-            cont.data?.username
-              ? `${BBT_SITE_URL}/u/${cont.data.username}`
-              : "/cont/profil"
-          }
-          target={cont.data?.username ? "_blank" : undefined}
-          rel="noopener"
+        <div
           style={{
             display: "flex",
             "flex-direction": "column",
-            "align-items": "center",
-            padding: "16px",
-            "border-radius": "32px",
-            background: C.foaie,
-            color: C.text,
-            "text-decoration": "none",
+            gap: "10px",
+            padding: `${LOC_SUB_ANTET} 12px ${LOC_PASTILA}`,
           }}
         >
-          <button
-            type="button"
-            aria-label="Schimbă poza de profil"
-            onClick={(ev) => {
-              ev.preventDefault();
-              navigate("/cont/profil");
-            }}
+          {/* Cardul de sus: raza 32, 16 de jur împrejur, totul centrat. Tot el duce la profilul public. */}
+          <a
+            href={
+              cont.data?.username
+                ? `${BBT_SITE_URL}/u/${cont.data.username}`
+                : "/cont/profil"
+            }
+            target={cont.data?.username ? "_blank" : undefined}
+            rel="noopener"
             style={{
-              position: "relative",
-              padding: "3px",
-              border: `3px solid ${C.roz}`,
-              "border-radius": "42px",
-              background: "transparent",
-              cursor: "pointer",
+              display: "flex",
+              "flex-direction": "column",
+              "align-items": "center",
+              padding: "16px",
+              "border-radius": "32px",
+              background: C.foaie,
+              color: C.text,
+              "text-decoration": "none",
             }}
           >
-            <span
+            <button
+              type="button"
+              aria-label="Schimbă poza de profil"
+              onClick={(ev) => {
+                ev.preventDefault();
+                navigate("/cont/profil");
+              }}
               style={{
-                width: "72px",
-                height: "72px",
-                display: "flex",
-                "align-items": "center",
-                "justify-content": "center",
-                overflow: "hidden",
-                "border-radius": "36px",
-                background: C.negru,
-                color: C.peNegru,
-                "font-size": "24px",
-                "font-weight": 800,
+                position: "relative",
+                padding: "3px",
+                border: `3px solid ${C.roz}`,
+                "border-radius": "42px",
+                background: "transparent",
+                cursor: "pointer",
               }}
             >
-              <Show when={cont.data?.avatarUrl} fallback={initiale(nume())}>
-                {(url) => (
-                  <img
-                    src={url()}
-                    alt=""
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      "object-fit": "cover",
-                    }}
-                  />
-                )}
-              </Show>
-            </span>
-            {/* Camera din colțul avatarului: chenarul în culoarea cardului o desparte de inel. */}
-            <span
-              style={{
-                position: "absolute",
-                right: "-4px",
-                bottom: "-4px",
-                width: "28px",
-                height: "28px",
-                display: "flex",
-                "align-items": "center",
-                "justify-content": "center",
-                "box-sizing": "border-box",
-                "border-radius": "14px",
-                border: `2px solid ${C.foaie}`,
-                background: C.negru,
-                color: C.peNegru,
-              }}
-            >
-              <IconCamera size={14} />
-            </span>
-          </button>
-          <div
-            style={{
-              ...deFonte(26),
-              ...UN_RAND,
-              "max-width": "100%",
-              "margin-top": "10px",
-              "text-align": "center",
-            }}
-          >
-            {nume()}
-          </div>
-          <Show when={descriere()}>
+              <span
+                style={{
+                  width: "72px",
+                  height: "72px",
+                  display: "flex",
+                  "align-items": "center",
+                  "justify-content": "center",
+                  overflow: "hidden",
+                  "border-radius": "36px",
+                  background: C.negru,
+                  color: C.peNegru,
+                  "font-size": "24px",
+                  "font-weight": 800,
+                }}
+              >
+                <Show when={cont.data?.avatarUrl} fallback={initiale(nume())}>
+                  {(url) => (
+                    <img
+                      src={url()}
+                      alt=""
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        "object-fit": "cover",
+                      }}
+                    />
+                  )}
+                </Show>
+              </span>
+              {/* Camera din colțul avatarului: chenarul în culoarea cardului o desparte de inel. */}
+              <span
+                style={{
+                  position: "absolute",
+                  right: "-4px",
+                  bottom: "-4px",
+                  width: "28px",
+                  height: "28px",
+                  display: "flex",
+                  "align-items": "center",
+                  "justify-content": "center",
+                  "box-sizing": "border-box",
+                  "border-radius": "14px",
+                  border: `2px solid ${C.foaie}`,
+                  background: C.negru,
+                  color: C.peNegru,
+                }}
+              >
+                <IconCamera size={14} />
+              </span>
+            </button>
             <div
               style={{
+                ...deFonte(26),
                 ...UN_RAND,
                 "max-width": "100%",
-                "margin-top": "2px",
-                color: C.stins,
-                "font-size": "13px",
+                "margin-top": "10px",
                 "text-align": "center",
               }}
             >
-              {descriere()}
+              {nume()}
             </div>
+            <Show when={descriere()}>
+              <div
+                style={{
+                  ...UN_RAND,
+                  "max-width": "100%",
+                  "margin-top": "2px",
+                  color: C.stins,
+                  "font-size": "13px",
+                  "text-align": "center",
+                }}
+              >
+                {descriere()}
+              </div>
+            </Show>
+            {/* Aceeași regulă ca în contul de pe site: telefonul confirmat face „Artist verificat". */}
+            <Show when={cont.data?.phoneVerified}>
+              <div
+                style={{
+                  display: "flex",
+                  "align-items": "center",
+                  gap: "4px",
+                  "margin-top": "8px",
+                  padding: "6px 12px",
+                  "border-radius": "999px",
+                  background: C.verdeDeschis,
+                  "font-size": "12px",
+                  "font-weight": 800,
+                }}
+              >
+                <Symbol size={12}>check</Symbol>
+                Artist verificat
+              </div>
+            </Show>
+          </a>
+
+          <div style={{ display: "flex", gap: "8px" }}>
+            <Cifra
+              valoare={experiente.data ? numara("camp") : "-"}
+              eticheta={numara("camp") === 1 ? "tabără" : "tabere"}
+            />
+            <Cifra
+              valoare={experiente.data ? numara("workshop") : "-"}
+              eticheta={numara("workshop") === 1 ? "workshop" : "workshopuri"}
+            />
+            <Cifra
+              valoare={experiente.data ? numara("curs") : "-"}
+              eticheta={numara("curs") === 1 ? "curs" : "cursuri"}
+            />
+          </div>
+
+          {/* Piesele omului, chiar sub cifre, ca în aplicație. */}
+          <div style={GRUP}>
+            <Rand
+              text="Piesele mele"
+              detaliu="Ascultă-le oricând"
+              laApasare={() => navigate("/cont/piese")}
+              ultim
+            />
+          </div>
+
+          <div style={GRUP}>
+            <Rand
+              text="Editează profilul"
+              detaliu="Date, adresă, facturare"
+              laApasare={() => navigate("/cont/profil")}
+            />
+            <Rand text="Plăți" laApasare={() => navigate("/cont/plati")} />
+            <Rand
+              text="Diplome și certificate"
+              detaliu={diplome() ? String(diplome()) : undefined}
+              laApasare={() => navigate("/cont/diplome")}
+            />
+            <Rand
+              text="Notificări"
+              detaliu={
+                notificari.data?.necitite
+                  ? String(notificari.data.necitite)
+                  : undefined
+              }
+              laApasare={() => navigate("/cont/notificari")}
+            />
+            <Rand
+              text="Sunete"
+              detaliu={sunetePornite() ? "Pornite" : "Oprite"}
+              laApasare={comutaSunetele}
+              ultim
+            />
+          </div>
+
+          {/* Doar pentru cine are voie la rapoarte, ca „Administrare Community" din aplicație. */}
+          <Show when={rapoarte.data}>
+            {(lista) => (
+              <div style={GRUP}>
+                <Rand
+                  text="Rapoarte"
+                  detaliu={lista().length ? String(lista().length) : undefined}
+                  laApasare={() => navigate("/cont/rapoarte")}
+                  ultim
+                />
+              </div>
+            )}
           </Show>
-          {/* Aceeași regulă ca în contul de pe site: telefonul confirmat face „Artist verificat". */}
-          <Show when={cont.data?.phoneVerified}>
-            <div
-              style={{
-                display: "flex",
-                "align-items": "center",
-                gap: "4px",
-                "margin-top": "8px",
-                padding: "6px 12px",
-                "border-radius": "999px",
-                background: C.verdeDeschis,
-                "font-size": "12px",
-                "font-weight": 800,
-              }}
-            >
-              <Symbol size={12}>check</Symbol>
-              Artist verificat
-            </div>
-          </Show>
-        </a>
 
-        <div style={{ display: "flex", gap: "8px" }}>
-          <Cifra
-            valoare={experiente.data ? numara("camp") : "-"}
-            eticheta={numara("camp") === 1 ? "tabără" : "tabere"}
-          />
-          <Cifra
-            valoare={experiente.data ? numara("workshop") : "-"}
-            eticheta={numara("workshop") === 1 ? "workshop" : "workshopuri"}
-          />
-          <Cifra
-            valoare={experiente.data ? numara("curs") : "-"}
-            eticheta={numara("curs") === 1 ? "curs" : "cursuri"}
-          />
+          <div style={GRUP}>
+            <Rand
+              text="Ajutor și contact BBT"
+              laApasare={() =>
+                (window.location.href = "mailto:contact@beanbagtheory.ro")
+              }
+            />
+            <Rand
+              text="Termeni și confidențialitate"
+              laApasare={() => window.open(`${BBT_SITE_URL}/termeni`, "_blank")}
+              ultim
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIesire(true)}
+            style={{
+              "align-self": "center",
+              padding: "14px",
+              border: 0,
+              background: "transparent",
+              color: C.rosu,
+              "font-family": "inherit",
+              "font-size": "15px",
+              "font-weight": 800,
+              cursor: "pointer",
+            }}
+          >
+            Ieși din cont
+          </button>
         </div>
-
-        {/* Piesele omului, chiar sub cifre, ca în aplicație. */}
-        <div style={GRUP}>
-          <Rand
-            text="Piesele mele"
-            detaliu="Ascultă-le oricând"
-            laApasare={() => navigate("/cont/piese")}
-            ultim
-          />
-        </div>
-
-        <div style={GRUP}>
-          <Rand
-            text="Editează profilul"
-            detaliu="Date, adresă, facturare"
-            laApasare={() => navigate("/cont/profil")}
-          />
-          <Rand text="Plăți" laApasare={() => navigate("/cont/plati")} />
-          <Rand
-            text="Diplome și certificate"
-            detaliu={diplome() ? String(diplome()) : undefined}
-            laApasare={() => navigate("/cont/diplome")}
-          />
-          <Rand
-            text="Notificări"
-            laApasare={() => navigate("/cont/notificari")}
-          />
-          <Rand
-            text="Sunete"
-            detaliu={sunetePornite() ? "Pornite" : "Oprite"}
-            laApasare={comutaSunetele}
-            ultim
-          />
-        </div>
-
-        {/* Doar pentru cine are voie la rapoarte, ca „Administrare Community" din aplicație. */}
-        <Show when={rapoarte.data}>
-          {(lista) => (
-            <div style={GRUP}>
-              <Rand
-                text="Rapoarte"
-                detaliu={lista().length ? String(lista().length) : undefined}
-                laApasare={() => navigate("/cont/rapoarte")}
-                ultim
-              />
-            </div>
-          )}
-        </Show>
-
-        <div style={GRUP}>
-          <Rand
-            text="Ajutor și contact BBT"
-            laApasare={() =>
-              (window.location.href = "mailto:contact@beanbagtheory.ro")
-            }
-          />
-          <Rand
-            text="Termeni și confidențialitate"
-            laApasare={() => window.open(`${BBT_SITE_URL}/termeni`, "_blank")}
-            ultim
-          />
-        </div>
-
-        <button
-          type="button"
-          onClick={() => setIesire(true)}
-          style={{
-            "align-self": "center",
-            padding: "14px",
-            border: 0,
-            background: "transparent",
-            color: C.rosu,
-            "font-family": "inherit",
-            "font-size": "15px",
-            "font-weight": 800,
-            cursor: "pointer",
-          }}
-        >
-          Ieși din cont
-        </button>
-      </div>
       </div>
 
       <Show when={iesire()}>

@@ -22,20 +22,18 @@ import { orderedCategories } from "../interface/navigation/channels/ordering";
 
 import { AntetPagina, LOC_SUB_ANTET } from "./AntetPagina";
 import { AvatarCanal } from "./AvatarCanal";
-import { ora, useCont, useExperiente, useNotificari } from "./cont/date";
-import { QrMare } from "./cont/Experiente";
-import type { Experienta } from "./cont/tipuri";
+import { CardAzi, experientaDeAzi } from "./CardAzi";
+import { useCont, useExperiente, useNotificari } from "./cont/date";
 import { C } from "./cont/ui";
 import { LOC_PASTILA } from "./PastilaDeJos";
 import {
   CERC_40,
   Cip,
   IconClopotel,
-  IconQR,
   TITLU_PAGINA,
   UN_RAND,
-  deFonte,
   dupaNavigare,
+  numeDin,
   oraRand,
   rezumatMesaj,
 } from "./telefon";
@@ -117,10 +115,7 @@ export function ComunitateTelefon() {
     });
   });
 
-  const azi = () => {
-    const active = experiente.data?.active ?? [];
-    return active.find((e) => e.azi && e.qr) ?? active.find((e) => e.azi);
-  };
+  const azi = () => experientaDeAzi(experiente.data?.active);
 
   // Ultimul mesaj pentru rândurile care nu-l au: o cerere de un mesaj pe canal, o singură dată pe deschidere.
   createEffect(
@@ -260,7 +255,11 @@ export function ComunitateTelefon() {
       >
         <Show when={azi()}>
           {(e) => (
-            <CardAzi e={e()} laTabara={() => navigate("/cont/experiente")} />
+            <CardAzi
+              e={e()}
+              margine={16}
+              laTabara={() => navigate("/cont/experiente")}
+            />
           )}
         </Show>
         <Show when={categorii().length > 1}>
@@ -313,107 +312,8 @@ export function ComunitateTelefon() {
   );
 }
 
-/** „2h până începe", „35 min până începe", „acum": cât mai e din ziua de azi până la eveniment. */
-function panaIncepe(iso: string, acum = new Date()) {
-  const min = Math.round((new Date(iso).getTime() - acum.getTime()) / 60_000);
-  if (min <= 0) return "acum";
-  if (min < 60) return `${min} min până începe`;
-  return `${Math.round(min / 60)}h până începe`;
-}
-
-/** Cardul de azi (19a): mare, roz, primul lucru de pe ecran, cu QR-ul la un tap. Fără QR (tabăra), duce la Experiențe. */
-function CardAzi(props: { e: Experienta; laTabara: () => void }) {
-  const [qrMare, setQrMare] = createSignal(false);
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => (props.e.qr ? setQrMare(true) : props.laTabara())}
-        style={{
-          display: "flex",
-          "align-items": "center",
-          gap: "12px",
-          width: "calc(100% - 32px)",
-          margin: "0 16px 12px",
-          padding: "12px 14px",
-          "box-sizing": "border-box",
-          border: 0,
-          "border-radius": "24px",
-          background: C.roz,
-          // Umbra colorată din 19: cardul plutește în rozul lui.
-          "box-shadow": "0 8px 18px rgba(255,168,205,0.7)",
-          color: C.text,
-          "font-family": "inherit",
-          "text-align": "left",
-          cursor: "pointer",
-        }}
-      >
-        <span style={{ flex: 1, "min-width": 0 }}>
-          <span
-            style={{
-              display: "block",
-              "font-size": "12px",
-              "font-weight": 800,
-              "letter-spacing": "0.72px",
-            }}
-          >
-            AZI · {ora(props.e.dataStart)}
-          </span>
-          <span
-            style={{
-              ...deFonte(18),
-              display: "-webkit-box",
-              "-webkit-line-clamp": 2,
-              "-webkit-box-orient": "vertical",
-              overflow: "hidden",
-              "margin-top": "1px",
-            }}
-          >
-            {props.e.titlu}
-          </span>
-          <span
-            style={{
-              ...UN_RAND,
-              display: "block",
-              color: C.stins,
-              "font-size": "12px",
-              "margin-top": "1px",
-            }}
-          >
-            {[props.e.locatie, panaIncepe(props.e.dataStart)]
-              .filter(Boolean)
-              .join(" · ")}
-          </span>
-        </span>
-        <Show when={props.e.qr}>
-          <span
-            style={{
-              width: "48px",
-              height: "48px",
-              "flex-shrink": 0,
-              display: "flex",
-              "align-items": "center",
-              "justify-content": "center",
-              "border-radius": "16px",
-              background: C.negru,
-            }}
-          >
-            <IconQR color={C.peNegru} />
-          </span>
-        </Show>
-      </button>
-      <Show when={qrMare() && props.e.qr}>
-        <QrMare
-          cod={props.e.qr!}
-          titlu={props.e.titlu}
-          laInchidere={() => setQrMare(false)}
-        />
-      </Show>
-    </>
-  );
-}
-
 function RandCanal(props: { canal: Channel; euId: string | undefined }) {
+  const client = useClient();
   const state = useState();
   const navigate = useNavigate();
   const necitit = () => props.canal.unread && !props.canal.muted;
@@ -422,7 +322,12 @@ function RandCanal(props: { canal: Channel; euId: string | undefined }) {
   const rezumat = () =>
     deScris() && !props.canal.isVoice
       ? [
-          rezumatMesaj(props.canal.lastMessage, props.euId, true),
+          rezumatMesaj(
+            props.canal.lastMessage,
+            props.euId,
+            true,
+            numeDin(client()),
+          ),
           oraRand(props.canal.lastMessageAt),
         ]
           .filter(Boolean)

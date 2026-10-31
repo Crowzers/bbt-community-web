@@ -1,34 +1,41 @@
 import { For, JSX, Show, createMemo } from "solid-js";
+import { Dynamic } from "solid-js/web";
 
 import type { Channel, User } from "stoat.js";
 
 import { useClient } from "@revolt/client";
+import { useModals } from "@revolt/modal";
 import { useVoice } from "@revolt/rtc";
 import { useState } from "@revolt/state";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { AvatarCanal } from "./AvatarCanal";
+import { setCautareTelefon } from "./cautare";
 import { C } from "./cont/ui";
 import { setMembriDeschisi } from "./MembriComunitate";
-import { AvatarOm, CERC_40, IconInapoi, UN_RAND } from "./telefon";
+import { AvatarOm, CERC_40, IconCautare, IconInapoi, UN_RAND } from "./telefon";
 
 /**
  * BBT: antetul firului pe telefon (19b), copia lui `TitluFir` și `AvatareFir` din `mobil/src/app/canal/[id].tsx`, cu
- * măsurile de acolo: cercul de înapoi 44, pastila gri de 48 cu cercul de 36 și numele 16/800, iar în dreapta ultimii doi
- * oameni care au scris. Desktopul rămâne pe 21a și 23a (`ChannelHeader.tsx`).
+ * măsurile de acolo: cercul de înapoi 44, pastila gri de 48 cu cercul de 36 și numele 16/800, iar în dreapta ultimul
+ * om care a scris. Desktopul rămâne pe 21a și 23a (`ChannelHeader.tsx`).
  *
  * „N online" numără oamenii care au scris în firul încărcat și sunt online acum, nu tot serverul, ca în aplicație.
  *
  * Rămâne doar butonul de apel pe canalele de voce: fără el nu ai cum intra în apel. Fixatele se deschid din banda de
  * sub antet (`BandaFixat`), iar setările canalului din apăsarea lungă pe rândul lui (`ComunitateTelefon`).
  *
- * Pastila stă pe mijlocul ecranului și nu se apasă, ca în aplicație, unde e titlul nativ al iPhone-ului. ⚠️ Cele două
- * coloane egale din jurul ei o țin pe centru, deși în stânga e un singur buton, iar în dreapta pot fi mai multe.
+ * Pastila stă pe mijlocul ecranului, ca în aplicație, unde e titlul nativ al iPhone-ului. ⚠️ Cele două coloane egale din
+ * jurul ei o țin pe centru, deși în stânga e un singur buton, iar în dreapta pot fi mai multe.
+ *
+ * Într-o conversație, pastila e chiar omul, deci deschide profilul lui, ca în aplicație (cererea userului, 31 oct). Într-un
+ * canal nu se apasă: membrii se deschid din avatarul din dreapta.
  */
 export function AntetFirTelefon(props: { channel: Channel }) {
   const client = useClient();
   const state = useState();
   const voice = useVoice();
+  const { openModal } = useModals();
 
   const om = () =>
     props.channel.type === "DirectMessage"
@@ -56,7 +63,7 @@ export function AntetFirTelefon(props: { channel: Channel }) {
     return n > 0 ? `${n} online` : undefined;
   };
 
-  const rest = () => autori().length - 2;
+  const rest = () => autori().length - 1;
 
   return (
     <>
@@ -74,15 +81,28 @@ export function AntetFirTelefon(props: { channel: Channel }) {
           <IconInapoi />
         </button>
       </div>
-      <div
+      <Dynamic
+        component={om() ? "button" : "div"}
+        type={om() ? "button" : undefined}
+        aria-label={om() ? `Vezi profilul lui ${om()!.displayName}` : undefined}
+        onClick={() => {
+          const user = om();
+          if (user) openModal({ type: "user_profile", user });
+        }}
         style={{
           display: "flex",
           "align-items": "center",
           gap: "10px",
           height: "48px",
+          border: 0,
+          cursor: om() ? "pointer" : undefined,
+          "font-family": "inherit",
+          "text-align": "left",
+          "-webkit-tap-highlight-color": "transparent",
           "flex-shrink": 1,
           "min-width": 0,
-          "max-width": "230px",
+          // 170, nu 230 ca în 19b: a venit cercul de căutare în dreapta, deci lângă el încape un singur avatar.
+          "max-width": "170px",
           padding: "6px 18px 6px 6px",
           "box-sizing": "border-box",
           "border-radius": "24px",
@@ -122,7 +142,7 @@ export function AntetFirTelefon(props: { channel: Channel }) {
             </span>
           </Show>
         </span>
-      </div>
+      </Dynamic>
 
       <div style={{ ...COLOANA, "justify-content": "flex-end", gap: "8px" }}>
         <Show when={props.channel.isVoice && !voice.showCard(props.channel)}>
@@ -133,6 +153,18 @@ export function AntetFirTelefon(props: { channel: Channel }) {
             style={CERC_40}
           >
             <Symbol size={18}>call</Symbol>
+          </button>
+        </Show>
+
+        <Show when={!props.channel.isVoice}>
+          <button
+            type="button"
+            class="bbt-moale"
+            aria-label="Caută în conversație"
+            onClick={() => setCautareTelefon(true)}
+            style={{ ...CERC_40, width: "32px", height: "32px" }}
+          >
+            <IconCautare />
           </button>
         </Show>
 
@@ -153,7 +185,7 @@ export function AntetFirTelefon(props: { channel: Channel }) {
               "-webkit-tap-highlight-color": "transparent",
             }}
           >
-            <For each={autori().slice(0, 2)}>
+            <For each={autori().slice(0, 1)}>
               {(a, i) => (
                 <span
                   style={{

@@ -140,38 +140,62 @@ function AntetLat(props: Props) {
         </Match>
         <Match when={props.channel.type === "DirectMessage"}>
           {/* BBT (23a, 30 oct 2026): avatarul, numele și sub el „online" verde sau „offline", în locul lui „@" și al
-              punctului de stare. */}
-          <Avatar
-            size={40}
-            src={props.channel.recipient?.animatedAvatarURL}
-            fallback={props.channel.recipient?.displayName}
-            fallbackBackground
-          />
-          <div style={{ "min-width": 0, "line-height": "1.25" }}>
-            {/* 23a: numele la 18, titlu (De Fonte la noi), sub el starea la 12 gros. */}
-            <OverflowingText
-              style={{
-                "font-family": '"De Fonte BBT", Inter, sans-serif',
-                "font-size": "18px",
-                "font-weight": 400,
-                "letter-spacing": "0.01em",
-                "font-synthesis": "none",
-              }}
-            >
-              {/* BBT: numele afișat (ca în lista de prieteni), nu username-ul. */}
-              <TextWithEmoji content={props.channel.recipient?.displayName} />
-            </OverflowingText>
-            <span
-              style={{
-                display: "block",
-                "font-size": "12px",
-                "font-weight": 700,
-                color: props.channel.recipient?.online ? "#216043" : "#8D8D9A",
-              }}
-            >
-              {props.channel.recipient?.online ? "online" : "offline"}
-            </span>
-          </div>
+              punctului de stare. Tot blocul deschide profilul omului, ca pastila din aplicație și de pe telefon. */}
+          <button
+            type="button"
+            aria-label={`Vezi profilul lui ${props.channel.recipient?.displayName ?? ""}`}
+            onClick={() => {
+              const user = props.channel.recipient;
+              if (user) openModal({ type: "user_profile", user });
+            }}
+            style={{
+              display: "flex",
+              "align-items": "center",
+              gap: "10px",
+              "min-width": 0,
+              padding: 0,
+              border: 0,
+              background: "transparent",
+              color: "inherit",
+              "font-family": "inherit",
+              "text-align": "left",
+              cursor: "pointer",
+            }}
+          >
+            <Avatar
+              size={40}
+              src={props.channel.recipient?.animatedAvatarURL}
+              fallback={props.channel.recipient?.displayName}
+              fallbackBackground
+            />
+            <div style={{ "min-width": 0, "line-height": "1.25" }}>
+              {/* 23a: numele la 18, titlu (De Fonte la noi), sub el starea la 12 gros. */}
+              <OverflowingText
+                style={{
+                  "font-family": '"De Fonte BBT", Inter, sans-serif',
+                  "font-size": "18px",
+                  "font-weight": 400,
+                  "letter-spacing": "0.01em",
+                  "font-synthesis": "none",
+                }}
+              >
+                {/* BBT: numele afișat (ca în lista de prieteni), nu username-ul. */}
+                <TextWithEmoji content={props.channel.recipient?.displayName} />
+              </OverflowingText>
+              <span
+                style={{
+                  display: "block",
+                  "font-size": "12px",
+                  "font-weight": 700,
+                  color: props.channel.recipient?.online
+                    ? "#216043"
+                    : "#8D8D9A",
+                }}
+              >
+                {props.channel.recipient?.online ? "online" : "offline"}
+              </span>
+            </div>
+          </button>
         </Match>
         <Match when={props.channel.type === "SavedMessages"}>
           <HeaderIcon>

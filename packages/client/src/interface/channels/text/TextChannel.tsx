@@ -29,6 +29,13 @@ import {
 import { VoiceChannelCallCardMount } from "@revolt/ui/components/features/voice/callCard/VoiceCallCard";
 
 import { BandaFixat } from "../../../bbt/BandaFixat";
+import {
+  cautareCeruta,
+  cautareTelefon,
+  setCautareTelefon,
+} from "../../../bbt/cautare";
+import { CautareTelefon } from "../../../bbt/CautareTelefon";
+import { firDeschis, inchideFir } from "../../../bbt/fir";
 import { FirPanou, FirRaspunsuri } from "../../../bbt/FirRaspunsuri";
 import {
   CautareMembri,
@@ -37,8 +44,6 @@ import {
   membriDeschisi,
   setMembriDeschisi,
 } from "../../../bbt/MembriComunitate";
-import { cautareCeruta } from "../../../bbt/cautare";
-import { firDeschis, inchideFir } from "../../../bbt/fir";
 import { ChannelHeader } from "../ChannelHeader";
 import { ChannelPageProps } from "../ChannelPage";
 
@@ -196,12 +201,14 @@ export function TextChannel(props: ChannelPageProps) {
         inchideFir();
         setMembriDeschisi(false);
         setCautareMembri("");
+        setCautareTelefon(false);
       },
     ),
   );
   onCleanup(() => {
     inchideFir();
     setMembriDeschisi(false);
+    setCautareTelefon(false);
   });
 
   // BBT: căutarea din bara de sus deschide panoul de căutare al canalului (src/bbt/cautare.ts).
@@ -235,6 +242,9 @@ export function TextChannel(props: ChannelPageProps) {
       </Show>
       <Show when={layout() === "phone" && membriDeschisi()}>
         <MembriComunitate channel={props.channel} />
+      </Show>
+      <Show when={layout() === "phone" && cautareTelefon()}>
+        <CautareTelefon channel={props.channel} />
       </Show>
       <Header placement="primary">
         <ChannelHeader
