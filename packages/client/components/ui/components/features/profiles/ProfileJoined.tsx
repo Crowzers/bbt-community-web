@@ -1,49 +1,25 @@
-import { Show } from "solid-js";
-
-import { Trans } from "@lingui/solid/macro";
 import { ServerMember, User } from "stoat.js";
 
-import { timeLocale, useTime } from "@revolt/i18n";
-
 import { Text } from "../../design";
-import { OverflowingText } from "../../utils";
 
 import { ProfileCard } from "./ProfileCard";
 
-export function ProfileJoined(props: { user: User; member?: ServerMember }) {
-  const dayjs = useTime();
+const luna = new Intl.DateTimeFormat("ro-RO", {
+  month: "long",
+  year: "numeric",
+});
 
+/**
+ * BBT: un singur rând, „Membru din octombrie 2026", ca „Din …" din mini-profil (`src/bbt/MiniProfil.tsx`). Blocul Stoat
+ * arăta „Joined / Stoat" și încă o dată numele serverului: în hub există un singur server, iar numele Stoat nu se arată.
+ */
+export function ProfileJoined(props: { user: User; member?: ServerMember }) {
   return (
     <ProfileCard>
       <Text class="title" size="large">
-        <Trans>Joined</Trans>
+        Membru din
       </Text>
-      <Text class="label">
-        <OverflowingText>Stoat</OverflowingText>
-        {/* <Trans>Account Created</Trans> */}
-      </Text>
-      <Text>
-        {dayjs(props.user.createdAt).format(
-          timeLocale()[1]
-            .formats.L?.replace("MM", "MMM")
-            .replaceAll("/", " ")
-            .replaceAll("-", " "),
-        )}
-      </Text>
-      <Show when={props.member}>
-        <Text class="label">
-          <OverflowingText>{props.member!.server!.name}</OverflowingText>
-          {/* <Trans>Member Since</Trans> */}
-        </Text>
-        <Text>
-          {dayjs(props.member!.joinedAt).format(
-            timeLocale()[1]
-              .formats.L?.replace("MM", "MMM")
-              .replaceAll("/", " ")
-              .replaceAll("-", " "),
-          )}
-        </Text>
-      </Show>
+      <Text>{luna.format(props.member?.joinedAt ?? props.user.createdAt)}</Text>
     </ProfileCard>
   );
 }
