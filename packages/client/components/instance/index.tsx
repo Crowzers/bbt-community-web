@@ -1,4 +1,3 @@
-import { useLingui } from "@lingui/solid/macro";
 import { useBeforeLeave, useNavigate, useParams } from "@solidjs/router";
 import {
   createContext,
@@ -28,7 +27,6 @@ export function InstanceContext(props: { children?: JSXElement }) {
   const params = useParams();
   const snackbar = useSnackbar();
   const nav = useNavigate();
-  const { t } = useLingui();
 
   const [inst, setInst] = createSignal<Instance>();
 
@@ -37,12 +35,15 @@ export function InstanceContext(props: { children?: JSXElement }) {
 
   function onError(e: unknown) {
     console.error(e);
+    // BBT: fără configurare nu pornim și nu mai reîncercăm singuri, deci mesajul cere reîncărcarea.
+    let mesaj = `A apărut o eroare: ${e}`;
     if ((e as Error).message === "Failed to fetch") {
-      const hStr = `'${host || DefaultHost}'`;
-      e = t`Couldn't fetch Stoat configuration from ${hStr}.`;
+      mesaj = navigator.onLine
+        ? "Facem mentenanță, revenim imediat. Reîncarcă pagina peste un minut."
+        : "Nu ai internet. Reîncarcă pagina după ce revii online.";
     }
     snackbar.show({
-      message: t`Oops, something went wrong! ${e}`,
+      message: mesaj,
       placement: "bottom",
       closeable: true,
       autoCloseDelay: 30000,

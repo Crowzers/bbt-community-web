@@ -12,12 +12,6 @@ import { Button, CircularProgress, Symbol, Text } from "@revolt/ui";
 const STATUS_PAGE_URL = "https://status.stoat.chat";
 
 /**
- * Connection troubleshooting knowledge base article
- */
-const TROUBLESHOOTING_URL =
-  "https://support.stoat.chat/kb/troubleshooting/connection-issues";
-
-/**
  * Status API queried when the client is slow to connect
  */
 const STATUS_API_URL = "https://stoat.chat/-/status";
@@ -150,10 +144,9 @@ export function LoadingScreen(props: { isStoat?: boolean }) {
           ) : (
             <NoticeContent
               symbol="wifi_off"
-              label={t`This is taking longer than usual.`}
-              title={t`You may be experiencing connection issues.`}
-              url={TROUBLESHOOTING_URL}
-              action={<Trans>Troubleshooting</Trans>}
+              label="Durează mai mult decât de obicei."
+              title="Poate fi de la mentenanță sau de la netul tău."
+              action="Reîncarcă pagina"
             />
           )
         }
@@ -170,7 +163,7 @@ function NoticeContent(props: {
   fill?: boolean;
   label: JSX.Element;
   title: JSX.Element;
-  url: string;
+  url?: string;
   action: JSX.Element;
 }) {
   return (
@@ -190,7 +183,11 @@ function NoticeContent(props: {
       </Header>
       <Button
         variant="text"
-        onPress={() => window.open(props.url, "_blank", "noopener,noreferrer")}
+        onPress={() =>
+          props.url
+            ? window.open(props.url, "_blank", "noopener,noreferrer")
+            : window.location.reload()
+        }
       >
         {props.action}
       </Button>

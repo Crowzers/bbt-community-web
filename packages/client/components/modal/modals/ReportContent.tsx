@@ -15,8 +15,8 @@ import {
   MenuItem,
 } from "@revolt/ui";
 
-import { MotivRaport, trimiteRaportul } from "../../../src/bbt/raport";
 import { useModals } from "..";
+import { MotivRaport, trimiteRaportul } from "../../../src/bbt/raport";
 import { Modals } from "../types";
 
 // BBT: doar motivele pe care le primește adminul (src/bbt/raport.ts).

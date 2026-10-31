@@ -80,26 +80,33 @@ export function Titlebar() {
             >
               <Switch>
                 <Match when={lifecycle.state() === State.Connecting}>
-                  Connecting
+                  Se conectează
                 </Match>
                 {/* <Match when={lifecycle.state() === State.Connected}>Connected</Match> */}
-                <Match when={lifecycle.state() === State.Disconnected}>
-                  Disconnected
+                {/* BBT: același text pe ambele stări, altfel bara sare între ele la fiecare reîncercare.
+                    Tot textul e apăsabil: pe telefon nu mai încape un „(reîncearcă)" pe rând. */}
+                <Match
+                  when={[State.Disconnected, State.Reconnecting].includes(
+                    lifecycle.state(),
+                  )}
+                >
                   <a
                     onClick={() =>
                       lifecycle.transition({
                         type: TransitionType.Retry,
                       })
                     }
+                    style={{
+                      cursor: "pointer",
+                      "white-space": "nowrap",
+                      "-webkit-app-region": "no-drag",
+                    }}
                   >
-                    <strong> (reconnect now)</strong>
+                    Facem mentenanță, revenim imediat
                   </a>
                 </Match>
-                <Match when={lifecycle.state() === State.Reconnecting}>
-                  Reconnecting
-                </Match>
                 <Match when={lifecycle.state() === State.Offline}>
-                  Device is offline
+                  Nu ai internet
                   <a
                     onClick={() =>
                       lifecycle.transition({
@@ -110,7 +117,7 @@ export function Titlebar() {
                       "-webkit-app-region": "no-drag",
                     }}
                   >
-                    <strong> (reconnect now)</strong>
+                    <strong> (reîncearcă)</strong>
                   </a>
                 </Match>
               </Switch>
