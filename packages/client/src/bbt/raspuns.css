@@ -163,9 +163,16 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.bbt-bula-autor .bbt-rol {
+/* Mai mic decât numele, care rămâne primul lucru citit (userul, 31 oct: „atrage prea mult atenția"). `!important`:
+   mărimile pastilei sunt inline, comune cu desktopul. */
+.bbt-bula-autor .bbt-rol,
+.bbt-fir-card .bbt-rol {
   flex-shrink: 0;
-  line-height: 15px;
+  padding: 1px 6px !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  line-height: 13px;
+  letter-spacing: 0.03em !important;
 }
 .bbt-bula-ora {
   position: absolute;
