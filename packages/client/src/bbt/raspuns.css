@@ -207,6 +207,13 @@
   pointer-events: none;
 }
 
+/* Pe telefon, titlul stă în antetul paginii (`ContulMeu.tsx`): conținutul începe imediat sub el. */
+@media (max-width: 599px) {
+  .bbt-pagina-cont {
+    padding-top: 4px !important;
+  }
+}
+
 /* Firul (24b): bulele celorlalți sunt gri pe alb, nu albe pe gri. `!important`: culoarea bulei e inline. */
 .bbt-fir .bbt-bula:not(.bbt-bula-mea) {
   background: #f2f2f3 !important;

@@ -17,6 +17,7 @@ import { Avatar } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { useAlunecare } from "../Alunecare";
+import { CERC_40, IconInapoi, UN_RAND } from "../telefon";
 
 import { useCont, useExperiente } from "./date";
 import { Diplome } from "./Diplome";
@@ -67,6 +68,15 @@ const PAGINI: Record<string, () => JSX.Element> = {
   notificari: NotificariCont,
 };
 
+/** Titlurile paginilor pe telefon, din antet. Tabăra n-are: numele ei stă deja mare în pagină. */
+const TITLURI: Record<string, string> = {
+  diplome: "Diplome",
+  plati: "Plăți",
+  profil: "Editează profilul",
+  date: "Date personale",
+  notificari: "Notificări",
+};
+
 /** Adresele de dinainte de 23 → pagina care le-a luat locul. */
 const ADRESE_VECHI: Record<string, string> = {
   mycamps: "experiente",
@@ -112,8 +122,7 @@ export function ContulMeu() {
   );
 
   // BBT: pe telefon, Profil și Experiențe sunt tab-uri, ca în aplicație: fără „înapoi", cu pastila de meniu jos.
-  const ecranTab = () =>
-    telefon() && (!pagina() || pagina() === "experiente");
+  const ecranTab = () => telefon() && (!pagina() || pagina() === "experiente");
 
   return (
     <div
@@ -137,43 +146,102 @@ export function ContulMeu() {
       </Show>
       <Show when={pagina() && !ecranTab()}>
         <div
-          class="bbt-pagina-cont"
           style={{
+            display: "flex",
+            "flex-direction": "column",
             "flex-grow": 1,
             "min-width": 0,
-            "overflow-y": "auto",
-            padding: telefon() ? "12px 16px 32px" : "32px 40px 48px",
+            "min-height": 0,
           }}
         >
-          {/* Pagina taberei are „‹ Experiențele mele" și pe desktop (23e); restul, doar pe telefon. */}
-          <Show
-            when={pagina() === "tabara"}
-            fallback={
-              <Show when={telefon()}>
-                <Inapoi text="Profil" laApasare={() => navigate("/cont")} />
-              </Show>
-            }
-          >
-            <Inapoi
-              text="Experiențele mele"
-              laApasare={() => navigate("/cont/experiente")}
+          <Show when={telefon()}>
+            <AntetPagina
+              titlu={TITLURI[pagina()!]}
+              laInapoi={() =>
+                navigate(pagina() === "tabara" ? "/cont/experiente" : "/cont")
+              }
             />
           </Show>
-          <div style={{ "max-width": "1100px" }}>
-            <Switch>
-              {/* `/cont/tabara/:id` = pagina unei tabere (23e), sub Experiențele mele. */}
-              <Match when={pagina() === "tabara" && params.id}>
-                <Tabara id={params.id!} />
-              </Match>
-              <Match when={PAGINI[pagina()!]}>
-                <Pagina />
-              </Match>
-              <Match when={true}>
-                <p style={{ color: C.stins }}>Pagina asta nu există.</p>
-              </Match>
-            </Switch>
+          <div
+            class="bbt-pagina-cont"
+            style={{
+              "flex-grow": 1,
+              "min-width": 0,
+              "min-height": 0,
+              "overflow-y": "auto",
+              padding: telefon() ? "4px 16px 32px" : "32px 40px 48px",
+            }}
+          >
+            {/* Pagina taberei are „‹ Experiențele mele" pe desktop (23e); pe telefon, „înapoi" stă în antet. */}
+            <Show when={pagina() === "tabara" && !telefon()}>
+              <Inapoi
+                text="Experiențele mele"
+                laApasare={() => navigate("/cont/experiente")}
+              />
+            </Show>
+            <div style={{ "max-width": "1100px" }}>
+              <Switch>
+                {/* `/cont/tabara/:id` = pagina unei tabere (23e), sub Experiențele mele. */}
+                <Match when={pagina() === "tabara" && params.id}>
+                  <Tabara id={params.id!} />
+                </Match>
+                <Match when={PAGINI[pagina()!]}>
+                  <Pagina />
+                </Match>
+                <Match when={true}>
+                  <p style={{ color: C.stins }}>Pagina asta nu există.</p>
+                </Match>
+              </Switch>
+            </div>
           </div>
         </div>
+      </Show>
+    </div>
+  );
+}
+
+/**
+ * Antetul paginilor din cont pe telefon, ca în aplicație la „Piesele mele": cerc de înapoi 44 și titlul nativ, fin, în
+ * mijloc: fontul sistemului, 17 semibold, nu De Fonte (cererea userului, 31 oct). Titlul e centrat pe ecran, nu în
+ * spațiul rămas lângă buton.
+ */
+function AntetPagina(props: { titlu?: string; laInapoi: () => void }) {
+  return (
+    <div
+      style={{
+        position: "relative",
+        display: "flex",
+        "align-items": "center",
+        "flex-shrink": 0,
+        "min-height": "44px",
+        padding: "calc(env(safe-area-inset-top) + 6px) 16px 10px",
+      }}
+    >
+      <button
+        type="button"
+        aria-label="Înapoi"
+        onClick={() => props.laInapoi()}
+        style={{ ...CERC_40, width: "44px", height: "44px" }}
+      >
+        <IconInapoi />
+      </button>
+      <Show when={props.titlu}>
+        <span
+          style={{
+            ...UN_RAND,
+            position: "absolute",
+            left: "72px",
+            right: "72px",
+            "text-align": "center",
+            "font-family":
+              '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            "font-size": "17px",
+            "font-weight": 600,
+            color: C.text,
+          }}
+        >
+          {props.titlu}
+        </span>
       </Show>
     </div>
   );

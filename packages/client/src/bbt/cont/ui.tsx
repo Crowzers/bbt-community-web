@@ -1,6 +1,7 @@
 import { For, JSX, Show, createSignal, onCleanup, onMount } from "solid-js";
 import { Portal } from "solid-js/web";
 
+import { useDevice } from "@revolt/common";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 /**
@@ -63,31 +64,39 @@ export function TitluPagina(props: {
   children: JSX.Element;
   dreapta?: JSX.Element;
 }) {
+  // Pe telefon, titlul stă în antetul paginii (`AntetPagina` din `ContulMeu.tsx`); aici rămâne doar ce e în dreapta lui.
+  const { layout } = useDevice();
+  const telefon = () => layout() === "phone";
+
   return (
-    <div
-      style={{
-        display: "flex",
-        "align-items": "center",
-        "justify-content": "space-between",
-        gap: "16px",
-        "flex-wrap": "wrap",
-        margin: "0 0 20px",
-      }}
-    >
-      <h1
+    <Show when={!telefon() || props.dreapta}>
+      <div
         style={{
-          ...DE_FONTE,
-          margin: 0,
-          // 36, ca în 23b.
-          "font-size": "36px",
-          "line-height": "1.05",
-          color: C.text,
+          display: "flex",
+          "align-items": "center",
+          "justify-content": telefon() ? "flex-end" : "space-between",
+          gap: "16px",
+          "flex-wrap": "wrap",
+          margin: "0 0 20px",
         }}
       >
-        {props.children}
-      </h1>
-      {props.dreapta}
-    </div>
+        <Show when={!telefon()}>
+          <h1
+            style={{
+              ...DE_FONTE,
+              margin: 0,
+              // 36, ca în 23b.
+              "font-size": "36px",
+              "line-height": "1.05",
+              color: C.text,
+            }}
+          >
+            {props.children}
+          </h1>
+        </Show>
+        {props.dreapta}
+      </div>
+    </Show>
   );
 }
 
