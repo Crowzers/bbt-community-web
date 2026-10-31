@@ -55,9 +55,8 @@ import {
  * Din 23e lipsesc, dinadins: „Acces QR" (taberele n-au bilet), „# 4 canale" (canalele stau în Community),
  * mentorii numărați și transportul (nu există în date), „Maps" și „Sună hotelul" (camera n-are adresă și telefon).
  *
- * ⚠️ Notițele LIVE ale unei sesiuni rămân pe site, deschise în browser: sunt editare colaborativă
- * (yjs + CodeMirror), un singur scriitor pe `SessionNote.content`. Un `textarea` cu PUT aici ar
- * fi suprascris starea CRDT a celorlalți. Aici se vede doar previzualizarea, ca pe site.
+ * ⚠️ Notițele LIVE se scriu pe pagina lor (`NotitaLive.tsx`), peste același document Yjs ca site-ul. Un `textarea` cu PUT
+ * aici ar suprascrie starea CRDT a celorlalți; aici se vede doar previzualizarea.
  */
 
 interface InfoTabara {
@@ -298,6 +297,12 @@ export function Tabara(props: { id: string }) {
                 </Match>
                 <Match when={fila() === "sesiuni"}>
                   <FilaSesiuni
+                    euId={d().currentParticipantId}
+                    euNume={
+                      d().participanti.find(
+                        (p) => p.id === d().currentParticipantId,
+                      )?.numeComplet ?? ""
+                    }
                     id={props.id}
                     sesiuni={sesiuni.data ?? []}
                     incarc={sesiuni.isLoading}
@@ -1011,6 +1016,8 @@ function PreferinteMasa(props: {
 }
 
 function FilaSesiuni(props: {
+  euId: string;
+  euNume: string;
   id: string;
   sesiuni: Sesiune[];
   incarc: boolean;
@@ -1142,11 +1149,13 @@ function FilaSesiuni(props: {
                     </div>
                   </div>
                 </Show>
-                {/* Notițele live: pe site, în browser (vezi antetul fișierului). */}
+                {/* Notițele live, pe pagina lor din hub (vezi antetul fișierului). */}
                 <a
-                  href={`${BBT_SITE_URL}/my-camp/${props.id}/sesiune/${s.id}/notite`}
-                  target="_blank"
-                  rel="noopener"
+                  href={`/cont/notita/${s.id}?${new URLSearchParams({
+                    participant: props.euId,
+                    nume: props.euNume,
+                    studio: String(s.studio.numar),
+                  })}`}
                   style={{
                     display: "block",
                     padding: "10px 12px",
@@ -1175,7 +1184,7 @@ function FilaSesiuni(props: {
                         color: C.text,
                       }}
                     >
-                      Deschide <Symbol size={13}>open_in_new</Symbol>
+                      Deschide
                     </span>
                   </span>
                   <Show when={s.note?.content}>

@@ -19,7 +19,6 @@ import { Buton, C, Fereastra } from "./ui";
  * Ce e altfel decât în aplicație, dinadins:
  * - Rândurile duc la paginile din hub, nu la site: aici contul există întreg, plus sesiunea e deja deschisă.
  * - „Notificări" în plus: în aplicație așteaptă push-ul; pe hub pagina există și altfel n-ar mai avea drum pe telefon.
- * - Fără „Piesele mele": pe hub n-are pagină (playlist-ul stă în pagina taberei).
  * - Poza se schimbă din „Profil public": hub-ul n-are alegerea cu camera din aplicație.
  */
 export function ProfilTelefon() {
@@ -236,6 +235,16 @@ export function ProfilTelefon() {
           <Cifra
             valoare={experiente.data ? numara("curs") : "-"}
             eticheta={numara("curs") === 1 ? "curs" : "cursuri"}
+          />
+        </div>
+
+        {/* Piesele omului, chiar sub cifre, ca în aplicație. */}
+        <div style={GRUP}>
+          <Rand
+            text="Piesele mele"
+            detaliu="Ascultă-le oricând"
+            laApasare={() => navigate("/cont/piese")}
+            ultim
           />
         </div>
 

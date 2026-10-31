@@ -23,6 +23,7 @@ import { useCont, useExperiente } from "./date";
 import { Diplome } from "./Diplome";
 import { Experiente } from "./Experiente";
 import { ExperienteTelefon } from "./ExperienteTelefon";
+import { Piese } from "./Piese";
 import { Plati } from "./Plati";
 import { ProfilTelefon } from "./ProfilTelefon";
 import {
@@ -31,6 +32,7 @@ import {
   NotificariCont,
   ProfilPublic,
 } from "./Setari";
+import { NotitaLive } from "./tabara/NotitaLive";
 import { Tabara } from "./tabara/Tabara";
 import { Buton, C, Fereastra } from "./ui";
 
@@ -56,6 +58,7 @@ const ACTIVITATE: Rand[] = [
   { pagina: "experiente", nume: "Experiențele mele" },
   { pagina: "diplome", nume: "Diplome" },
   { pagina: "plati", nume: "Plăți" },
+  { pagina: "piese", nume: "Piesele mele" },
 ];
 
 const CONT: Rand[] = [
@@ -68,6 +71,8 @@ const PAGINI: Record<string, () => JSX.Element> = {
   experiente: Experiente,
   diplome: Diplome,
   plati: Plati,
+  piese: Piese,
+  notita: NotitaLive,
   profil: ProfilPublic,
   date: DatePersonaleCont,
   notificari: NotificariCont,
@@ -77,6 +82,8 @@ const PAGINI: Record<string, () => JSX.Element> = {
 const TITLURI: Record<string, string> = {
   diplome: "Diplome",
   plati: "Plăți",
+  piese: "Piesele mele",
+  notita: "Notița sesiunii",
   profil: "Editează profilul",
   notificari: "Notificări",
 };
@@ -168,7 +175,9 @@ export function ContulMeu() {
             <AntetPagina
               titlu={TITLURI[pagina()!]}
               laInapoi={() =>
-                navigate(pagina() === "tabara" ? "/cont/experiente" : "/cont")
+                pagina() === "notita"
+                  ? navigate(-1)
+                  : navigate(pagina() === "tabara" ? "/cont/experiente" : "/cont")
               }
             />
           </Show>
