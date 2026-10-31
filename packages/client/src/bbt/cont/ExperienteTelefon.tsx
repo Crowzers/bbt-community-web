@@ -32,7 +32,7 @@ import { C, Incarcare } from "./ui";
  *
  * Ce e altfel decât în aplicație, dinadins:
  * - Fără „merge și offline": nu e adevărat în browser (ca în `Experiente.tsx`).
- * - Tap pe card deschide pagina taberei; cursurile și workshopurile n-au încă una pe hub.
+ * - Tap pe card: tabăra își deschide pagina, cursul duce la Plăți; workshopul are totul pe card (QR-ul).
  */
 export function ExperienteTelefon() {
   const experiente = useExperiente();
@@ -381,11 +381,12 @@ function RandPlata(props: { e: Experienta; plata: PlataExperienta }) {
   );
 }
 
-/** Tap pe card = pagina taberei; cursurile și workshopurile n-au încă una pe hub. */
+/** Tap pe card = pagina taberei; un curs n-are pagină pe hub, deci duce la plățile lui. */
 function useDeschide(e: () => Experienta) {
   const navigate = useNavigate();
   return () => {
     if (e().fel === "camp") navigate(`/cont/tabara/${e().id}`);
+    else if (e().fel === "curs") navigate("/cont/plati");
   };
 }
 
