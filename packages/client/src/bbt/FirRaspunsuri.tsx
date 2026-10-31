@@ -75,10 +75,15 @@ export function FirRaspunsuri(props: { channel: Channel }) {
         >
           <IconInapoi />
         </button>
-        <div style={{ flex: 1, "min-width": 0 }}>
+        {/* Titlul nativ din aplicație (`TitluRaspunsuri`): fontul sistemului, pe mijlocul ecranului. */}
+        <div style={{ flex: 1, "min-width": 0, "text-align": "center" }}>
           <div
             style={{
-              ...deFonte(20),
+              ...UN_RAND,
+              "font-family":
+                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              "font-size": "17px",
+              "font-weight": 600,
               color: "#0A0A0B",
             }}
           >
@@ -94,6 +99,8 @@ export function FirRaspunsuri(props: { channel: Channel }) {
             la mesajul lui {autor()} · #{props.channel.name}
           </div>
         </div>
+        {/* Cât butonul de înapoi, ca textul să stea pe mijlocul ecranului, nu pe mijlocul spațiului rămas. */}
+        <div style={{ width: "44px", "flex-shrink": 0 }} />
       </div>
 
       <Show when={original()} keyed>

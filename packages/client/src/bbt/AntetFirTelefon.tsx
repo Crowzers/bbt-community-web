@@ -1,9 +1,8 @@
-import { For, Show, createMemo } from "solid-js";
+import { For, JSX, Show, createMemo } from "solid-js";
 
 import type { Channel, User } from "stoat.js";
 
 import { useClient } from "@revolt/client";
-import { useModals } from "@revolt/modal";
 import { useVoice } from "@revolt/rtc";
 import { useState } from "@revolt/state";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
@@ -22,12 +21,14 @@ import { AvatarOm, CERC_40, IconInapoi, UN_RAND } from "./telefon";
  *
  * Rămâne doar butonul de apel pe canalele de voce: fără el nu ai cum intra în apel. Fixatele se deschid din banda de
  * sub antet (`BandaFixat`), iar setările canalului din apăsarea lungă pe rândul lui (`ComunitateTelefon`).
+ *
+ * Pastila stă pe mijlocul ecranului și nu se apasă, ca în aplicație, unde e titlul nativ al iPhone-ului. ⚠️ Cele două
+ * coloane egale din jurul ei o țin pe centru, deși în stânga e un singur buton, iar în dreapta pot fi mai multe.
  */
 export function AntetFirTelefon(props: { channel: Channel }) {
   const client = useClient();
   const state = useState();
   const voice = useVoice();
-  const { openModal } = useModals();
 
   const om = () =>
     props.channel.type === "DirectMessage"
@@ -59,43 +60,34 @@ export function AntetFirTelefon(props: { channel: Channel }) {
 
   return (
     <>
-      <button
-        type="button"
-        aria-label="Înapoi"
-        onClick={() => state.appDrawer()?.setShown(false)}
-        style={{
-          ...CERC_40,
-          width: "44px",
-          height: "44px",
-        }}
-      >
-        <IconInapoi />
-      </button>
-      <button
-        type="button"
-        onClick={() =>
-          !om() && openModal({ type: "channel_info", channel: props.channel })
-        }
+      <div style={COLOANA}>
+        <button
+          type="button"
+          aria-label="Înapoi"
+          onClick={() => state.appDrawer()?.setShown(false)}
+          style={{
+            ...CERC_40,
+            width: "44px",
+            height: "44px",
+          }}
+        >
+          <IconInapoi />
+        </button>
+      </div>
+      <div
         style={{
           display: "flex",
           "align-items": "center",
           gap: "10px",
-          // ⚠️ `width` scris aici: altfel regula din `Header.tsx` îl face cerc de 40, ca pe butoanele-iconiță.
-          width: "auto",
           height: "48px",
           "flex-shrink": 1,
           "min-width": 0,
           "max-width": "230px",
           padding: "6px 18px 6px 6px",
           "box-sizing": "border-box",
-          border: 0,
           "border-radius": "24px",
           background: C.foaie,
           color: C.text,
-          "font-family": "inherit",
-          "text-align": "left",
-          cursor: om() ? "default" : "pointer",
-          "-webkit-tap-highlight-color": "transparent",
         }}
       >
         <Show
@@ -130,75 +122,80 @@ export function AntetFirTelefon(props: { channel: Channel }) {
             </span>
           </Show>
         </span>
-      </button>
+      </div>
 
-      <div style={{ "flex-grow": 1 }} />
+      <div style={{ ...COLOANA, "justify-content": "flex-end", gap: "8px" }}>
+        <Show when={props.channel.isVoice && !voice.showCard(props.channel)}>
+          <button
+            type="button"
+            aria-label="Intră în apel"
+            onClick={() => voice.connect(props.channel)}
+            style={CERC_40}
+          >
+            <Symbol size={18}>call</Symbol>
+          </button>
+        </Show>
 
-      <Show when={props.channel.isVoice && !voice.showCard(props.channel)}>
-        <button
-          type="button"
-          aria-label="Intră în apel"
-          onClick={() => voice.connect(props.channel)}
-          style={CERC_40}
-        >
-          <Symbol size={18}>call</Symbol>
-        </button>
-      </Show>
-
-      {/* Doar în canale, ca în aplicație: într-o conversație, omul e deja în pastilă. */}
-      <Show when={!om() && autori().length}>
-        {/* ⚠️ `width` și `height` scrise aici: altfel regula din `Header.tsx` îl face cerc de 40. */}
-        <button
-          type="button"
-          aria-label="Membrii comunității"
-          onClick={() => setMembriDeschisi(true)}
-          style={{
-            display: "flex",
-            "align-items": "center",
-            width: "auto",
-            height: "44px",
-            padding: 0,
-            border: 0,
-            background: "transparent",
-            cursor: "pointer",
-            "-webkit-tap-highlight-color": "transparent",
-          }}
-        >
-          <For each={autori().slice(0, 2)}>
-            {(a, i) => (
+        {/* Doar în canale, ca în aplicație: într-o conversație, omul e deja în pastilă. */}
+        <Show when={!om() && autori().length}>
+          <button
+            type="button"
+            aria-label="Membrii comunității"
+            onClick={() => setMembriDeschisi(true)}
+            style={{
+              display: "flex",
+              "align-items": "center",
+              height: "44px",
+              padding: 0,
+              border: 0,
+              background: "transparent",
+              cursor: "pointer",
+              "-webkit-tap-highlight-color": "transparent",
+            }}
+          >
+            <For each={autori().slice(0, 2)}>
+              {(a, i) => (
+                <span
+                  style={{
+                    "margin-left": i() > 0 ? "-10px" : 0,
+                    "border-radius": "17px",
+                    border: `2px solid ${C.fundal}`,
+                  }}
+                >
+                  <AvatarOm om={a} marime={30} />
+                </span>
+              )}
+            </For>
+            <Show when={rest() > 0}>
               <span
                 style={{
-                  "margin-left": i() > 0 ? "-10px" : 0,
+                  width: "30px",
+                  height: "30px",
+                  "margin-left": "-10px",
+                  display: "flex",
+                  "align-items": "center",
+                  "justify-content": "center",
                   "border-radius": "17px",
                   border: `2px solid ${C.fundal}`,
+                  background: C.negru,
+                  color: C.peNegru,
+                  "font-size": "12px",
+                  "font-weight": 800,
                 }}
               >
-                <AvatarOm om={a} marime={30} />
+                +{rest() > 99 ? 99 : rest()}
               </span>
-            )}
-          </For>
-          <Show when={rest() > 0}>
-            <span
-              style={{
-                width: "30px",
-                height: "30px",
-                "margin-left": "-10px",
-                display: "flex",
-                "align-items": "center",
-                "justify-content": "center",
-                "border-radius": "17px",
-                border: `2px solid ${C.fundal}`,
-                background: C.negru,
-                color: C.peNegru,
-                "font-size": "12px",
-                "font-weight": 800,
-              }}
-            >
-              +{rest() > 99 ? 99 : rest()}
-            </span>
-          </Show>
-        </button>
-      </Show>
+            </Show>
+          </button>
+        </Show>
+      </div>
     </>
   );
 }
+
+const COLOANA: JSX.CSSProperties = {
+  display: "flex",
+  "align-items": "center",
+  flex: "1 1 0",
+  "min-width": "fit-content",
+};

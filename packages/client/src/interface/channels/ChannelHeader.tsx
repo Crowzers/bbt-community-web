@@ -102,15 +102,9 @@ function AntetLat(props: Props) {
                 "font-weight": 400,
                 "letter-spacing": "0.01em",
                 "font-synthesis": "none",
-                cursor: "pointer",
               }}
-              onClick={() =>
-                openModal({
-                  type: "channel_info",
-                  channel: props.channel,
-                })
-              }
             >
+              {/* BBT: numele nu se apasă, ca pe telefon: fără descriere, fereastra de mai jos ieșea goală. */}
               <TextWithEmoji content={props.channel.name!} />
             </NonBreakingText>
             <Show when={layout() !== "phone" && props.channel.description}>
