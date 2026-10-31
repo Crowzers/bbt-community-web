@@ -19,6 +19,7 @@ import { useState } from "@revolt/state";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { C } from "./cont/ui";
+import { mesajSistem } from "./mesajSistem";
 import { LOC_PASTILA } from "./PastilaDeJos";
 import {
   AvatarOm,
@@ -33,6 +34,7 @@ import {
   oraRand,
   rezumatMesaj,
 } from "./telefon";
+import { aduUltimul, ultimulMesaj } from "./ultimulMesaj";
 
 /**
  * BBT: tab-ul Mesaje pe telefon (macheta 20a), copia ecranului `mobil/src/app/(tabs)/mesaje.tsx`, cu măsurile de acolo:
@@ -79,10 +81,7 @@ export function MesajeTelefon(props: { conversations: () => Channel[] }) {
     on(
       () => props.conversations().length,
       () => {
-        for (const c of props.conversations()) {
-          if (c.lastMessageId && !c.lastMessage)
-            void c.fetchMessages({ limit: 1 }).catch(() => {});
-        }
+        for (const c of props.conversations()) aduUltimul(c);
       },
     ),
   );
@@ -257,6 +256,11 @@ function RandConversatie(props: { canal: Channel; euId: string | undefined }) {
   const state = useState();
   const navigate = useNavigate();
   const necitit = () => props.canal.unread;
+  const ultim = () => ultimulMesaj(props.canal);
+  const esteApel = () => {
+    const m = ultim();
+    return !!m && !!mesajSistem(m, props.euId)?.apel;
+  };
 
   return (
     <a
@@ -301,7 +305,7 @@ function RandConversatie(props: { canal: Channel; euId: string | undefined }) {
               "font-size": "12px",
             }}
           >
-            {oraRand(props.canal.lastMessageAt)}
+            {oraRand(ultim()?.createdAt ?? props.canal.lastMessageAt)}
           </span>
         </span>
         <span
@@ -312,6 +316,13 @@ function RandConversatie(props: { canal: Channel; euId: string | undefined }) {
             "margin-top": "1px",
           }}
         >
+          <Show when={esteApel()}>
+            <span
+              style={{ display: "flex", color: necitit() ? C.text : C.stins }}
+            >
+              <Symbol size={14}>call</Symbol>
+            </span>
+          </Show>
           <span
             style={{
               ...UN_RAND,
@@ -322,7 +333,7 @@ function RandConversatie(props: { canal: Channel; euId: string | undefined }) {
               "font-weight": necitit() ? 600 : 400,
             }}
           >
-            {rezumatMesaj(props.canal.lastMessage, props.euId, false)}
+            {rezumatMesaj(ultim(), props.euId, false)}
           </span>
           <Show when={necitit()}>
             <span
