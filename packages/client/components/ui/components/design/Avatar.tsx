@@ -3,6 +3,7 @@ import { JSXElement, Show } from "solid-js";
 import { css } from "styled-system/css";
 import { styled } from "styled-system/jsx";
 
+import { faraAvatarStoat } from "../../../../src/bbt/avatarImplicit";
 import { Initials } from "../utils";
 
 import { Ripple } from "./Ripple";
@@ -173,7 +174,7 @@ export function Avatar(props: Props) {
                 </FallbackBase>
               }
             >
-              <Image src={props.src} draggable={false} />
+              <Image src={faraAvatarStoat(props.src)} draggable={false} />
             </Show>
           </Shape>
         </foreignObject>
