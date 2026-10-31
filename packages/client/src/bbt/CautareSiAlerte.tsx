@@ -8,12 +8,8 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { cereCautare } from "./cautare";
 
-/** Sticla butoanelor de pe banda roz, ca butonul de notificări din `ComunitateTelefon.tsx`. */
-export const STICLA = "rgba(255,255,255,0.55)";
-export const STICLA_APASATA = "rgba(255,255,255,0.8)";
-
 /**
- * Căutarea și clopoțelul din bara de sus (pânza TRW aprobată, 5 oct 2026).
+ * Căutarea și clopoțelul din bara de sus (pânza TRW aprobată, 5 oct 2026). Albe, de 52, ca în 25d.
  *
  * Căutarea: în canalul DESCHIS — singura căutare pe care o are Stoat (vezi `cautare.ts`). Enter
  * deschide rezultatele în panoul din dreapta al canalului. Fără canal deschis, câmpul nu apare.
@@ -46,16 +42,15 @@ export function CautareSus() {
         style={{
           display: "flex",
           "align-items": "center",
-          gap: "8px",
-          // Sticla de pe antetul roz (31 oct 2026); în 21/23, pastilă gri.
-          width: "320px",
-          height: "44px",
-          padding: "0 16px",
+          gap: "10px",
+          width: "300px",
+          height: "52px",
+          padding: "0 18px",
           "box-sizing": "border-box",
           "border-radius": "999px",
-          background: STICLA,
+          background: "#FFFFFF",
           border: "0",
-          color: "#0A0A0B",
+          color: "#8D8D9A",
           "font-size": "14px",
         }}
       >
@@ -76,8 +71,7 @@ export function CautareSus() {
             outline: "none",
             color: "#0A0A0B",
             "font-family": "inherit",
-            // 16: sub 16 Safari pe iOS mărește pagina la atingere.
-            "font-size": "16px",
+            "font-size": "14px",
           }}
         />
       </label>
@@ -148,11 +142,11 @@ export function Clopotel() {
         onClick={() => setDeschis((d) => !d)}
         style={{
           position: "relative",
-          width: "44px",
-          height: "44px",
+          width: "52px",
+          height: "52px",
           border: "0",
           "border-radius": "999px",
-          background: deschis() ? STICLA_APASATA : STICLA,
+          background: deschis() ? "#F2F2F3" : "#FFFFFF",
           color: "#0A0A0B",
           display: "flex",
           "align-items": "center",
@@ -160,7 +154,7 @@ export function Clopotel() {
           cursor: "pointer",
         }}
       >
-        <Symbol size={20}>notifications</Symbol>
+        <Symbol size={18}>notifications</Symbol>
         <Show when={alerte().length > 0}>
           <span
             style={{

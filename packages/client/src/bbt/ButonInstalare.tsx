@@ -29,8 +29,7 @@ import { browser, instalare, sistemDesktop, sistemTelefon } from "./instalare";
  * butonul stă în bara de sus a listei de canale (`compact`), mai mic.
  *
  * 🔥 **Negru din 30 oct 2026** (21 și 23: „pill negru, nu roz, ca să nu concureze cu conținutul"). Până atunci roz,
- * ca acțiune („roz înseamnă click"), cu text negru. Înălțimea 44px, ca o pastilă: cât caseta de cont de lângă (avatar 34 + 2×6 + chenar),
- * ca să stea pe aceeași linie fără să se întindă una pe alta.
+ * ca acțiune („roz înseamnă click"), cu text negru. Înălțimea 52, cât căutarea și clopoțelul de lângă (25d).
  */
 
 const NEGRU = "#0A0A0B";
@@ -110,14 +109,14 @@ export function ButonInstalare(props: { compact?: boolean }) {
             "align-items": "center",
             "justify-content": "center",
             gap: props.compact ? "6px" : "8px",
-            height: props.compact ? "34px" : "44px",
+            height: props.compact ? "34px" : "52px",
             "min-width": props.compact ? "34px" : undefined,
             "box-sizing": "border-box",
             padding: props.compact
               ? text()
                 ? "0 14px 0 10px"
                 : "0"
-              : "0 20px 0 16px",
+              : "0 20px",
             "border-radius": "999px",
             border: "0",
             background: pasi() ? NEGRU_APASAT : NEGRU,
@@ -135,7 +134,7 @@ export function ButonInstalare(props: { compact?: boolean }) {
             (e.currentTarget.style.background = pasi() ? NEGRU_APASAT : NEGRU)
           }
         >
-          <Symbol size={props.compact ? 18 : 20}>download</Symbol>
+          <Symbol size={props.compact ? 18 : 16}>download</Symbol>
           {/* Pe îngust (`raspuns.css`) rămâne doar iconița. */}
           <span class={props.compact ? undefined : "bbt-instalare-text"}>
             {text()}

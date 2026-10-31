@@ -43,8 +43,8 @@ const MainBar = styled("div", {
   },
 });
 
-/** BBT: colțurile foii albe de pe desktop: 32, raza suprafețelor mari din aplicație. */
-export const RAZA_FOAIE = "32px";
+/** BBT: colțurile foii albe de pe desktop: 16, ca în 25d, și în dreapta (acolo erau drepte; cererea userului, 31 oct 2026). */
+export const RAZA_FOAIE = "16px";
 
 /** BBT: dacă lista (canale sau conversații) stă lângă conținut. Pe desktop, de ea depinde unde începe foaia albă. */
 export function useListaLaVedere() {
@@ -103,13 +103,17 @@ export const Sidebar = (_props: {
           "min-height": 0,
           ...(telefon()
             ? { width: "100%" }
-            : cuLista()
-              ? {
-                  overflow: "hidden",
-                  background: "#FFFFFF",
-                  "border-radius": `${RAZA_FOAIE} 0 0 0`,
-                }
-              : {}),
+            : {
+                // 10 între pastilă și foaie (25d).
+                "margin-left": "10px",
+                ...(cuLista()
+                  ? {
+                      overflow: "hidden",
+                      background: "#FFFFFF",
+                      "border-radius": `${RAZA_FOAIE} 0 0 ${RAZA_FOAIE}`,
+                    }
+                  : {}),
+              }),
         }}
       >
         <Show when={cuLista()}>

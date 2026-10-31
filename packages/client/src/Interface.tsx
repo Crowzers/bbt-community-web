@@ -138,7 +138,10 @@ const Interface = (props: { children: JSX.Element }) => {
               style={{
                 "flex-grow": 1,
                 "min-height": 0,
-                ...(telefon() ? {} : { background: "transparent" }),
+                // 14 între foaie și marginile ferestrei (25d). Sus, marginea e banda.
+                ...(telefon()
+                  ? {}
+                  : { background: "transparent", padding: "0 14px 14px" }),
               }}
               onDragOver={(e) => {
                 if (e.dataTransfer) e.dataTransfer.dropEffect = "none";
@@ -174,8 +177,8 @@ const Interface = (props: { children: JSX.Element }) => {
                     : {
                         overflow: "hidden",
                         "border-radius": cuLista()
-                          ? `0 ${RAZA_FOAIE} 0 0`
-                          : `${RAZA_FOAIE} ${RAZA_FOAIE} 0 0`,
+                          ? `0 ${RAZA_FOAIE} ${RAZA_FOAIE} 0`
+                          : RAZA_FOAIE,
                       }
                 }
               >

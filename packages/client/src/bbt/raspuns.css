@@ -8,7 +8,7 @@
  * Pragurile, măsurate în browser cu contul real:
  * - sub 1180: panoul din dreapta (membrii canalului, profilul din conversație) strivea chatul sub ~350px. Se ascunde,
  *   iar butoanele care îl deschid dispar odată cu el. Fixatele și căutarea rămân: le ceri tu, explicit.
- * - sub 1100: căutarea din bara de sus se strânge, numele din pastila contului dispare (rămâne avatarul).
+ * - sub 1100: căutarea din bara de sus se strânge.
  * - tabletă (sub 841 sau sub 601 pe înălțime, `Breakpoint.tablet`): căutarea iese din bara de sus; o are antetul
  *   canalului, ca iconiță (`ChannelHeader.tsx`, „layout() !== desktop").
  * - sub 760: textul de pe „Instalează" iese, rămâne iconița.
@@ -25,12 +25,6 @@
   .bbt-cautare-sus {
     width: 220px !important;
   }
-  .bbt-cont-nume {
-    display: none !important;
-  }
-  .bbt-cont-pastila {
-    padding-right: 4px !important;
-  }
 }
 
 @media (max-width: 840px), (max-height: 600px) {
@@ -45,25 +39,13 @@
   }
   .bbt-instalare-buton {
     padding: 0 !important;
-    width: 44px !important;
+    width: 52px !important;
   }
 }
 
-/*
- * Banda roz (`BaraSus.tsx`): salutul cade deasupra conversației, adică după pastila de 84 și lista de 280. 243 = cei 364 până
- * acolo, minus marginea de 18, logoul de 91 și golul de 12. Pe tabletă sau pe o fereastră scundă, banda are 72, ca să rămână
- * loc de lucru, iar salutul se strânge.
- */
-.bbt-titlu-sus {
-  padding-left: 243px;
-}
+/* Banda roz (`BaraSus.tsx`): pe tabletă sau pe o fereastră scundă are 72, ca să rămână loc de lucru, iar salutul se strânge. */
 .bbt-cautare-sus input::placeholder {
-  color: rgba(10, 10, 11, 0.7);
-}
-@media (max-width: 1100px) {
-  .bbt-titlu-sus {
-    padding-left: 24px;
-  }
+  color: #8d8d9a;
 }
 @media (max-width: 840px), (max-height: 600px) {
   .bbt-bara-sus {
@@ -135,13 +117,6 @@
   }
 }
 
-/* Lista de canale are 280 ca în 21a; pe ferestre înguste revine la 240, ca să rămână loc de chat. */
-@media (min-width: 601px) and (max-width: 1100px) {
-  .main_bar {
-    --layout-width-channel-sidebar: 240px;
-  }
-}
-
 /* Lista din Mesaje are 320, ca în 23a; pe ferestre înguste, 260. */
 .bbt-lista-mesaje {
   --layout-width-channel-sidebar: 320px;
@@ -158,6 +133,7 @@
  * peste cuvinte și să nu ceară un rând în plus. Cifrele vin din `mobil/src/fir/RandMesaj.tsx`.
  */
 .bbt-bula {
+  --bbt-fond-card: #f2f2f3;
   --message-size: 16px;
   font-size: 16px;
   line-height: 22px;
@@ -166,6 +142,15 @@
 }
 .bbt-bula p {
   margin: 0;
+}
+/* Linkurile vin roz din temă: pe bula roz dispăreau, iar pe alb sau gri abia se citeau. ⚠️ Prin variabilă, nu prin
+   `color: ... !important`: la `!important` câștigă stratul temei (`@layer` din `index.css`), oricât de exactă e regula. */
+.bbt-bula a,
+.bbt-bula-lata a,
+.bbt-embed a {
+  --md-sys-color-primary: #0a0a0b;
+  --md-sys-color-on-primary: #ffffff;
+  text-decoration: underline;
 }
 /* ⚠️ Fără vocal și Play-ul de pe video: acolo `::after` devenea un element în plus din rând, care scotea unda din bulă,
    respectiv muta butonul din mijloc. Ora lor nu stă pe un rând de text. */
@@ -246,11 +231,14 @@
 /* Panoul firului de pe desktop (24e): avatare mai mici, text 14. */
 .bbt-fir-panou {
   --bbt-col-avatar: 38px;
+  --bbt-fond-card: #f2f2f3;
+  --bbt-fond-sub-cursor: #f2f2f3;
   --message-size: 14px;
 }
 
 /* Firul (24b): bulele celorlalți sunt gri pe alb, nu albe pe gri. `!important`: culoarea bulei e inline. */
 .bbt-fir .bbt-bula:not(.bbt-bula-mea) {
+  --bbt-fond-card: #ffffff;
   background: #f2f2f3 !important;
 }
 .bbt-fir-card p {
@@ -275,7 +263,7 @@
   display: block;
   height: 12px;
 }
-/* Vocalul stă direct pe bulă, ca în aplicație; cardul gri rămâne pentru firul liniar de pe desktop. */
+/* Vocalul stă direct pe bulă, ca în aplicație; cardul rămâne pentru mesajele liniare de pe desktop. */
 .bbt-bula .bbt-vocal {
   --bbt-bat: #8d8d9a;
   padding: 0;

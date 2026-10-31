@@ -102,16 +102,15 @@ const Base = styled("div", {
     flexGrow: 1,
     minWidth: 0,
 
-    // BBT: proporțiile din 21a (30 oct 2026, „păstrăm proporțiile la tot ce a făcut el"): pastila are 56 pe un
-    // rând = 6 + 44 (microfonul rotund) + 6, cu „+" și emoji în cercuri de 40. Textul lung crește în sus. Până atunci
-    // 44 (casetă de 44 cu butoane pătrate de 32, pânza TRW).
+    // BBT: proporțiile din 25d (31 oct 2026): pastila are 56 pe un rând = 8 + 40 + 8, cu „+", emoji și microfonul în cercuri
+    // de 40, la 12 unul de altul. Paddingul e cu 1 mai mic din cauza chenarului. Textul lung crește în sus.
     // 🔥 Pastila NEAGRĂ din 21 și 23 (30 oct 2026, „bara de scris e pastila neagră"), ca în aplicația de telefon.
     // Până atunci: #141414 cu fir, colțuri de 10px. Variabilele de culoare se suprascriu AICI, ca textul și
     // iconițele dinăuntru (care citesc tema albă) să iasă albe pe negru.
     minHeight: "56px",
     boxSizing: "border-box",
-    padding: "6px 6px 6px 8px",
-    gap: "6px",
+    padding: "7px 7px 7px 9px",
+    gap: "12px",
     borderRadius: "28px",
     border: "1px solid transparent",
 
@@ -146,9 +145,9 @@ const Parent = styled("div", {
 
     display: "flex",
     gap: "var(--gap-md)",
-    // BBT: zona de mesaje n-are padding lateral (e plată, pânza TRW) — marginea o pune caseta. 12 / 24 / 20 ca în
-    // 21a; pe telefon, mai strâns.
-    margin: "12px 24px 20px",
+    // BBT: zona de mesaje n-are padding lateral (e plată, pânza TRW) — marginea o pune caseta. 12 / 20 / 16 ca în
+    // 25d; pe telefon, mai strâns.
+    margin: "12px 20px 16px",
     _phone: {
       margin: "6px 12px",
     },
@@ -180,7 +179,7 @@ export const InlineIcon = styled("div", {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    height: "44px",
+    height: "40px",
 
     // BBT: „+" și emoji = cercuri de 40 (21a, 30 oct 2026). Până atunci pătrate de 32 cu colțuri de 8 (pânza TRW).
     "& > button": {

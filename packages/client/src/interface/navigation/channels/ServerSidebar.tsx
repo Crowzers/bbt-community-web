@@ -497,7 +497,7 @@ function Category(
 const CategorySection = styled("div", {
   base: {
     display: "flex",
-    gap: "1px",
+    gap: "6px",
     flexDirection: "column",
     padding: "0 8px",
     background: "transparent",
@@ -591,8 +591,8 @@ function Entry(
         activ={props.active}
         stare={attentionState()}
       >
-        {/* 21a avea aici un cerc colorat de 28; acum e avatarul din aplicație, cu iconul canalului când are unul. */}
-        <AvatarCanal canal={props.channel} marime={32} />
+        {/* Avatarul din aplicație, cu iconul canalului când are unul. */}
+        <AvatarCanal canal={props.channel} marime={28} />
         <span class="nume">
           <TextWithEmoji content={props.channel.name!} />
         </span>
@@ -630,13 +630,12 @@ const RandCanal = styled("a", {
   base: {
     display: "flex",
     alignItems: "center",
-    // BBT (21a, 30 oct 2026): rânduri de 44 (6 + avatarul de 32 + 6), colțuri de 14, text de 14, pe alb. Până atunci
-    // 28 / 6 / 13, pe negru.
+    // BBT (25d, 31 oct 2026): rânduri de 48 (10 + avatarul de 28 + 10), colțuri de 14, text de 15, pe alb. În 21a, 44 / 14 / 14.
     gap: "10px",
-    height: "44px",
-    padding: "0 10px",
+    height: "48px",
+    padding: "0 12px",
     borderRadius: "14px",
-    fontSize: "14px",
+    fontSize: "15px",
     fontWeight: 500,
     color: "#6C6C6D",
 

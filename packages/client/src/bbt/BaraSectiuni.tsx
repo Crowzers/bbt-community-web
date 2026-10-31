@@ -17,7 +17,7 @@ import { AvatarOm, IconBalon, IconBilet, IconDiez } from "./telefon";
  * userului, 31 oct 2026, demo-ul „A cu pastila scurtă"). Ia locul listei de servere a lor (`ServerList`): BBT Community e UN
  * server (design §2 decizia 12), deci o listă de servere n-avea ce lista. Pe telefon, `PastilaDeJos.tsx`.
  *
- * Măsurile sunt ale pastilei din aplicație (`mobil/src/ui/PastilaDeJos.tsx`): 60 de lățime, 7 de jur împrejur, butoane de 46,
+ * Măsurile sunt din 25d (cererea userului, 31 oct 2026): 52 de lățime, 8 de jur împrejur, butoane de 36 la 10 unul de altul,
  * iar la capăt avatarul cu inel roz. Rozul e un singur strat care curge spre intrarea nouă (`Alunecare.tsx`), cu arcul din
  * aplicație. Numele stă doar în `title`, la hover: fără etichete, ca să rămână o pastilă subțire.
  *
@@ -25,7 +25,7 @@ import { AvatarOm, IconBalon, IconBilet, IconDiez } from "./telefon";
  * ⛔ Fără Challenge: userul nu l-a vrut în meniu.
  *
  * Experiențe și Profil sunt separate, ca în aplicație (cererea userului, 31 oct 2026). Până atunci, „Experiențe" deschidea tot
- * contul, deci lângă bilete stăteau setările de profil. Bara de sus (`BaraSus.tsx`) are doar două scurtături: Profil și Setări.
+ * contul, deci lângă bilete stăteau setările de profil.
  */
 
 type Sectiune = {
@@ -45,15 +45,15 @@ const ARC = "300ms cubic-bezier(.34,1.56,.64,1)";
 const BUTON: JSX.CSSProperties = {
   position: "relative",
   "z-index": 1,
-  width: "46px",
-  height: "46px",
+  width: "36px",
+  height: "36px",
   "flex-shrink": 0,
   display: "flex",
   "align-items": "center",
   "justify-content": "center",
   padding: 0,
   border: 0,
-  "border-radius": "23px",
+  "border-radius": "18px",
   background: "transparent",
   cursor: "pointer",
 };
@@ -119,14 +119,12 @@ export function BaraSectiuni(props: {
   return (
     <div
       style={{
-        width: "84px",
+        width: "52px",
         "flex-shrink": 0,
         display: "flex",
         "flex-direction": "column",
         "justify-content": "space-between",
         "align-items": "center",
-        "padding-bottom": "16px",
-        "box-sizing": "border-box",
       }}
     >
       <nav
@@ -135,13 +133,9 @@ export function BaraSectiuni(props: {
           position: "relative",
           display: "flex",
           "flex-direction": "column",
-          gap: "4px",
-          padding: "7px",
-          "border-radius": "30px",
-          background: "rgba(10,10,11,0.92)",
-          "-webkit-backdrop-filter": "blur(20px) saturate(1.6)",
-          "backdrop-filter": "blur(20px) saturate(1.6)",
-          "box-shadow": "0 8px 18px rgba(0,0,0,0.28)",
+          padding: "8px",
+          "border-radius": "26px",
+          background: NEGRU,
         }}
       >
         <div
@@ -149,12 +143,12 @@ export function BaraSectiuni(props: {
             position: "relative",
             display: "flex",
             "flex-direction": "column",
-            gap: "4px",
+            gap: "10px",
           }}
         >
           <alunecare.Strat
             culoare={ROZ}
-            raza="23px"
+            raza="18px"
             tranzitie={`transform ${ARC}, height ${ARC}`}
           />
           <For each={sectiuni}>
@@ -175,7 +169,7 @@ export function BaraSectiuni(props: {
                 }}
               >
                 <span style={{ position: "relative", display: "flex" }}>
-                  <s.Icon />
+                  <s.Icon size={20} />
                   <Show when={s.punct() && !s.activ()}>
                     <span
                       style={{
@@ -193,7 +187,7 @@ export function BaraSectiuni(props: {
               </button>
             )}
           </For>
-          {/* Avatarul stă într-un buton de 46, ca tab-urile; 34 + 2 × 3 de inel = 40, ca în aplicație. */}
+          {/* Avatarul stă într-un buton de 36, ca tab-urile: 32 + 2 × 2 de inel. */}
           <button
             ref={alunecare.rand(sectiuni.length)}
             type="button"
@@ -207,11 +201,11 @@ export function BaraSectiuni(props: {
             <span
               style={{
                 display: "flex",
-                "border-radius": "20px",
-                border: `3px solid ${ROZ}`,
+                "border-radius": "18px",
+                border: `2px solid ${ROZ}`,
               }}
             >
-              <AvatarOm om={client().user} marime={34} />
+              <AvatarOm om={client().user} marime={32} />
             </span>
           </button>
         </div>
@@ -227,13 +221,15 @@ export function BaraSectiuni(props: {
         aria-label="Site"
         style={{
           ...BUTON,
+          width: "40px",
+          height: "40px",
+          "border-radius": "20px",
           color: ALB,
           "text-decoration": "none",
-          background: "rgba(10,10,11,0.92)",
-          "box-shadow": "0 8px 18px rgba(0,0,0,0.28)",
+          background: NEGRU,
         }}
       >
-        <Symbol size={22}>open_in_new</Symbol>
+        <Symbol size={18}>open_in_new</Symbol>
       </a>
     </div>
   );

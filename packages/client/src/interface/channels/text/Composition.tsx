@@ -589,14 +589,14 @@ export function MessageComposition(props: Props) {
 }
 
 /**
- * BBT: butonul de trimis din casetă — CERC roz de 44, ca microfonul (21a și aplicația de telefon, 30 oct 2026; până
- * atunci pătrat de 32, pânza TRW). Stins cât nu ai ce trimite.
+ * BBT: butonul de trimis din casetă — CERC roz de 40, ca microfonul (25d, 31 oct 2026; în 21a, 44). Stins cât nu ai ce
+ * trimite.
  */
 const ButonTrimite = styled("button", {
   base: {
     flexShrink: 0,
-    width: "44px",
-    height: "44px",
+    width: "40px",
+    height: "40px",
     border: 0,
     borderRadius: "50%",
     background: "#FFA8CD",

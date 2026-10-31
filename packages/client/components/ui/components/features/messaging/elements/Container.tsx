@@ -215,8 +215,9 @@ const base = cva({
       false: {
         marginTop: "var(--message-group-spacing) !important",
 
+        // BBT: griul temei era cât fundalul conversației și mesajul de sub cursor nu se mai vedea (`raspuns.css`).
         "&:hover": {
-          background: "var(--md-sys-color-surface-container)",
+          background: "var(--bbt-fond-sub-cursor, #E5E5E5)",
         },
       },
       hide: {},

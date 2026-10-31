@@ -182,8 +182,8 @@ export function Message(props: Props) {
     ),
   );
 
-  // BBT: pe telefon firul e cel din aplicație (19b): bule și în canale, ale tale în dreapta. Pe desktop rămân 21a și
-  // 23a. Mesajele de sistem, editarea și rezultatele din căutare își păstrează rândul lor.
+  // BBT: pe telefon firul e cel din aplicație (19b): bule și în canale, ale tale în dreapta. Pe desktop, bulele din 23a
+  // (mai jos). Mesajele de sistem, editarea și rezultatele din căutare își păstrează rândul lor.
   const bula = () =>
     layout() === "phone" &&
     !props.isLink &&
@@ -507,19 +507,21 @@ export function Message(props: Props) {
           <Match when={props.editing}>
             <EditMessage message={props.message} />
           </Match>
-          {/* BBT (23a, 30 oct 2026): în conversațiile directe textul stă în bule — ale tale roz, ale celuilalt albe,
-              pe fundalul gri al conversației. Canalele rămân liniare, fără bule (21a: la lățimea asta bulele irosesc
-              spațiu și îngreunează scanarea). ⚠️ Bulele tale NU trec în dreapta, ca în machetă: rândul mesajului
-              (avatar, nume, oră) e al lui Stoat și ar trebui întors cu totul. */}
+          {/* BBT (23a, 30 oct 2026): textul stă în bule — ale tale roz, ale celorlalți albe, pe fundalul gri. Din 31 oct
+              și în canale, odată cu griul cerut de user: 21a le desena liniare pe alb, iar pe gri textul n-avea contrast.
+              Firul (panou alb) și rezultatele căutării rămân liniare. ⚠️ Bulele tale NU trec în dreapta, ca în machetă:
+              rândul mesajului (avatar, nume, oră) e al lui Stoat și ar trebui întors cu totul. */}
           <Match
             when={
               props.message.content &&
               !isOnlyGIF() &&
               !bula() &&
-              props.message.channel?.type === "DirectMessage"
+              !props.inFir &&
+              !props.isLink
             }
           >
             <div
+              class="bbt-bula-lata"
               style={{
                 // Cât textul: rândul mesajului e coloană flex și altfel întindea bula pe toată lățimea.
                 display: "inline-block",

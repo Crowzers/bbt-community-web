@@ -283,13 +283,13 @@ export function ButonMicrofon(props: { onClick: () => void }) {
   );
 }
 
-// Aceleași măsuri ca bara de scris (`MessageBox.tsx`): pastila neagră de 56, cu cercul roz de 44 (21a, 30 oct 2026);
+// Aceleași măsuri ca bara de scris (`MessageBox.tsx`): pastila neagră de 56, cu cercul roz de 40 (25d, 31 oct 2026);
 // pe telefon, 60 cu cercul de 48, ca în aplicație.
 const Parinte = styled("div", {
   base: {
     flexShrink: 0,
     display: "flex",
-    margin: "12px 24px 20px",
+    margin: "12px 20px 16px",
     _phone: {
       margin: "6px 12px",
     },
@@ -302,7 +302,7 @@ const Caseta = styled("div", {
     minWidth: 0,
     minHeight: "56px",
     boxSizing: "border-box",
-    padding: "6px 6px 6px 16px",
+    padding: "8px 8px 8px 16px",
     gap: "10px",
     borderRadius: "28px",
     border: "0",
@@ -355,14 +355,14 @@ const Nivele = styled("div", {
 });
 
 /**
- * Cercul roz de 44 al barei de scris, același ca butonul de trimis. ROTUND, ca în aplicația de telefon și în 21a
+ * Cercul roz de 40 al barei de scris, același ca butonul de trimis. ROTUND, ca în aplicația de telefon și în 25d
  * (cererea userului, 30 oct 2026); până atunci pătrat de 32 cu colțuri de 8.
  */
 const ButonRoz = styled("button", {
   base: {
     flexShrink: 0,
-    width: "44px",
-    height: "44px",
+    width: "40px",
+    height: "40px",
     border: 0,
     borderRadius: "50%",
     background: "#FFA8CD",

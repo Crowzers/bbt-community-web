@@ -98,7 +98,7 @@ function AntetLat(props: Props) {
           {/* BBT (21a, 30 oct 2026): numele mare în De Fonte și descrierea dedesubt, nu alături după o linie. În stânga,
               avatarul din aplicație, de aceeași mărime ca antetul firului de pe telefon. */}
           <HeaderIcon>
-            <AvatarCanal canal={props.channel} marime={36} />
+            <AvatarCanal canal={props.channel} marime={28} />
           </HeaderIcon>
           <div style={{ "min-width": 0, "line-height": "1.2" }}>
             <NonBreakingText
@@ -106,7 +106,7 @@ function AntetLat(props: Props) {
               style={{
                 display: "block",
                 "font-family": '"De Fonte BBT", Inter, sans-serif',
-                "font-size": "20px",
+                "font-size": "22px",
                 "font-weight": 400,
                 "letter-spacing": "0.01em",
                 "font-synthesis": "none",

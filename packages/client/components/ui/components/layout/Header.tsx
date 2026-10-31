@@ -20,11 +20,10 @@ export const Header = styled("div", {
     fontWeight: 600,
     userSelect: "none",
     overflow: "hidden",
-    // BBT: antet plat, cu un fir dedesubt. 64 de înălțime și 24 pe laterale, ca în 21a (30 oct 2026); până atunci
-    // 52 / 16 (pânza TRW).
-    height: "64px",
+    // BBT: antet plat, cu un fir dedesubt. 60 de înălțime și 20 pe laterale, ca în 25d (31 oct 2026); în 21a, 64 / 24.
+    height: "60px",
     borderRadius: 0,
-    padding: "0 24px",
+    padding: "0 20px",
     borderBottom: "1px solid var(--md-sys-color-outline-variant)",
 
     color: "var(--md-sys-color-on-surface)",
@@ -35,13 +34,26 @@ export const Header = styled("div", {
     "& svg": {
       flexShrink: 0,
     },
-    // BBT: butoanele-iconiță din antet = cercuri gri de 40 (21a, 30 oct 2026; până atunci pătrate de 32, pânza TRW).
+    // BBT: butoanele-iconiță din antet = cercuri gri de 36, la 6 unul de altul (25d, 31 oct 2026; în 21a, 40).
     // „Vezi profilul" (`.bbt-buton-panou`) e pastilă cu text și își ține forma.
     "& > button:not(.bbt-buton-panou), & > span > button": {
-      width: "40px",
-      height: "40px",
+      width: "36px",
+      height: "36px",
       borderRadius: "50%",
-      background: "#F2F2F3",
+      background: "#F3F3F6",
+    },
+    "& > :is(button, span) + :is(button, span)": {
+      marginLeft: "-4px",
+    },
+    _phone: {
+      "& > button:not(.bbt-buton-panou), & > span > button": {
+        width: "40px",
+        height: "40px",
+        background: "#F2F2F3",
+      },
+      "& > :is(button, span) + :is(button, span)": {
+        marginLeft: 0,
+      },
     },
   },
   variants: {
@@ -57,10 +69,11 @@ export const Header = styled("div", {
           background: "#FFFFFF",
         },
       },
-      // Capul listei de canale: fără fir dedesubt, titlul stă în coloană (21a).
+      // Capul listei de canale: fără fir dedesubt, titlul stă în coloană. Din 25d: 14 sus, rândul de 34, 12 până la canale.
       secondary: {
         margin: 0,
-        padding: "0 16px 0 22px",
+        boxSizing: "border-box",
+        padding: "14px 16px 12px",
         borderBottom: "0",
         backgroundColor: "transparent",
       },

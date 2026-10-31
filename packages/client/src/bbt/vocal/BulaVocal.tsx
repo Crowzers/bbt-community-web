@@ -199,7 +199,8 @@ const Bula = styled("div", {
     maxWidth: "100%",
     padding: "8px 12px 6px 8px",
     borderRadius: "18px",
-    background: "#F2F2F3",
+    // Alb pe griul conversației, gri pe panourile albe (`raspuns.css`).
+    background: "var(--bbt-fond-card, #FFFFFF)",
     border: "1px solid #E5E5E5",
     userSelect: "none",
     WebkitUserSelect: "none",

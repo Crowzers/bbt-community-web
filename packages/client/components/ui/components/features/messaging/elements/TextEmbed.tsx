@@ -25,8 +25,9 @@ const Base = styled("div", {
     gap: "var(--gap-md)",
     padding: "var(--gap-md)",
     borderRadius: "var(--borderRadius-md)",
-    color: "var(--md-sys-color-on-primary-container)",
-    background: "var(--md-sys-color-primary-container)",
+    // BBT: alb pe griul conversației, gri pe panourile albe (`raspuns.css`), ca vocalul.
+    color: "#0A0A0B",
+    background: "var(--bbt-fond-card, #FFFFFF)",
     borderInlineStart: "var(--gap-sm) solid var(--md-sys-color-primary)",
   },
 });
@@ -88,7 +89,7 @@ export function TextEmbed(props: { embed: TextEmbedClass | WebsiteEmbed }) {
   const { openModal } = useModals();
 
   return (
-    <Base style={{ "border-color": props.embed.colour }}>
+    <Base class="bbt-embed" style={{ "border-color": props.embed.colour }}>
       <Content gap="md" grow>
         <Show
           when={

@@ -1,155 +1,68 @@
-import { For, Show, createSignal, onCleanup } from "solid-js";
+import { Show } from "solid-js";
 
-import { useQuery } from "@tanstack/solid-query";
-
-import { useClient, useClientLifecycle } from "@revolt/client";
+import { useClient } from "@revolt/client";
 import { useNavigate } from "@revolt/routing";
-import { useState } from "@revolt/state";
-import { Avatar } from "@revolt/ui";
-import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import Wordmark from "../../public/assets/web/wordmark.svg?component-solid";
 import { ButonInstalare } from "./ButonInstalare";
-import {
-  CautareSus,
-  Clopotel,
-  STICLA,
-  STICLA_APASATA,
-} from "./CautareSiAlerte";
-import { BBT_ADMIN_URL } from "./config";
+import { CautareSus, Clopotel } from "./CautareSiAlerte";
 import { useSalut } from "./cont/date";
 import { textMembri, useNumarMembri } from "./numarMembri";
 import { TITLU_PAGINA, UN_RAND } from "./telefon";
 
 /**
- * Bara de sus a BBT Community — copia barei din Community-ul vechi
- * (`website/src/app/community/BaraSus.tsx` + `CasetaUtilizator.tsx`), la cererea userului
- * (5 oct 2026): „logoul să fie mare cum e în Community-ul vechi, iar user card-ul din dreapta
- * sus să fie același cu cel de pe website".
+ * Bara de sus a BBT Community, pe desktop și tabletă. Pe telefon nu există: ecranele sunt ale aplicației, cu `PastilaDeJos`.
  *
- * - Stânga: doar logoul BBT, fără text (cererea userului, 31 oct 2026).
- * - Dreapta: caseta de cont — avatar 34px, nume, sub el „Artist verificat" (verde) sau
- *   „Completează profilul" (chihlimbar), exact regula de pe site (telefon confirmat). La hover
- *   (desktop) sau atingere, meniul de cont: Profil, Setări și ieșirea (`LINKURI` de mai jos).
+ * 🔥 Banda roz (cererea userului, 31 oct 2026, demo-ul „A cu pastila scurtă"): bara n-are fundal, stă pe `FundalRama`, cu salutul
+ * din aplicație în De Fonte, online și totalul membrilor. E aceeași pe toate paginile: titlul paginii stă în colțul foii, ca
+ * „Mesaje" (`TitluPagina`), ca să curgă de la o pagină la alta.
  *
- * 🔥 Banda roz (cererea userului, 31 oct 2026, demo-ul „A cu pastila scurtă"): bara nu mai are fundal, stă pe `FundalRama`,
- * are 112px și salutul din aplicație în De Fonte, cu online și totalul membrilor. E același pe toate paginile: titlul paginii
- * stă în colțul foii, ca „Mesaje" (`TitluPagina`), ca să curgă de la o pagină la alta. Până atunci: albă, de 72px (21/23),
- * iar înainte neagră, de 64px.
+ * Proporțiile sunt din 25d (cererea userului, 31 oct 2026): 96 de înălțime, 14 pe laterale, logoul de 52 deasupra pastilei,
+ * salutul de 30 la 18 după el, iar în dreapta căutarea, clopoțelul și instalarea, toate de 52, la 10 una de alta. Pastila cu
+ * contul din dreapta a ieșit: profilul stă în pastila neagră, iar Setările și ieșirea, în meniul din Profil.
  *
- * Căutarea (în canalul deschis) și clopoțelul (mențiuni + mesaje directe necitite) stau lângă cont,
- * ca în pânza TRW — vezi `CautareSiAlerte.tsx` pentru ce pot și ce nu pot face. Lângă ele, chiar
- * înaintea contului, butonul mare de instalare pe calculator (`ButonInstalare.tsx`, 20 oct 2026).
- *
- * Telefon (`compact`): în capul ecranului cu lista de canale (`src/interface/Sidebar.tsx`).
+ * Căutarea (în canalul deschis) și clopoțelul (mențiuni + mesaje directe necitite): `CautareSiAlerte.tsx`. Butonul de instalare
+ * pe calculator: `ButonInstalare.tsx`.
  */
 
-type ProfilEu = {
-  numeComplet: string;
-  numeAfisat: string | null;
-  username: string | null;
-  verificat: boolean;
-  siteUrl: string;
-};
-
-// Bara albă din 21 și 23 (30 oct 2026); până atunci neagră, ca adminul întunecat.
-const LINIE = "#E5E5E5";
-const FOAIE = "#FFFFFF";
-const ROZ = "#FFA8CD";
 const TEXT = "#0A0A0B";
-const VERDE = "#216043";
-const CHIHLIMBAR = "#715E10";
 
-/**
- * Meniul de la avatar are doar drumurile spre Profil și Setări (varianta B, cererea userului, 31 oct 2026). Până atunci
- * repeta bara din stânga și meniul din Profil, în altă ordine și cu alte nume („Deconectare" lângă „Ieși din cont"), iar
- * Experiențele erau de două ori pe ecran. Setările Community au trecut în Setări; „Descoperă experiențe" există deja ca
- * „Vezi site" la Experiențe.
- */
-const LINKURI = [
-  { cale: "/cont", nume: "Vezi profilul", simbol: "person" },
-  { cale: "/cont/setari", nume: "Setări", simbol: "settings" },
-];
-
-export function BaraSus(props: { compact?: boolean }) {
+export function BaraSus() {
   const client = useClient();
-  const state = useState();
-  const { logout } = useClientLifecycle();
   const navigate = useNavigate();
-
-  const [meniu, setMeniu] = createSignal(false);
-  let inchidere: ReturnType<typeof setTimeout> | undefined;
-  onCleanup(() => clearTimeout(inchidere));
-
-  const profil = useQuery(() => ({
-    queryKey: ["bbt-profil-eu"],
-    retry: false,
-    staleTime: 5 * 60_000,
-    queryFn: async (): Promise<ProfilEu | null> => {
-      const r = await fetch(`${BBT_ADMIN_URL}/api/public/stoat/profil`, {
-        headers: { "X-Session-Token": state.auth.getSession()?.token ?? "" },
-      });
-      return r.ok ? r.json() : null;
-    },
-  }));
-
-  const eu = () => client().user;
-  const nume = () =>
-    eu()?.displayName ?? profil.data?.numeComplet ?? "Contul meu";
 
   const salut = useSalut();
   const numar = useNumarMembri(() => client().servers.toList()[0]);
-  const randMeniu = {
-    display: "flex",
-    "align-items": "center",
-    gap: "8px",
-    "min-height": "44px",
-    padding: "0 16px",
-    "font-size": "13.5px",
-    "font-weight": 500,
-    color: TEXT,
-    "text-decoration": "none",
-    background: "transparent",
-    border: "0",
-    width: "100%",
-    cursor: "pointer",
-    // ⚠️ `font-family`, NU `font: inherit`: scurtătura resetează și `font-size` de mai sus.
-    "font-family": "inherit",
-    "text-align": "left" as const,
-  };
 
   return (
     <header
       class="bbt-bara-sus"
       style={{
-        height: props.compact ? "56px" : "112px",
+        height: "96px",
         "flex-shrink": 0,
-        // Deasupra conținutului: meniul de cont cade peste lista de canale și mesaje.
-        // ⚠️ Pe telefon bara stă în ecranul cu lista de canale, iar ecranul canalului ALUNECĂ peste el:
-        // cu z-index permanent, bara rămânea deasupra canalului și îi acoperea antetul. Acolo urcă
-        // doar cât e deschis meniul (care se deschide din ecranul cu lista, deci nimic nu e acoperit).
+        // Deasupra conținutului: lista clopoțelului și pașii de instalare cad peste mesaje.
         position: "relative",
-        "z-index": !props.compact || meniu() ? 20 : undefined,
+        "z-index": 20,
         display: "flex",
         "align-items": "center",
         "justify-content": "space-between",
-        gap: "12px",
+        gap: "18px",
         // BBT: în aplicația instalată, cu bara de titlu a Windows-ului ascunsă (săgeata din ea,
         // `display_override: window-controls-overlay` din `vite.config.ts`), bara asta ține loc de
         // bară de titlu, iar butoanele native (minimizare, mărire, închidere) stau PESTE colțul ei din
-        // dreapta (pe Mac, semafoarele în stânga). Fără spațiul de mai jos, pastila contului intra sub
+        // dreapta (pe Mac, semafoarele în stânga). Fără spațiul de mai jos, butoanele noastre intrau sub
         // ele (bug raportat de user, 20 oct 2026). Butoanele native nu pot fi scoase dintr-un PWA.
         // `titlebar-area-*` există doar cât bara de titlu e ascunsă; altfel valorile de rezervă dau 0.
         "padding-top": "0",
         "padding-bottom": "0",
-        "padding-left": `calc(${props.compact ? "14px" : "18px"} + env(titlebar-area-x, 0px))`,
-        "padding-right": `calc(${props.compact ? "8px" : "20px"} + 100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw))`,
+        "padding-left": "calc(14px + env(titlebar-area-x, 0px))",
+        "padding-right":
+          "calc(14px + 100vw - env(titlebar-area-x, 0px) - env(titlebar-area-width, 100vw))",
         // Golurile barei mută fereastra, ca o bară de titlu (dublu clic = mărire). Ce se apasă e
         // `no-drag` mai jos: în zona de tras, Windows nu mai trimite clicuri și nici hover.
         "-webkit-app-region": "drag",
         "-webkit-user-select": "none",
-        background: props.compact ? FOAIE : "transparent",
-        "border-bottom": props.compact ? `1px solid ${LINIE}` : "0",
+        background: "transparent",
         color: TEXT,
       }}
     >
@@ -164,9 +77,8 @@ export function BaraSus(props: { compact?: boolean }) {
         }}
         style={{
           display: "flex",
+          "flex-shrink": 0,
           "align-items": "center",
-          gap: "12px",
-          "min-width": 0,
           padding: 0,
           border: 0,
           background: "transparent",
@@ -178,268 +90,62 @@ export function BaraSus(props: { compact?: boolean }) {
       >
         <Wordmark
           aria-label="BBT"
-          style={{
-            height: props.compact ? "34px" : "44px",
-            width: "auto",
-            color: TEXT,
-          }}
+          style={{ width: "52px", height: "auto", color: TEXT }}
         />
       </button>
 
-      <Show when={!props.compact}>
-        <div class="bbt-titlu-sus" style={{ flex: 1, "min-width": 0 }}>
-          <h1 class="bbt-titlu-sus-text" style={{ ...TITLU_PAGINA, ...UN_RAND }}>
-            {salut() ? `Hei, ${salut()}` : "Hei"}{" "}
-            <span class="bbt-mana">👋</span>
-          </h1>
-          <Show when={numar().total > 0}>
-            <div
-              class="bbt-online-sus"
+      <div style={{ flex: 1, "min-width": 0 }}>
+        <h1
+          class="bbt-titlu-sus-text"
+          style={{
+            ...TITLU_PAGINA,
+            ...UN_RAND,
+            "font-size": "30px",
+            "line-height": "33px",
+          }}
+        >
+          {salut() ? `Hei, ${salut()}` : "Hei"}{" "}
+          <span class="bbt-mana">👋</span>
+        </h1>
+        <Show when={numar().total > 0}>
+          <div
+            style={{
+              display: "flex",
+              "align-items": "center",
+              gap: "5px",
+              "margin-top": "4px",
+              "font-size": "13px",
+              "line-height": "16px",
+              "font-weight": 700,
+            }}
+          >
+            <span
               style={{
-                display: "flex",
-                "align-items": "center",
-                gap: "5px",
-                "margin-top": "2px",
-                "font-size": "13px",
-                "line-height": "16px",
-                "font-weight": 700,
+                width: "7px",
+                height: "7px",
+                "border-radius": "4px",
+                background: "#55DB9C",
               }}
-            >
-              <span
-                style={{
-                  width: "7px",
-                  height: "7px",
-                  "border-radius": "4px",
-                  background: "#55DB9C",
-                }}
-              />
-              {textMembri(numar())}
-            </div>
-          </Show>
-        </div>
-      </Show>
+            />
+            {textMembri(numar())}
+          </div>
+        </Show>
+      </div>
 
-      {/* BBT: căutarea în canal și clopoțelul, lângă cont (pânza TRW) — src/bbt/CautareSiAlerte.tsx. */}
+      {/* BBT: căutarea în canal, clopoțelul și instalarea (pânza TRW) — src/bbt/CautareSiAlerte.tsx. */}
       <div
         style={{
           display: "flex",
           "align-items": "center",
-          gap: "8px",
+          gap: "10px",
           "margin-left": "auto",
           "-webkit-app-region": "no-drag",
         }}
       >
-        {/* Pe telefon, din bara asta rămâne doar butonul de instalare (cu tutorial unde nu se poate direct). */}
-        <Show when={!props.compact} fallback={<ButonInstalare compact />}>
-          <CautareSus />
-          <Clopotel />
-          {/* BBT: „Instalează pe Windows/Mac", lângă cont. Se ascunde singur în rest. */}
-          <ButonInstalare />
-        </Show>
-      </div>
-      <div
-        style={{
-          position: "relative",
-          display: "flex",
-          "align-items": "center",
-          "align-self": "stretch",
-          "-webkit-app-region": "no-drag",
-        }}
-        onMouseEnter={() => {
-          clearTimeout(inchidere);
-          if (!props.compact) setMeniu(true);
-        }}
-        onMouseLeave={() => {
-          // Răgaz scurt: între pastilă și panou e un gol, iar fără el meniul s-ar închide exact
-          // când mouse-ul îl traversează. Același truc ca pe site.
-          inchidere = setTimeout(() => setMeniu(false), 200);
-        }}
-      >
-        <button
-          type="button"
-          aria-haspopup="menu"
-          aria-expanded={meniu()}
-          aria-label="Contul meu"
-          onClick={() => setMeniu((m) => !m)}
-          class="bbt-cont-pastila"
-          style={{
-            display: "flex",
-            "align-items": "center",
-            gap: "10px",
-            padding: props.compact ? "4px" : "4px 14px 4px 4px",
-            "border-radius": "999px",
-            border: "0",
-            // Sticla de pe banda roz, mai plină cât e deschis meniul.
-            background: props.compact
-              ? "transparent"
-              : meniu()
-                ? STICLA_APASATA
-                : STICLA,
-            color: TEXT,
-            cursor: "pointer",
-            font: "inherit",
-          }}
-        >
-          {/* Inelul roz din 23, ca în aplicația de telefon. */}
-          <span
-            style={{
-              display: "flex",
-              "border-radius": "999px",
-              "box-shadow": `0 0 0 2px ${ROZ}`,
-            }}
-          >
-            <Avatar
-              src={eu()?.animatedAvatarURL}
-              fallback={nume()}
-              fallbackBackground
-              size={props.compact ? 32 : 36}
-            />
-          </span>
-          <Show when={!props.compact}>
-            <span
-              class="bbt-cont-nume"
-              style={{
-                "text-align": "left",
-                "line-height": "1.25",
-                "min-width": 0,
-              }}
-            >
-              <span
-                style={{
-                  display: "block",
-                  "max-width": "150px",
-                  overflow: "hidden",
-                  "text-overflow": "ellipsis",
-                  "white-space": "nowrap",
-                  "font-size": "14px",
-                  "font-weight": 700,
-                }}
-              >
-                {nume()}
-              </span>
-              <span
-                style={{
-                  display: "block",
-                  "font-size": "12px",
-                  "font-weight": 600,
-                  color: profil.data?.verificat ? VERDE : CHIHLIMBAR,
-                }}
-              >
-                {profil.data?.verificat
-                  ? "Artist verificat"
-                  : "Completează profilul"}
-              </span>
-            </span>
-          </Show>
-        </button>
-
-        <Show when={meniu()}>
-          <div
-            role="menu"
-            style={{
-              position: "absolute",
-              right: 0,
-              top: "100%",
-              "z-index": 50,
-              width: "240px",
-              "padding-top": props.compact ? "4px" : "0",
-            }}
-          >
-            <div
-              style={{
-                overflow: "hidden",
-                "border-radius": "16px",
-                border: `1px solid ${LINIE}`,
-                background: FOAIE,
-                padding: "8px 0",
-                "box-shadow": "0 16px 48px rgba(10,10,11,0.14)",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  "align-items": "center",
-                  gap: "12px",
-                  padding: "4px 16px 12px",
-                  "margin-bottom": "4px",
-                  "border-bottom": `1px solid ${LINIE}`,
-                  color: TEXT,
-                }}
-              >
-                <Avatar
-                  src={eu()?.animatedAvatarURL}
-                  fallback={nume()}
-                  fallbackBackground
-                  size={38}
-                />
-                <span style={{ "min-width": 0, "line-height": "1.3" }}>
-                  <span
-                    style={{
-                      display: "block",
-                      "font-size": "13.5px",
-                      "font-weight": 700,
-                    }}
-                  >
-                    {nume()}
-                  </span>
-                  <Show when={profil.data?.username}>
-                    <span
-                      style={{
-                        display: "block",
-                        "font-size": "12px",
-                        color: "#6C6C6D",
-                      }}
-                    >
-                      @{profil.data!.username}
-                    </span>
-                  </Show>
-                  <Show when={profil.data?.verificat}>
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        "align-items": "center",
-                        gap: "4px",
-                        "margin-top": "2px",
-                        "font-size": "12px",
-                        "font-weight": 700,
-                        color: VERDE,
-                      }}
-                    >
-                      <Symbol size={11}>check_circle</Symbol> Artist verificat
-                    </span>
-                  </Show>
-                </span>
-              </div>
-
-              <For each={LINKURI}>
-                {(l) => (
-                  <a
-                    href={l.cale}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setMeniu(false);
-                      navigate(l.cale);
-                    }}
-                    style={randMeniu}
-                  >
-                    <Symbol size={15}>{l.simbol}</Symbol>
-                    {l.nume}
-                  </a>
-                )}
-              </For>
-              <button
-                type="button"
-                onClick={() => {
-                  setMeniu(false);
-                  logout();
-                }}
-                style={{ ...randMeniu, color: "#CA1A38" }}
-              >
-                <Symbol size={15}>logout</Symbol> Ieși din cont
-              </button>
-            </div>
-          </div>
-        </Show>
+        <CautareSus />
+        <Clopotel />
+        {/* BBT: „Instalează pe Windows/Mac". Se ascunde singur în rest. */}
+        <ButonInstalare />
       </div>
     </header>
   );
