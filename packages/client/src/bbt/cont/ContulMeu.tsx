@@ -19,7 +19,7 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 import { useAlunecare } from "../Alunecare";
 import { CERC_40, IconInapoi, UN_RAND } from "../telefon";
 
-import { useCont, useExperiente } from "./date";
+import { useCont, useExperiente, useRapoarte } from "./date";
 import { Diplome } from "./Diplome";
 import { EditeazaProfilTelefon } from "./EditeazaProfil";
 import { ExperientaTelefon } from "./Experienta";
@@ -28,6 +28,7 @@ import { ExperienteTelefon } from "./ExperienteTelefon";
 import { Piese } from "./Piese";
 import { Plati } from "./Plati";
 import { ProfilTelefon } from "./ProfilTelefon";
+import { Rapoarte } from "./Rapoarte";
 import { DatePersonaleCont, NotificariCont, ProfilPublic } from "./Setari";
 import { NotitaLive } from "./tabara/NotitaLive";
 import { Tabara } from "./tabara/Tabara";
@@ -64,6 +65,9 @@ const CONT: Rand[] = [
   { pagina: "notificari", nume: "Notificări" },
 ];
 
+/** Doar pentru cine are voie la rapoarte (`useRapoarte`). */
+const MODERARE: Rand[] = [{ pagina: "rapoarte", nume: "Rapoarte" }];
+
 const PAGINI: Record<string, () => JSX.Element> = {
   experiente: Experiente,
   diplome: Diplome,
@@ -73,6 +77,7 @@ const PAGINI: Record<string, () => JSX.Element> = {
   profil: ProfilPublic,
   date: DatePersonaleCont,
   notificari: NotificariCont,
+  rapoarte: Rapoarte,
 };
 
 /** Titlurile paginilor pe telefon, din antet. Tabăra n-are: numele ei stă deja mare în pagină. */
@@ -83,6 +88,7 @@ const TITLURI: Record<string, string> = {
   notita: "Notița sesiunii",
   profil: "Editează profilul",
   notificari: "Notificări",
+  rapoarte: "Rapoarte primite",
 };
 
 /** Adresele de dinainte de 23 → pagina care le-a luat locul. */
@@ -302,15 +308,23 @@ function Meniu(props: { activ?: string }) {
   const navigate = useNavigate();
   const cont = useCont();
   const experiente = useExperiente();
+  const rapoarte = useRapoarte();
   const { logout } = useClientLifecycle();
   const [iesire, setIesire] = createSignal(false);
   // Cifra roz de lângă „Experiențele mele" (23b): câte au ceva de făcut acum (o plată sau o semnătură).
   const deFacut = () =>
     (experiente.data?.active ?? []).filter((e) => e.plata).length;
+  const cifra = (pagina: string) => {
+    if (pagina === "experiente") return deFacut();
+    return pagina === "rapoarte" ? (rapoarte.data?.length ?? 0) : 0;
+  };
 
-  // Fundalul gri al rândului activ alunecă spre rândul nou, peste ambele grupuri (`Alunecare.tsx`, 30 oct 2026).
+  // Fundalul gri al rândului activ alunecă spre rândul nou, peste toate grupurile (`Alunecare.tsx`, 30 oct 2026).
+  // ⚠️ Rapoartele intră în listă abia după răspunsul adminului, când există și rândul lor de măsurat.
   const alunecare = useAlunecare(() =>
-    [...ACTIVITATE, ...CONT].findIndex((r) => r.pagina === props.activ),
+    [...ACTIVITATE, ...CONT, ...(rapoarte.data ? MODERARE : [])].findIndex(
+      (r) => r.pagina === props.activ,
+    ),
   );
 
   const Grup = (p: { randuri: Rand[]; dela: number }) => (
@@ -346,7 +360,7 @@ function Meniu(props: { activ?: string }) {
             }}
           >
             <span style={{ "flex-grow": 1 }}>{r.nume}</span>
-            <Show when={r.pagina === "experiente" && deFacut()}>
+            <Show when={cifra(r.pagina)}>
               <span
                 style={{
                   "min-width": "22px",
@@ -363,7 +377,7 @@ function Meniu(props: { activ?: string }) {
                   "font-weight": 700,
                 }}
               >
-                {deFacut()}
+                {cifra(r.pagina)}
               </span>
             </Show>
           </button>
@@ -463,6 +477,12 @@ function Meniu(props: { activ?: string }) {
           style={{ margin: "8px 10px", "border-top": `1px solid ${C.linie}` }}
         />
         <Grup randuri={CONT} dela={ACTIVITATE.length} />
+        <Show when={rapoarte.data}>
+          <div
+            style={{ margin: "8px 10px", "border-top": `1px solid ${C.linie}` }}
+          />
+          <Grup randuri={MODERARE} dela={ACTIVITATE.length + CONT.length} />
+        </Show>
       </div>
       <div style={{ "flex-grow": 1, "min-height": "24px" }} />
       <button

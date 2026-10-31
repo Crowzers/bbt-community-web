@@ -11,7 +11,7 @@ import { CERC_40, IconCamera, IconRotita, TITLU_PAGINA, deFonte, UN_RAND } from 
 
 import { comutaSunetele, sunetePornite } from "../sunete";
 
-import { useCont, useExperiente } from "./date";
+import { useCont, useExperiente, useRapoarte } from "./date";
 import { useEtichete } from "./Setari";
 import { Buton, C, Fereastra } from "./ui";
 
@@ -28,6 +28,7 @@ export function ProfilTelefon() {
   const navigate = useNavigate();
   const cont = useCont();
   const experiente = useExperiente();
+  const rapoarte = useRapoarte();
   const etichete = useEtichete();
   const { logout } = useClientLifecycle();
   const [iesire, setIesire] = createSignal(false);
@@ -269,6 +270,20 @@ export function ProfilTelefon() {
             ultim
           />
         </div>
+
+        {/* Doar pentru cine are voie la rapoarte, ca „Administrare Community" din aplicație. */}
+        <Show when={rapoarte.data}>
+          {(lista) => (
+            <div style={GRUP}>
+              <Rand
+                text="Rapoarte"
+                detaliu={lista().length ? String(lista().length) : undefined}
+                laApasare={() => navigate("/cont/rapoarte")}
+                ultim
+              />
+            </div>
+          )}
+        </Show>
 
         <div style={GRUP}>
           <Rand

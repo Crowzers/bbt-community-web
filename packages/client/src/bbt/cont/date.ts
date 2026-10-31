@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/solid-query";
 
 import { useState } from "@revolt/state";
 
+import { incarcaRapoarte } from "../raport";
 import { cerereCont } from "../tokenBbt";
 
 import type { Experiente, Notificare, Participant } from "./tipuri";
@@ -68,6 +69,25 @@ export function useExperiente() {
     retry: 1,
     queryFn: () =>
       cerereCont<Experiente>(sesiune(), "/api/public/participant/experiente"),
+  }));
+}
+
+export const CHEIE_RAPOARTE = ["bbt-rapoarte"];
+
+/**
+ * Rapoartele din Community. `data === null` = omul n-are voie la ele, deci nu vede nici pagina, nici rândul din meniu.
+ *
+ * ⚠️ Sesiunea stă în cheie: la ieșirea din cont cache-ul rămâne în memorie, iar următorul om logat în același tab n-are
+ * voie să vadă lista moderatorului nici măcar până la reîncărcare.
+ */
+export function useRapoarte() {
+  const sesiune = useSesiune();
+  return useQuery(() => ({
+    queryKey: [...CHEIE_RAPOARTE, sesiune()],
+    enabled: Boolean(sesiune()),
+    staleTime: 30_000,
+    retry: 1,
+    queryFn: () => incarcaRapoarte(sesiune()),
   }));
 }
 
