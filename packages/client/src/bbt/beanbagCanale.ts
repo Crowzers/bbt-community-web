@@ -1,3 +1,5 @@
+import { createSignal } from "solid-js";
+
 /**
  * Biblioteca de beanbag-uri pentru canale. `beanbag-canale.json` e generat în repo-ul platformei, de
  * `mobil/biblioteca-beanbag/genereaza.mjs`, din aceleași date ca aplicația de telefon: nu se editează de mână.
@@ -19,8 +21,22 @@ export type Alegere = { accesoriu: string; culoare: string };
 /** Fără accesoriu: beanbag-ul simplu, în culoarea lui. */
 export const SIMPLU = "simplu";
 
-export const incarcaCatalog = () =>
-  import("./beanbag-canale.json").then((m) => m.default as unknown as Catalog);
+const [catalogIncarcat, setCatalogIncarcat] = createSignal<Catalog>();
+let cerere: Promise<unknown> | undefined;
+
+/**
+ * Catalogul, sau nimic până ajunge. Un semnal comun și nu `createResource`: acela suspendă, iar lista de pe desktop are un
+ * rând pentru fiecare canal, deci fiecare rând nou ar fi cerut și el `Suspense`-ul din jur.
+ */
+export function catalogCanale() {
+  cerere ??= import("./beanbag-canale.json")
+    .then((m) => setCatalogIncarcat(m.default as unknown as Catalog))
+    .catch(() => {
+      // Un fișier picat (hub republicat cât stă tab-ul deschis) se reîncearcă la următoarea citire.
+      cerere = undefined;
+    });
+  return catalogIncarcat();
+}
 
 function cuvinteDin(nume: string) {
   return nume

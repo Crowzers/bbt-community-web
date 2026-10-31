@@ -27,6 +27,7 @@ import MdPersonAdd from "@material-design-icons/svg/outlined/person_add.svg?comp
 import MdSettings from "@material-design-icons/svg/outlined/settings.svg?component-solid";
 
 import { AntetFirTelefon } from "../../bbt/AntetFirTelefon";
+import { AvatarCanal } from "../../bbt/AvatarCanal";
 import { HeaderIcon } from "../common/CommonHeader";
 
 import { canIHasSidebar, SidebarState } from "./text/TextChannel";
@@ -86,23 +87,10 @@ function AntetLat(props: Props) {
             props.channel.type === "Group"
           }
         >
-          {/* BBT (21a, 30 oct 2026): „#" într-un cerc roz de 36, numele mare în De Fonte și descrierea dedesubt, nu
-              alături după o linie. */}
+          {/* BBT (21a, 30 oct 2026): numele mare în De Fonte și descrierea dedesubt, nu alături după o linie. În stânga,
+              avatarul din aplicație, de aceeași mărime ca antetul firului de pe telefon. */}
           <HeaderIcon>
-            <span
-              style={{
-                width: "36px",
-                height: "36px",
-                display: "flex",
-                "align-items": "center",
-                "justify-content": "center",
-                "border-radius": "50%",
-                background: "#FFA8CD",
-                color: "#0A0A0B",
-              }}
-            >
-              <Symbol size={18}>grid_3x3</Symbol>
-            </span>
+            <AvatarCanal canal={props.channel} marime={36} />
           </HeaderIcon>
           <div style={{ "min-width": 0, "line-height": "1.2" }}>
             <NonBreakingText

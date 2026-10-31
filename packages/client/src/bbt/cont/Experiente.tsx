@@ -7,6 +7,7 @@ import { useNavigate } from "@revolt/routing";
 import { BBT_SITE_URL } from "../config";
 
 import { lei, ora, useExperiente, zi } from "./date";
+import { Gol } from "./ExperienteTelefon";
 import { ButonPlateste } from "./Plata";
 import type { Experienta } from "./tipuri";
 import {
@@ -74,12 +75,7 @@ export function Experiente() {
             <Show
               when={active().length}
               fallback={
-                <StareGoala
-                  roz
-                  titlu="Încă nimic aici"
-                  text="Înscrie-te la următoarea experiență BBT pe website. După înscriere, accesul și detaliile apar aici."
-                  link={{ href: BBT_SITE_URL, text: "Vezi site ↗" }}
-                />
+                <Gol />
               }
             >
               <div

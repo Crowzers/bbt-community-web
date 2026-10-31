@@ -40,6 +40,7 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 import MdChevronRight from "@material-design-icons/svg/filled/chevron_right.svg?component-solid";
 import MdSettings from "@material-symbols/svg-400/outlined/settings-fill.svg?component-solid";
 
+import { AvatarCanal } from "../../../bbt/AvatarCanal";
 import { SidebarBase } from "./common";
 import {
   OrderedCategory,
@@ -607,29 +608,8 @@ function Entry(
         activ={props.active}
         stare={attentionState()}
       >
-        {/* 21a: iconița canalului stă într-un cerc colorat de 28 — roz pe canalul deschis, în rest o culoare a
-            canalului, aceeași de fiecare dată (din id). */}
-        <span
-          class="cerc"
-          style={{
-            background: props.active
-              ? "#FFA8CD"
-              : CULORI_CANAL[culoareCanal(props.channel.id)],
-          }}
-        >
-          <Show
-            when={props.channel.icon}
-            fallback={
-              <Switch fallback={<Symbol size={14}>grid_3x3</Symbol>}>
-                <Match when={props.channel.isVoice}>
-                  <Symbol size={14}>volume_up</Symbol>
-                </Match>
-              </Switch>
-            }
-          >
-            <ChannelIcon src={props.channel.iconURL} />
-          </Show>
-        </span>
+        {/* 21a avea aici un cerc colorat de 28; acum e avatarul din aplicație, cu iconul canalului când are unul. */}
+        <AvatarCanal canal={props.channel} marime={32} />
         <span class="nume">
           <TextWithEmoji content={props.channel.name!} />
         </span>
@@ -661,21 +641,6 @@ function Entry(
   );
 }
 
-/** Culorile cercurilor din 21a (paleta Slush deschisă) și alegerea uneia după id, stabilă între porniri. */
-const CULORI_CANAL = [
-  "#FFEFAD",
-  "#DCEEFF",
-  "#99E9C4",
-  "#E9CCFF",
-  "#F2F2F3",
-  "#FEDCEC",
-];
-function culoareCanal(id: string) {
-  let h = 0;
-  for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-  return h % CULORI_CANAL.length;
-}
-
 /**
  * BBT: rândul de canal din pânza TRW — 28px, 13px, colțuri de 6px. Stări: activ (alb 10%), necitit
  * (alb, îngroșat), mut (stins), normal (alb 60%). Mențiunile = pastilă roșie cu numărul.
@@ -685,7 +650,7 @@ const RandCanal = styled("a", {
   base: {
     display: "flex",
     alignItems: "center",
-    // BBT (21a, 30 oct 2026): rânduri de 44 (8 + cercul de 28 + 8), colțuri de 14, text de 14, pe alb. Până atunci
+    // BBT (21a, 30 oct 2026): rânduri de 44 (6 + avatarul de 32 + 6), colțuri de 14, text de 14, pe alb. Până atunci
     // 28 / 6 / 13, pe negru.
     gap: "10px",
     height: "44px",
@@ -695,17 +660,6 @@ const RandCanal = styled("a", {
     fontWeight: 500,
     color: "#6C6C6D",
 
-    "& .cerc": {
-      width: "28px",
-      height: "28px",
-      flexShrink: 0,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      borderRadius: "50%",
-      color: "#0A0A0B",
-      overflow: "hidden",
-    },
     fill: "currentColor",
     textDecoration: "none",
     cursor: "pointer",
@@ -759,16 +713,5 @@ const RandCanal = styled("a", {
       muted: { opacity: 0.45 },
       normal: {},
     },
-  },
-});
-
-/**
- * Channel icon styling
- */
-const ChannelIcon = styled("img", {
-  base: {
-    width: "16px",
-    height: "16px",
-    objectFit: "contain",
   },
 });

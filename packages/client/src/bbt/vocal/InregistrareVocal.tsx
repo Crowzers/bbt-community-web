@@ -271,6 +271,7 @@ export function ButonMicrofon(props: { onClick: () => void }) {
   const { layout } = useDevice();
   return (
     <ButonRoz
+      class="bbt-moale"
       type="button"
       aria-label="Înregistrează un vocal"
       onClick={() => props.onClick()}
@@ -335,7 +336,7 @@ const PunctRosu = styled("span", {
     width: "8px",
     height: "8px",
     borderRadius: "50%",
-    background: "#ff4d4f",
+    background: "#CA1A38",
     animation: "bbtVocalPuls 1.2s ease-in-out infinite",
   },
 });

@@ -1,6 +1,6 @@
-import { For, Show, createEffect, createMemo, createResource, createSignal } from "solid-js";
+import { For, Show, createEffect, createMemo, createSignal } from "solid-js";
 
-import { SIMPLU, adresaSvg, incarcaCatalog, svgBeanbag, type Alegere, type Catalog } from "./beanbagCanale";
+import { SIMPLU, adresaSvg, catalogCanale, svgBeanbag, type Alegere, type Catalog } from "./beanbagCanale";
 
 const ETICHETA = "font-size:14px;font-weight:600;margin:0 0 6px";
 
@@ -18,7 +18,7 @@ export function AlegeBeanbag(props: {
   propusa?: (catalog: Catalog) => Alegere;
   laSchimbare: (alegere: Alegere, catalog: Catalog) => void;
 }) {
-  const [catalog] = createResource(incarcaCatalog);
+  const catalog = catalogCanale;
   const [cautare, setCautare] = createSignal("");
   const [alesLocal, setAlesLocal] = createSignal<Alegere | null>(null);
 

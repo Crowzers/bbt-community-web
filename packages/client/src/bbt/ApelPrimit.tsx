@@ -183,7 +183,7 @@ export function ApelPrimit() {
                   <Symbol>call_end</Symbol>
                 </ButonApel>
                 <ButonApel
-                  culoare="#30A46C"
+                  culoare="#216043"
                   eticheta="Răspunde"
                   onClick={raspunde}
                 >

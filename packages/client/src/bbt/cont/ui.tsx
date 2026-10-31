@@ -46,7 +46,7 @@ export const C = {
   galben: "#FFD731",
   galbenDeschis: "#FFEFAD",
   /** Text de avertisment pe alb (scadențe, „Completează profilul"). */
-  chihlimbar: "#A66A00",
+  chihlimbar: "#715E10",
   rosu: "#CA1A38",
   camps: "#FFD731",
   workshops: "#FB4903",

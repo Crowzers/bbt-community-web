@@ -11,6 +11,7 @@ import { Avatar, IconButton } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { BBT_ADMIN_URL } from "./config";
+import { PiesaProfil, type UltimaPiesa } from "./PiesaProfil";
 import { trimiteCererea } from "./relatii";
 
 /**
@@ -39,6 +40,9 @@ type ProfilBBT = {
   verificat: boolean;
   eu: boolean;
   profilUrl: string;
+  // Opționale cât timp hub-ul poate ajunge înaintea adminului care le trimite: cardul rămâne pe Power, nu cade.
+  stats?: { tabere: number; piese: number; bangere: number };
+  ultimaPiesa?: UltimaPiesa | null;
 };
 
 /** Aceleași etichete ca pe site (`website/src/app/u/[username]/stil.ts`): `other` = „Explorer". */
@@ -59,6 +63,7 @@ const luna = new Intl.DateTimeFormat("ro-RO", {
 });
 
 const ROZ = "#FFA8CD";
+const ROZ_DESCHIS = "#FEDCEC";
 const FUNDAL = "#FFFFFF"; // foaia din tema BBT (src/bbt/tema.ts, alb 8% pe negru)
 const LINIE = "#E5E5E5";
 
@@ -145,15 +150,15 @@ export function MiniProfilBBT(props: {
                 : "0 16px 48px rgb(0 0 0 / 60%)",
             }}
           >
-            {/* Coperta. Fără imagine: o bandă în accentul mărcii, ca pe site — un dreptunghi gri
-                ar fi arătat ca o imagine care n-a reușit să se încarce. */}
+            {/* Coperta. Fără imagine: o bandă în rozul Slush — un dreptunghi gri ar fi arătat ca o
+                imagine care n-a reușit să se încarce. */}
             <div
               style={{
                 position: "relative",
                 height: "76px",
                 background: p().coverUrl
                   ? `center / cover no-repeat url("${p().coverUrl}")`
-                  : "linear-gradient(120deg,#3A2233,#2A2A33)",
+                  : ROZ_DESCHIS,
               }}
             />
 
@@ -196,7 +201,8 @@ export function MiniProfilBBT(props: {
                       width: "18px",
                       height: "18px",
                       "border-radius": "50%",
-                      background: "#1D9BF0",
+                      background: "#4DA2FF",
+                      color: "#0A0A0B",
                       "font-size": "12px",
                     }}
                   >
@@ -206,6 +212,9 @@ export function MiniProfilBBT(props: {
               </div>
               <div style={{ "font-size": "13px", color: "#6C6C6D" }}>
                 @{p().username}
+                <Show when={p().membruDin}>
+                  {" · "}Din {luna.format(new Date(p().membruDin!))}
+                </Show>
               </div>
 
               <Show when={p().bio}>
@@ -254,28 +263,28 @@ export function MiniProfilBBT(props: {
                 </div>
               </Show>
 
-              <div
-                style={{
-                  display: "flex",
-                  "align-items": "center",
-                  gap: "16px",
-                  "margin-top": "12px",
-                  "padding-top": "12px",
-                  "border-top": `1px solid ${LINIE}`,
-                  "font-size": "12px",
-                  color: "#6C6C6D",
-                }}
-              >
-                <span>
-                  <strong style={{ color: "#0A0A0B" }}>{p().powerScore}</strong>{" "}
-                  Power
-                </span>
-                <Show when={p().membruDin}>
-                  <span style={{ "margin-left": "auto" }}>
-                    Din {luna.format(new Date(p().membruDin!))}
-                  </span>
+              {/* Cifrele și ultima piesă, ca în aplicație (`mobil/src/fir/ProfilScurt.tsx`). */}
+              <div style={{ display: "flex", gap: "6px", "margin-top": "12px" }}>
+                <Cifra valoare={p().powerScore} eticheta="Power" />
+                <Show when={p().stats}>
+                  {(s) => (
+                    <>
+                      <Cifra valoare={s().tabere} eticheta="Tabere" />
+                      <Cifra valoare={s().piese} eticheta="Piese" />
+                      <Cifra valoare={s().bangere} eticheta="Bangere" />
+                    </>
+                  )}
                 </Show>
               </div>
+              <Show when={p().ultimaPiesa}>
+                {(piesa) => (
+                  <PiesaProfil
+                    piesa={piesa()}
+                    total={p().stats?.piese ?? 1}
+                    profilUrl={p().profilUrl}
+                  />
+                )}
+              </Show>
 
               <div
                 style={{
@@ -335,6 +344,27 @@ export function MiniProfilBBT(props: {
         )}
       </Match>
     </Switch>
+  );
+}
+
+function Cifra(props: { valoare: number; eticheta: string }) {
+  return (
+    <div
+      style={{
+        flex: 1,
+        padding: "8px 0",
+        "text-align": "center",
+        "border-radius": "12px",
+        background: "#F2F2F3",
+      }}
+    >
+      <div style={{ "font-size": "16px", "font-weight": 700 }}>
+        {props.valoare}
+      </div>
+      <div style={{ "font-size": "12px", color: "#6C6C6D" }}>
+        {props.eticheta}
+      </div>
+    </div>
   );
 }
 

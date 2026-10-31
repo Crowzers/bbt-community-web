@@ -531,6 +531,7 @@ export function MessageComposition(props: Props) {
                     when={aratMicrofon()}
                     fallback={
                       <ButonTrimite
+                        class="bbt-moale"
                         type="button"
                         aria-label="Trimite"
                         disabled={!canSend()}

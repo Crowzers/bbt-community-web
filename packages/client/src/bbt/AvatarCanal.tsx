@@ -1,20 +1,19 @@
-import { Show, createMemo, createResource } from "solid-js";
+import { Show, createMemo } from "solid-js";
 
 import type { Channel } from "stoat.js";
 
-import { adresaSvg, desenCanal, incarcaCatalog } from "./beanbagCanale";
+import { adresaSvg, catalogCanale, desenCanal } from "./beanbagCanale";
 
 /**
- * BBT: avatarul canalului pe telefon, ca `mobil/src/ui/AvatarCanal.tsx`: iconul pus pe canal câștigă, fiindcă e ales de
- * om; fără icon, beanbag-ul desenat după nume și id, deci canalele vechi arată ca în aplicație până primesc unul.
- * Desktopul rămâne pe cercurile din 21a, cu iconul în ele când există.
+ * BBT: avatarul canalului, ca `mobil/src/ui/AvatarCanal.tsx`: iconul pus pe canal câștigă, fiindcă e ales de om; fără
+ * icon, beanbag-ul desenat după nume și id, deci canalele vechi arată ca în aplicație până primesc unul. Pe desktop a
+ * înlocuit cercurile din 21a (cererea userului, 31 oct: „canalele nu au avatarele").
  *
  * ⚠️ `iconURL` e gol pentru un canal fără icon, deci nu trebuie verificat `icon` separat.
  */
 export function AvatarCanal(props: { canal: Channel; marime: number }) {
-  const [catalog] = createResource(incarcaCatalog);
   const desen = createMemo(() => {
-    const c = catalog();
+    const c = catalogCanale();
     if (props.canal.iconURL || !c) return undefined;
     return adresaSvg(
       desenCanal(c, {

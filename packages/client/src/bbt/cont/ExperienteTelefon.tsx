@@ -142,7 +142,7 @@ export function ExperienteTelefon() {
                     "white-space": "nowrap",
                   }}
                 >
-                  Vezi site <Symbol size={14}>arrow_outward</Symbol>
+                  Vezi site <Symbol size={14}>open_in_new</Symbol>
                 </span>
               </a>
 
@@ -554,7 +554,7 @@ function CardGri(props: { e: Experienta }) {
 }
 
 /** 18h: contul fără nicio experiență. Starea goală a ecranului, mare, cu drumul spre site. */
-function Gol() {
+export function Gol() {
   return (
     <div style={CENTRU}>
       {/* Beanbag-ul din logo, cu căști, dă din cap pe tempo, ca în aplicație. */}
@@ -586,7 +586,7 @@ function Gol() {
         rel="noopener"
         style={{ ...BUTON_NEGRU, "margin-top": "18px", padding: "12px 22px" }}
       >
-        Vezi site <Symbol size={15}>arrow_outward</Symbol>
+        Vezi site <Symbol size={15}>open_in_new</Symbol>
       </a>
     </div>
   );

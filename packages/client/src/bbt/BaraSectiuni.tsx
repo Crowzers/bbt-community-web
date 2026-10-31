@@ -237,6 +237,7 @@ export function BaraSectiuni(props: {
           {(s, i) => (
             <button
               ref={alunecare.rand(i())}
+              class="bbt-moale"
               type="button"
               aria-current={s.activ() ? "page" : undefined}
               onClick={() => s.laApasare()}

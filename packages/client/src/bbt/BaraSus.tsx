@@ -53,7 +53,7 @@ const GRI = "#F2F2F3";
 const ROZ = "#FFA8CD";
 const TEXT = "#0A0A0B";
 const VERDE = "#216043";
-const CHIHLIMBAR = "#A66A00";
+const CHIHLIMBAR = "#715E10";
 
 /**
  * Rândurile contului, aceleași ca meniul din stânga al contului (`cont/ContulMeu.tsx`, 23 din 30 oct 2026), deschise

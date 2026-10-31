@@ -434,7 +434,7 @@ function InsignaBanger(props: { nr: number }) {
       bronze: { bg: "#CD7F32", text: C.peNegru },
       silver: { bg: "#C0C0C0", text: "#000" },
       diamond: {
-        bg: "linear-gradient(to right, #3AA0FF, #00E5D0)",
+        bg: "linear-gradient(to right, #4DA2FF, #55DB9C)",
         text: "#000",
       },
     })[t().tier as "none" | "bronze" | "silver" | "diamond"] ?? {
