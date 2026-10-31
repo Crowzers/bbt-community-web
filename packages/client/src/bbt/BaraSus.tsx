@@ -56,8 +56,8 @@ const VERDE = "#216043";
 const CHIHLIMBAR = "#715E10";
 
 /**
- * Rândurile contului, aceleași ca meniul din stânga al contului (`cont/ContulMeu.tsx`, 23 din 30 oct 2026), deschise
- * în hub. `pagina` = ruta `/cont/<pagina>`.
+ * Scurtături spre Experiențe și spre paginile din Profil (`cont/ContulMeu.tsx`), deschise în hub. `pagina` = ruta
+ * `/cont/<pagina>`.
  *
  * ⚠️ Până pe 30 oct se deschideau în hub DOAR în aplicația instalată, iar în browser pe site (decizia #6 din
  * `2026-10-20-hub-standalone-cont-design.md`). Userul a cerut contul în hub și pe web („hai să facem așa și pe web"),

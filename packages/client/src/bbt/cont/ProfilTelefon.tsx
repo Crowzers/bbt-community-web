@@ -24,7 +24,7 @@ import { Buton, C, Fereastra } from "./ui";
 
 /**
  * BBT: tab-ul Profil pe telefon (macheta 20e), copia ecranului `mobil/src/app/(tabs)/profil.tsx`, cu măsurile de acolo.
- * Ia locul listei de la `/cont`; desktopul își păstrează meniul din 23 (`ContulMeu.tsx`).
+ * Ia locul listei de la `/cont`; desktopul are Profilul cu meniu în stânga (`ContulMeu.tsx`).
  *
  * Ce e altfel decât în aplicație, dinadins:
  * - Rândurile duc la paginile din hub, nu la site: aici contul există întreg, plus sesiunea e deja deschisă.

@@ -7,7 +7,10 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { useAlunecare } from "./Alunecare";
 import { BBT_SITE_URL } from "./config";
+import { useExperiente } from "./cont/date";
+import { eInExperiente } from "./cont/pagini";
 import { tintaSite } from "./instalare";
+import { AvatarOm } from "./telefon";
 
 /**
  * Bara de secțiuni a BBT Community — meniul principal, la fel oriunde ai fi (modelul TRW: Chat,
@@ -16,11 +19,12 @@ import { tintaSite } from "./instalare";
  * 5 oct 2026: https://claude.ai/artifact/VF8eFPB2Xm7uznVkPX6t5F
  *
  * 🔥 **Rail-ul din 21 și 23** (30 oct 2026): aceleași intrări ca pastila de jos din aplicația de telefon —
- * Comunitate, Mesaje, Experiențe — plus Site jos. Albă, 104px, intrarea activă = pătrat negru rotunjit cu iconița și
- * numele albe. Până atunci: neagră, 72px, Chat / Mesaje / Site. „Experiențe" deschide contul (`/cont/experiente`).
+ * Comunitate, Mesaje, Experiențe, Profil — plus Site jos. Albă, 104px, intrarea activă = pătrat negru rotunjit cu iconița și
+ * numele albe. Până atunci: neagră, 72px, Chat / Mesaje / Site.
  * ⛔ Fără Challenge — userul nu l-a vrut în meniu.
  *
- * Contul NU stă aici (era avatarul de jos): e în bara de sus, `BaraSus.tsx`.
+ * Experiențe și Profil sunt separate, ca în aplicație (cererea userului, 31 oct 2026). Până atunci, „Experiențe" deschidea tot
+ * contul, deci lângă bilete stăteau setările de profil. Bara de sus (`BaraSus.tsx`) păstrează meniul contului ca scurtătură.
  *
  * Două forme: verticală (desktop, stânga) și orizontală (telefon, jos — bara de tab-uri).
  */
@@ -31,6 +35,8 @@ type Sectiune = {
   activ: () => boolean;
   /** Necitite, pe iconiță. */
   badge?: () => number;
+  /** Avatarul tău în locul iconiței, ca în pastila din aplicație. */
+  avatar?: boolean;
   laApasare: () => void;
 };
 
@@ -49,6 +55,7 @@ export function BaraSectiuni(props: {
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams<{ server?: string }>();
+  const experiente = useExperiente();
 
   const serverBbt = () => client().servers.toList()[0];
   const inServer = () => !!params.server;
@@ -82,8 +89,20 @@ export function BaraSectiuni(props: {
     {
       nume: "Experiențe",
       simbol: "confirmation_number",
-      activ: () => location.pathname.startsWith("/cont"),
+      activ: () => eInExperiente(location.pathname),
+      // Câte au ceva de făcut acum (o plată sau o semnătură), cifra roz din 23b.
+      badge: () =>
+        (experiente.data?.active ?? []).filter((e) => e.plata).length,
       laApasare: () => navigate("/cont/experiente"),
+    },
+    {
+      nume: "Profil",
+      simbol: "person",
+      avatar: true,
+      activ: () =>
+        location.pathname.startsWith("/cont") &&
+        !eInExperiente(location.pathname),
+      laApasare: () => navigate("/cont/profil"),
     },
   ];
 
@@ -130,6 +149,7 @@ export function BaraSectiuni(props: {
     nume: string;
     simbol: string;
     badge?: () => number;
+    avatar?: boolean;
   }) => (
     <>
       {/* Iconița într-o cutie fixă de 22: glifa singură aducea înălțimea rândului de text și urca. */}
@@ -142,7 +162,9 @@ export function BaraSectiuni(props: {
           "justify-content": "center",
         }}
       >
-        <Symbol size={22}>{s.simbol}</Symbol>
+        <Show when={s.avatar} fallback={<Symbol size={22}>{s.simbol}</Symbol>}>
+          <AvatarOm om={client().user} marime={22} />
+        </Show>
       </span>
       {/* Pe rail, proporțiile din 21/23 (cererea userului, 30 oct: „nu se vede frumos centrat în pătrat"): pătrat de
           88 × 61, iconița sus la 10, numele pe un rând de 14, cu aer pe laterale. Cu numele la 14px, „Comunitate"
