@@ -115,6 +115,8 @@ import i_qr_code from "lucide-static/icons/qr-code.svg?raw";
 import i_receipt from "lucide-static/icons/receipt.svg?raw";
 import i_rectangle_ellipsis from "lucide-static/icons/rectangle-ellipsis.svg?raw";
 import i_refresh_cw from "lucide-static/icons/refresh-cw.svg?raw";
+import i_repeat from "lucide-static/icons/repeat.svg?raw";
+import i_repeat_1 from "lucide-static/icons/repeat-1.svg?raw";
 import i_reply from "lucide-static/icons/reply.svg?raw";
 import i_screen_share from "lucide-static/icons/screen-share.svg?raw";
 import i_screen_share_off from "lucide-static/icons/screen-share-off.svg?raw";
@@ -126,6 +128,9 @@ import i_shield from "lucide-static/icons/shield.svg?raw";
 import i_shield_check from "lucide-static/icons/shield-check.svg?raw";
 import i_shield_user from "lucide-static/icons/shield-user.svg?raw";
 import i_shrink from "lucide-static/icons/shrink.svg?raw";
+import i_shuffle from "lucide-static/icons/shuffle.svg?raw";
+import i_skip_back from "lucide-static/icons/skip-back.svg?raw";
+import i_skip_forward from "lucide-static/icons/skip-forward.svg?raw";
 import i_sliders_horizontal from "lucide-static/icons/sliders-horizontal.svg?raw";
 import i_smile from "lucide-static/icons/smile.svg?raw";
 import i_speaker from "lucide-static/icons/speaker.svg?raw";
@@ -149,6 +154,7 @@ import i_users_round from "lucide-static/icons/users-round.svg?raw";
 import i_utensils from "lucide-static/icons/utensils.svg?raw";
 import i_video from "lucide-static/icons/video.svg?raw";
 import i_volume_2 from "lucide-static/icons/volume-2.svg?raw";
+import i_volume_x from "lucide-static/icons/volume-x.svg?raw";
 import i_wallet from "lucide-static/icons/wallet.svg?raw";
 import i_webhook from "lucide-static/icons/webhook.svg?raw";
 import i_wrench from "lucide-static/icons/wrench.svg?raw";
@@ -272,6 +278,8 @@ export const SVG_LUCIDE: Record<string, string> = {
   "receipt": i_receipt,
   "rectangle-ellipsis": i_rectangle_ellipsis,
   "refresh-cw": i_refresh_cw,
+  "repeat": i_repeat,
+  "repeat-1": i_repeat_1,
   "reply": i_reply,
   "screen-share": i_screen_share,
   "screen-share-off": i_screen_share_off,
@@ -283,6 +291,9 @@ export const SVG_LUCIDE: Record<string, string> = {
   "shield-check": i_shield_check,
   "shield-user": i_shield_user,
   "shrink": i_shrink,
+  "shuffle": i_shuffle,
+  "skip-back": i_skip_back,
+  "skip-forward": i_skip_forward,
   "sliders-horizontal": i_sliders_horizontal,
   "smile": i_smile,
   "speaker": i_speaker,
@@ -306,6 +317,7 @@ export const SVG_LUCIDE: Record<string, string> = {
   "utensils": i_utensils,
   "video": i_video,
   "volume-2": i_volume_2,
+  "volume-x": i_volume_x,
   "wallet": i_wallet,
   "webhook": i_webhook,
   "wrench": i_wrench,

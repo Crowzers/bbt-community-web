@@ -1,4 +1,4 @@
-import { For, Show, createSignal } from "solid-js";
+import { For, JSX, Show, createSignal } from "solid-js";
 
 import { QRCodeSVG } from "solid-qr-code";
 
@@ -6,15 +6,13 @@ import { useNavigate } from "@revolt/routing";
 
 import { BBT_SITE_URL } from "../config";
 
-import { lei, ora, useExperiente, zi } from "./date";
+import { lei, ora, useCont, useExperiente, zi, zileRo } from "./date";
 import { Gol } from "./ExperienteTelefon";
 import { ButonPlateste } from "./Plata";
 import type { Experienta } from "./tipuri";
 import {
   Buton,
   C,
-  DE_FONTE,
-  Eticheta,
   Fereastra,
   FileActivIstoric,
   Incarcare,
@@ -25,8 +23,8 @@ import {
 } from "./ui";
 
 /**
- * BBT: „Experiențele mele" (23b, 23c, 30 oct 2026). Înlocuiește My Camps, My Workshops și My Courses: un singur card
- * pentru tabere, cursuri și workshopuri, cum e tab-ul Experiențe din aplicația de telefon.
+ * BBT: „Experiențe" și, cu `fel`, My Camps, My Workshops și My Courses din meniul Profilului, pe desktop și tabletă: același card
+ * pentru tabere, cursuri și workshopuri. Pe telefon, `ExperienteTelefon.tsx`.
  *
  * Lista vine gata făcută din `participant/experiente` (`useExperiente`): ce e activ, ce s-a terminat, ce mai e de
  * plătit și QR-ul biletului. Hub-ul doar o desenează.
@@ -35,8 +33,6 @@ import {
  * - Fără „Trimite pe telefon": aplicația de telefon n-are încă notificări de la noi.
  * - Fără „# 4 canale": canalele taberei stau în Community, iar un număr fără drum spre ele n-ar ajuta.
  * - Fără „QR-ul merge offline": nu e adevărat în hub.
- * - Cardul e roz doar pentru ce ține AZI (workshopul din seara asta, tabăra în curs), ca bannerul „Azi" din aplicație.
- *   Restul e gri: rozul ar fi încetat să spună ceva dacă era pe toate.
  */
 export function Experiente(props: {
   /** My Camps, My Workshops, My Courses din meniul Profilului (ca pe site): doar experiențele de felul ăsta. */
@@ -79,17 +75,13 @@ export function Experiente(props: {
           active={() => (
             <Show
               when={active().length}
-              fallback={
-                <Gol />
-              }
+              fallback={<Gol {...(props.fel ? GOL[props.fel] : {})} />}
             >
               <div
                 style={{
-                  display: "grid",
-                  "grid-template-columns":
-                    // `auto-fit`: două carduri umplu rândul, ca în 23b (cu `auto-fill` rămânea un loc gol).
-                    "repeat(auto-fit, minmax(min(360px, 100%), 1fr))",
-                  gap: "14px",
+                  display: "flex",
+                  "flex-direction": "column",
+                  gap: "12px",
                 }}
               >
                 <For each={active()}>{(e) => <CardExperienta e={e} />}</For>
@@ -102,7 +94,11 @@ export function Experiente(props: {
               fallback={
                 <StareGoala
                   titlu="Niciun istoric încă"
-                  text="Taberele, cursurile și workshopurile la care ai fost apar aici."
+                  text={
+                    props.fel
+                      ? ISTORIC_GOL[props.fel]
+                      : "Taberele, cursurile și workshopurile la care ai fost apar aici."
+                  }
                 />
               }
             >
@@ -148,284 +144,434 @@ const FEL: Record<Experienta["fel"], string> = {
   workshop: "Workshop",
 };
 
-function CardExperienta(props: { e: Experienta }) {
-  const navigate = useNavigate();
-  const e = () => props.e;
-  const [qrMare, setQrMare] = createSignal(false);
-  const paginaTaberei = () => `/cont/tabara/${e().id}`;
-  const deschide = () => navigate(paginaTaberei());
+/** Culoarea de sub un afiș lipsă. Teritoriul spune unde ești, ca pe site. */
+const TERITORIU: Record<Experienta["fel"], string> = {
+  camp: C.camps,
+  curs: C.lilaDeschis,
+  workshop: C.portocaliuDeschis,
+};
 
+/** Fiecare pagină își spune lista goală pe numele ei; `Experiențe` rămâne pe textul general. */
+const GOL = {
+  camp: {
+    titlu: "Nicio tabără activă",
+    text: "Nu ești înscris la nicio tabără viitoare.",
+    link: { cale: "/camps", text: "Explorează taberele" },
+  },
+  workshop: {
+    titlu: "Niciun workshop activ",
+    text: "Nu ai bilet la niciun workshop viitor.",
+    link: { cale: "/workshops", text: "Vezi workshopurile" },
+  },
+  curs: {
+    titlu: "Niciun curs activ",
+    text: "Nu ești înscris la niciun curs.",
+    link: { cale: "/cursuri", text: "Vezi cursurile" },
+  },
+};
+
+const ISTORIC_GOL = {
+  camp: "Taberele la care ai fost apar aici.",
+  workshop: "Workshopurile la care ai fost apar aici.",
+  curs: "Cursurile terminate apar aici.",
+};
+
+/** Unde duce fiecare scurtătură în pagina taberei (`Tabara.tsx`). */
+const SCURTATURI = [
+  { text: "Program", adresa: "?fila=program" },
+  { text: "Documente", adresa: "?la=acte" },
+  { text: "Cazare", adresa: "?fila=camera" },
+];
+
+/** Pastila neagră de pe card: ce ține azi, altfel cât mai e. */
+function eticheta(e: Experienta) {
+  if (e.azi) return e.fel === "workshop" ? "Azi" : "În desfășurare";
+  if (e.zilePanaLa <= 0) return "începe azi";
+  return e.zilePanaLa === 1 ? "mâine" : `peste ${zileRo(e.zilePanaLa)}`;
+}
+
+/** Aceeași listă ca `STATUSURI_PLATITE` din `admin/lib/reguli/statusuri.ts`: interiorul taberei se deschide doar cu ele. */
+const STATUSURI_PLATITE = ["Achitat", "Achitat 1/2", "Achitat 2/2", "Oferta"];
+
+/** Înscrierea din `/me` din spatele cardului: de acolo vin starea, adresa publică și penalizarea. */
+function useInscriere(e: () => Experienta) {
+  const cont = useCont();
+  return () =>
+    e().fel === "camp"
+      ? cont.data?.inscrieri?.find((i) => i.id === e().comandaId)
+      : undefined;
+}
+
+/** Afișul de pe card: 56 pe 75, sau numele BBT pe culoarea teritoriului când ediția n-are afiș. */
+export function Afis(props: { url?: string | null; fel: Experienta["fel"]; alb?: boolean }) {
   return (
     <div
       style={{
+        width: "56px",
+        height: "75px",
+        "flex-shrink": 0,
         display: "flex",
-        "flex-direction": "column",
-        gap: "14px",
-        padding: "22px",
-        "border-radius": "28px",
-        background: e().azi ? C.roz : C.foaie,
+        "align-items": "center",
+        "justify-content": "center",
+        overflow: "hidden",
+        "border-radius": "10px",
+        background: TERITORIU[props.fel],
+        color: "rgba(10,10,11,0.3)",
+        "font-size": "15px",
+        "font-weight": 900,
       }}
+    >
+      <Show when={props.url} fallback="BBT">
+        {(url) => (
+          <img
+            src={url()}
+            alt=""
+            style={{
+              width: "100%",
+              height: "100%",
+              "object-fit": "cover",
+              filter: props.alb ? "grayscale(1)" : undefined,
+            }}
+          />
+        )}
+      </Show>
+    </div>
+  );
+}
+
+const STARI = {
+  verde: { bg: C.verdeDeschis, text: C.verde },
+  galben: { bg: C.galbenDeschis, text: C.chihlimbar },
+  rosu: { bg: C.rosuDeschis, text: C.rosu },
+};
+
+export function Stare(props: { fel: keyof typeof STARI; children: JSX.Element }) {
+  return (
+    <span
+      style={{
+        "white-space": "nowrap",
+        padding: "4px 10px",
+        "border-radius": "999px",
+        background: STARI[props.fel].bg,
+        color: STARI[props.fel].text,
+        "font-size": "12px",
+        "font-weight": 600,
+      }}
+    >
+      {props.children}
+    </span>
+  );
+}
+
+/**
+ * Cardul de pe site (`CardCamp` din `website/src/app/dashboard/mycamps/page.tsx`, varianta aleasă de user pe 23 oct 2026), adus
+ * aici pe 31 oct: afișul, starea și titlul sus, iar jos o singură bandă albă cu plata și butoanele.
+ *
+ * ⚠️ „Intră în tabără" apare doar la tabăra în desfășurare. Interiorul cere înscriere PLĂTITĂ, deci o înscriere încă neplătită
+ * duce la pagina publică a taberei, nu la „Nu am putut deschide tabăra".
+ */
+function CardExperienta(props: { e: Experienta }) {
+  const navigate = useNavigate();
+  const e = () => props.e;
+  const inscriere = useInscriere(e);
+  const [qrMare, setQrMare] = createSignal(false);
+
+  const faraInterior = () => {
+    const i = inscriere();
+    return !!i && !STATUSURI_PLATITE.includes(i.statusPlata);
+  };
+  const paginaPublica = () => {
+    const slug = inscriere()?.camp.slug;
+    return faraInterior() && slug ? `${BBT_SITE_URL}/camps/${slug}` : undefined;
+  };
+  const deschide = (rest = "") => navigate(`/cont/tabara/${e().id}${rest}`);
+
+  const pr = () => e().progres;
+  // Oferta de 100% n-are progres: omul nu mai datorează nimic.
+  const faraPlata = () => e().fel !== "workshop" && !pr() && !e().plata;
+  const complet = () =>
+    faraPlata() || (!!pr() && pr()!.total > 0 && pr()!.platit >= pr()!.total);
+  const procent = () =>
+    complet()
+      ? 100
+      : pr() && pr()!.total > 0
+        ? Math.min(100, Math.round((pr()!.platit / pr()!.total) * 100))
+        : 0;
+  const penalizare = () =>
+    e().plata?.actiune === "transa2"
+      ? (inscriere()?.penalizareTransa2 ?? 0)
+      : 0;
+
+  const stare = () => {
+    const p = e().plata;
+    if (complet()) return <Stare fel="verde">{faraPlata() ? "Confirmat" : "Plătit"}</Stare>;
+    if (p?.actiune === "contract") return <Stare fel="galben">Contract de semnat</Stare>;
+    if (p?.intarziat) return <Stare fel="rosu">Întârziată</Stare>;
+    if (p?.scadentaLa) return <Stare fel="galben">Scadent {zi(p.scadentaLa)}</Stare>;
+    return <Stare fel="galben">În așteptare</Stare>;
+  };
+
+  return (
+    <article
+      style={{ padding: "10px", "border-radius": "20px", background: C.foaie }}
     >
       <div
         style={{
           display: "flex",
-          "align-items": "flex-start",
-          "justify-content": "space-between",
+          "flex-wrap": "wrap",
+          "align-items": "center",
           gap: "12px",
         }}
       >
-        <div style={{ "min-width": 0 }}>
-          <Eticheta culoare={C.text}>{antet(e())}</Eticheta>
-          <Show
-            when={e().fel === "camp"}
-            fallback={
-              <h2
-                style={{
-                  ...DE_FONTE,
-                  margin: "6px 0 0",
-                  "font-size": "28px",
-                  "line-height": "1.05",
-                }}
-              >
-                {e().titlu}
-              </h2>
-            }
-          >
-            {/* Titlul taberei deschide pagina ei, ca „Deschide" (harta din 23). */}
-            <a
-              href={paginaTaberei()}
-              onClick={(ev) => {
-                ev.preventDefault();
-                deschide();
-              }}
-              style={{ color: C.text, "text-decoration": "none" }}
-            >
-              <h2
-                style={{
-                  ...DE_FONTE,
-                  margin: "6px 0 0",
-                  "font-size": "28px",
-                  "line-height": "1.05",
-                }}
-              >
-                {e().titlu}
-              </h2>
-            </a>
-          </Show>
-          <p
+        <Afis url={e().afisUrl ?? inscriere()?.camp.imgUrl} fel={e().fel} />
+        <div
+          style={{
+            flex: "1 1 240px",
+            "min-width": 0,
+            display: "flex",
+            "flex-direction": "column",
+            "align-items": "flex-start",
+            gap: "4px",
+          }}
+        >
+          <span
             style={{
-              margin: "4px 0 0",
-              color: e().azi ? C.text : C.stins,
-              "font-size": "14px",
+              display: "inline-flex",
+              "align-items": "center",
+              gap: "6px",
+              padding: "2px 10px",
+              "border-radius": "999px",
+              background: C.negru,
+              color: C.peNegru,
+              "font-size": "12px",
+              "font-weight": 600,
+              "white-space": "nowrap",
             }}
           >
-            {FEL[e().fel]}
+            <Show when={e().azi}>
+              <span
+                style={{
+                  width: "6px",
+                  height: "6px",
+                  "border-radius": "3px",
+                  background: C.verdeBara,
+                }}
+              />
+            </Show>
+            {eticheta(e())}
+          </span>
+          <h2
+            style={{
+              margin: 0,
+              "font-size": "20px",
+              "font-weight": 700,
+              "line-height": "1.15",
+            }}
+          >
+            {e().titlu}
+          </h2>
+          <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
+            {[antet(e()), inscriere()?.camp.durataText, FEL[e().fel]]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
         </div>
-        <Show
-          when={e().azi}
-          fallback={
-            <Show when={e().zilePanaLa > 0}>
-              <Pastila fel="asteapta">
-                {e().zilePanaLa === 1 ? "mâine" : `în ${e().zilePanaLa} zile`}
-              </Pastila>
-            </Show>
-          }
-        >
-          {/* Workshopul de azi are deja „AZI" în etichetă; pastila spune ce contează la ușă (23b). */}
-          <Pastila fel={e().fel === "workshop" ? "negru" : "neutru"}>
-            {e().fel === "workshop" ? "Plătit" : "În desfășurare"}
-          </Pastila>
+        {/* Scurtăturile din 23b, spre locul lor din pagina taberei (23e). */}
+        <Show when={e().fel === "camp" && !faraInterior()}>
+          <div style={{ display: "flex", gap: "6px", "flex-wrap": "wrap" }}>
+            <For each={SCURTATURI}>
+              {(s) => (
+                <button
+                  type="button"
+                  onClick={() => deschide(s.adresa)}
+                  style={{
+                    height: "28px",
+                    padding: "0 12px",
+                    "border-radius": "999px",
+                    border: "0",
+                    background: C.fundal,
+                    color: C.text,
+                    "font-family": "inherit",
+                    "font-size": "12px",
+                    "font-weight": 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  {s.text}
+                </button>
+              )}
+            </For>
+          </div>
         </Show>
       </div>
 
-      {/* Biletul de workshop: QR-ul pe loc, mărit la cerere (23b „Mărește QR"). */}
-      <Show when={e().qr}>
-        {(cod) => (
-          <div
-            style={{ display: "flex", "align-items": "center", gap: "16px" }}
-          >
-            {/* Fundal ALB sub cod, oricât de colorat ar fi cardul: scanerele citesc prost un QR pe roz. */}
+      <div
+        style={{
+          display: "flex",
+          "flex-wrap": "wrap",
+          "align-items": "center",
+          gap: "12px",
+          "margin-top": "10px",
+          padding: "8px 8px 8px 14px",
+          "border-radius": "10px",
+          background: C.fundal,
+        }}
+      >
+        <Show
+          when={e().qr}
+          fallback={
             <div
               style={{
-                padding: "7px",
-                "border-radius": "14px",
-                background: "#fff",
+                flex: "1 1 260px",
+                "min-width": 0,
                 display: "flex",
+                "flex-direction": "column",
+                gap: "6px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  "align-items": "center",
+                  "justify-content": "space-between",
+                  gap: "8px",
+                  "font-size": "13px",
+                }}
+              >
+                <Show
+                  when={!faraPlata()}
+                  fallback={
+                    <b style={{ "font-weight": 700 }}>Nu ai nimic de plătit</b>
+                  }
+                >
+                  <span style={{ "white-space": "nowrap" }}>
+                    <b style={{ "font-weight": 700 }}>
+                      {(pr()?.platit ?? 0).toLocaleString("ro-RO")}
+                    </b>{" "}
+                    <span style={{ color: C.stins }}>
+                      din {lei(pr()?.total ?? e().plata?.suma ?? 0)}
+                    </span>
+                  </span>
+                </Show>
+                {stare()}
+              </div>
+              <div
+                role="progressbar"
+                aria-label="Cât ai plătit din total"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={procent()}
+                style={{
+                  height: "6px",
+                  overflow: "hidden",
+                  "border-radius": "3px",
+                  background: C.foaie,
+                }}
+              >
+                <div
+                  style={{
+                    width: `${procent()}%`,
+                    height: "100%",
+                    background: complet() ? C.verdeBara : C.roz,
+                  }}
+                />
+              </div>
+              {/* Suma de pe buton include deja penalizarea; aici omul vede de unde vine diferența. */}
+              <Show when={penalizare() > 0}>
+                <p style={{ margin: 0, color: C.rosu, "font-size": "14px" }}>
+                  Include penalizarea de întârziere: {lei(penalizare())}
+                  <Show when={(inscriere()?.zileIntarziereTransa2 ?? 0) > 0}>
+                    {" "}
+                    ({inscriere()!.zileIntarziereTransa2}{" "}
+                    {inscriere()!.zileIntarziereTransa2 === 1 ? "zi" : "zile"} ×
+                    1%/zi din tranșă)
+                  </Show>
+                  .
+                </p>
+              </Show>
+            </div>
+          }
+        >
+          {(cod) => (
+            <div
+              style={{
+                flex: "1 1 260px",
+                "min-width": 0,
+                display: "flex",
+                "align-items": "center",
+                gap: "12px",
               }}
             >
               <QRCodeSVG
                 value={cod()}
                 level="medium"
-                width={90}
-                height={90}
+                width={64}
+                height={64}
                 backgroundColor="white"
                 foregroundColor="black"
                 backgroundAlpha={1}
                 foregroundAlpha={1}
               />
-            </div>
-            <div
-              style={{
-                display: "flex",
-                "flex-direction": "column",
-                gap: "10px",
-                "min-width": 0,
-              }}
-            >
-              <div>
-                <p
-                  style={{ margin: 0, "font-size": "15px", "font-weight": 800 }}
-                >
+              <div style={{ "min-width": 0 }}>
+                <p style={{ margin: 0, "font-size": "14px", "font-weight": 800 }}>
                   Acces #{cod()}
                 </p>
-                <p
-                  style={{
-                    margin: "2px 0 0",
-                    color: e().azi ? C.text : C.stins,
-                    "font-size": "12px",
-                  }}
-                >
+                <p style={{ margin: "2px 0 0", color: C.stins, "font-size": "14px" }}>
                   Arată codul la intrare.
                 </p>
               </div>
-              <div>
-                <Buton mic onClick={() => setQrMare(true)}>
-                  Mărește QR
+              <Show when={qrMare()}>
+                <QrMare
+                  cod={cod()}
+                  titlu={e().titlu}
+                  laInchidere={() => setQrMare(false)}
+                />
+              </Show>
+            </div>
+          )}
+        </Show>
+
+        {/* Lățime fixă, aliniată la dreapta: așa barele se termină în același punct pe toate cardurile. */}
+        <div
+          style={{
+            flex: "0 1 288px",
+            display: "flex",
+            "flex-wrap": "wrap",
+            "justify-content": "flex-end",
+            gap: "6px",
+          }}
+        >
+          <Show when={e().qr}>
+            <Buton mic onClick={() => setQrMare(true)}>
+              Mărește QR
+            </Buton>
+          </Show>
+          <Show when={e().plata}>
+            {(p) => <ButonPlateste mic plata={p()} progres={pr()} />}
+          </Show>
+          <Show when={e().fel === "camp"}>
+            <Show
+              when={e().azi && !faraInterior()}
+              fallback={
+                <Buton
+                  piele="alb"
+                  mic
+                  href={paginaPublica()}
+                  target={paginaPublica() ? "_blank" : undefined}
+                  onClick={paginaPublica() ? undefined : () => deschide()}
+                >
+                  Vezi detalii
                 </Buton>
-              </div>
-            </div>
-            <Show when={qrMare()}>
-              <QrMare
-                cod={cod()}
-                titlu={e().titlu}
-                laInchidere={() => setQrMare(false)}
-              />
-            </Show>
-          </div>
-        )}
-      </Show>
-
-      {/* Tabere și cursuri: cât s-a plătit și ce urmează (23b). */}
-      <Show when={e().progres}>
-        {(pr) => (
-          <div
-            style={{ display: "flex", "flex-direction": "column", gap: "8px" }}
-          >
-            <BaraPlata
-              platit={pr().platit}
-              total={pr().total}
-              nrTranse={pr().nrTranse}
-            />
-            <div
-              style={{
-                display: "flex",
-                "align-items": "center",
-                "justify-content": "space-between",
-                gap: "12px",
-                "flex-wrap": "wrap",
-              }}
+              }
             >
-              <div>
-                <Show
-                  when={e().plata}
-                  fallback={
-                    <p
-                      style={{
-                        margin: 0,
-                        "font-size": "15px",
-                        "font-weight": 800,
-                      }}
-                    >
-                      Plătit integral
-                    </p>
-                  }
-                >
-                  {(p) => (
-                    <p
-                      style={{
-                        margin: 0,
-                        "font-size": "15px",
-                        "font-weight": 800,
-                        color: p().intarziat ? C.rosu : C.text,
-                      }}
-                    >
-                      {p().actiune === "contract"
-                        ? "Contract de semnat"
-                        : p().actiune === "integral"
-                          ? `De plătit · ${lei(p().suma)}`
-                          : `Rata ${p().numarTransa} · ${lei(p().suma)}`}
-                      <Show when={p().scadentaLa && p().actiune !== "contract"}>
-                        {" "}
-                        · {zi(p().scadentaLa!)}
-                      </Show>
-                    </p>
-                  )}
-                </Show>
-                <p
-                  style={{
-                    margin: "2px 0 0",
-                    color: C.stins,
-                    "font-size": "12px",
-                  }}
-                >
-                  {pr().platit.toLocaleString("ro-RO")} / {lei(pr().total)}{" "}
-                  plătiți
-                </p>
-              </div>
-              <div style={{ display: "flex", gap: "6px" }}>
-                <Show when={e().plata}>
-                  {(p) => <ButonPlateste mic plata={p()} progres={pr()} />}
-                </Show>
-                <Show when={e().fel === "camp"}>
-                  <Buton piele="alb" mic onClick={deschide}>
-                    Deschide
-                  </Buton>
-                </Show>
-              </div>
-            </div>
-          </div>
-        )}
-      </Show>
-
-      {/* Oferta de 100% n-are progres: rămâne drumul spre tabără. */}
-      <Show when={!e().progres && e().fel === "camp"}>
-        <div>
-          <Buton piele="alb" mic onClick={deschide}>
-            Deschide
-          </Buton>
+              <Buton mic onClick={() => deschide()}>
+                Intră în tabără
+              </Buton>
+            </Show>
+          </Show>
         </div>
-      </Show>
-
-      {/* Scurtăturile din 23b spre secțiunile paginii taberei (23e). */}
-      <Show when={e().fel === "camp"}>
-        <div style={{ display: "flex", gap: "6px", "flex-wrap": "wrap" }}>
-          <For each={["Program", "Documente", "Cazare"]}>
-            {(t) => (
-              <button
-                type="button"
-                onClick={deschide}
-                style={{
-                  // 23b: 6 / 12, text gros de 12.
-                  height: "28px",
-                  padding: "0 12px",
-                  "border-radius": "999px",
-                  border: "0",
-                  background: C.fundal,
-                  color: C.text,
-                  "font-family": "inherit",
-                  "font-size": "12px",
-                  "font-weight": 700,
-                  cursor: "pointer",
-                }}
-              >
-                {t}
-              </button>
-            )}
-          </For>
-        </div>
-      </Show>
-    </div>
+      </div>
+    </article>
   );
 }
 
@@ -526,17 +672,19 @@ export function QrMare(props: {
 function RandIstoric(props: { e: Experienta }) {
   const navigate = useNavigate();
   const e = () => props.e;
+  const inscriere = useInscriere(e);
   return (
     <div
       style={{
         display: "flex",
         "align-items": "center",
         gap: "14px",
-        padding: "14px 18px",
+        padding: "10px",
         "border-radius": "20px",
         background: C.foaie,
       }}
     >
+      <Afis url={e().afisUrl ?? inscriere()?.camp.imgUrl} fel={e().fel} alb />
       <div style={{ "min-width": 0, "flex-grow": 1 }}>
         <p
           style={{
@@ -554,6 +702,7 @@ function RandIstoric(props: { e: Experienta }) {
           {FEL[e().fel]} · {antet(e())}
         </p>
       </div>
+      <Pastila fel="neutru">Participat</Pastila>
       <Show when={e().areDiploma}>
         <Buton piele="alb" mic onClick={() => navigate("/cont/diplome")}>
           Diploma
@@ -565,7 +714,7 @@ function RandIstoric(props: { e: Experienta }) {
           mic
           onClick={() => navigate(`/cont/tabara/${e().id}`)}
         >
-          Deschide
+          Vezi detalii
         </Buton>
       </Show>
     </div>

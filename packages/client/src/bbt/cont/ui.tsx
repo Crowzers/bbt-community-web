@@ -48,6 +48,10 @@ export const C = {
   /** Text de avertisment pe alb (scadențe, „Completează profilul"). */
   chihlimbar: "#715E10",
   rosu: "#CA1A38",
+  /** `--color-rosu-deschis` de pe site, ca hex. */
+  rosuDeschis: "#FAE8EB",
+  lilaDeschis: "#E9CCFF",
+  portocaliuDeschis: "#FFD9C9",
   camps: "#FFD731",
   workshops: "#FB4903",
   cursuri: "#5C4ADE",
@@ -177,13 +181,13 @@ export function Pastila(props: {
 
 const PIELE_BUTON = {
   negru: { bg: C.negru, text: C.peNegru, contur: "transparent" },
-  // Plățile scadente: galben, ca în 23b, 23e și în aplicația de telefon (20d).
-  galben: { bg: C.galben, text: C.negru, contur: "transparent" },
+  // Plățile, ca pe site: roz înseamnă „apasă" (decizia userului, 1 nov 2026; până atunci galben, ca în 23b și 20d).
+  roz: { bg: C.roz, text: C.negru, contur: "transparent" },
   alb: { bg: C.fundal, text: C.text, contur: C.linie },
 };
 
 /**
- * Butonul unei acțiuni. `negru` = principala (pill-ul din 23), `galben` = o plată, `alb` = drumurile secundare
+ * Butonul unei acțiuni. `negru` = principala (pill-ul din 23), `roz` = o plată, `alb` = drumurile secundare
  * („Deschide", „Vezi site ↗"). `href` = link (deschis în browser dacă e în afara hub-ului).
  */
 export function Buton(props: {

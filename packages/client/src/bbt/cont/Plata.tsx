@@ -234,7 +234,12 @@ export function FereastraPlata(props: {
             </div>
           }
         >
-          <Buton lat onClick={() => void plateste()} dezactivat={lucrez()}>
+          <Buton
+            piele="roz"
+            lat
+            onClick={() => void plateste()}
+            dezactivat={lucrez()}
+          >
             {lucrez() ? "Se deschide plata…" : `Plătește ${lei(p().suma)}`}
           </Buton>
         </Show>
@@ -251,12 +256,12 @@ export function FereastraPlata(props: {
   );
 }
 
-/** Butonul galben „Plătește" / „Semnează" de pe carduri (23b, 23e), care deschide fereastra. */
+/** Butonul roz „Plătește" / „Semnează" de pe carduri (23b, 23e), care deschide fereastra. */
 export function ButonPlateste(props: {
   plata: PlataExperienta;
   progres?: { platit: number; total: number; nrTranse: number } | null;
   mic?: boolean;
-  /** Alt buton pentru aceeași fereastră: pe telefon e pastila neagră din aplicație (19c), nu cea galbenă din 23. */
+  /** Alt buton pentru aceeași fereastră: pe telefon e pastila neagră din aplicație (19c), nu cea rozenă din 23. */
   buton?: (deschide: () => void) => JSX.Element;
 }) {
   const [deschisa, setDeschisa] = createSignal(false);
@@ -266,7 +271,7 @@ export function ButonPlateste(props: {
         when={props.buton}
         fallback={
           <Buton
-            piele="galben"
+            piele="roz"
             mic={props.mic}
             onClick={() => setDeschisa(true)}
           >

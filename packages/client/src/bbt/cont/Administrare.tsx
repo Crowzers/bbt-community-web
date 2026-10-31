@@ -10,8 +10,10 @@ import { useNavigate, useParams } from "@revolt/routing";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { AlegeBeanbag } from "../AlegeBeanbag";
+import { AvatarCanal } from "../AvatarCanal";
 import { type Alegere, type Catalog, fisierBeanbag } from "../beanbagCanale";
 
+import { ora, zi } from "./date";
 import {
   Buton,
   C,
@@ -54,7 +56,14 @@ const COLOANA: JSX.CSSProperties = {
   display: "flex",
   "flex-direction": "column",
   gap: "14px",
-  "max-width": "760px",
+  "min-width": 0,
+};
+
+const DOUA_COLOANE: JSX.CSSProperties = {
+  display: "grid",
+  "grid-template-columns": "repeat(auto-fit, minmax(min(340px, 100%), 1fr))",
+  gap: "16px",
+  "align-items": "start",
 };
 
 const eAmutit = (timeout: Date | undefined) =>
@@ -89,98 +98,103 @@ export function Administrare() {
         when={server() && poateAdministra(server())}
         fallback={<p style={{ color: C.stins }}>Pagina asta nu există.</p>}
       >
-        <div style={COLOANA}>
-          <Show when={server().havePermission("ManageServer")}>
-            <Descriere server={server()} />
-          </Show>
+        <div style={DOUA_COLOANE}>
+          <div style={COLOANA}>
+            <Show when={server().havePermission("ManageServer")}>
+              <Descriere server={server()} />
+            </Show>
 
-          <Show when={server().havePermission("ManageChannel")}>
-            <Sectiune titlu="Canale">
-              <Grup>
-                <For each={server().orderedChannels}>
-                  {(categorie) => (
-                    <For each={categorie.channels}>
-                      {(canal) => (
-                        <RandApasat
-                          text={`#${canal.name}`}
-                          detaliu={
-                            categorie.id === "default"
-                              ? undefined
-                              : categorie.title
-                          }
-                          laApasare={() => setDeschis(canal)}
-                        />
-                      )}
-                    </For>
-                  )}
-                </For>
-              </Grup>
-              <div style={{ "margin-top": "12px" }}>
-                <Buton
-                  mic
-                  onClick={() =>
-                    openModal({ type: "create_channel", server: server() })
-                  }
-                >
-                  Canal nou
-                </Buton>
-              </div>
-            </Sectiune>
-          </Show>
+            <Show when={server().havePermission("ManageChannel")}>
+              <Sectiune titlu="Canale">
+                <Grup>
+                  <For each={server().orderedChannels}>
+                    {(categorie) => (
+                      <For each={categorie.channels}>
+                        {(canal) => (
+                          <RandApasat
+                            inainte={<AvatarCanal canal={canal} marime={28} />}
+                            text={`#${canal.name}`}
+                            detaliu={
+                              categorie.id === "default"
+                                ? undefined
+                                : categorie.title
+                            }
+                            laApasare={() => setDeschis(canal)}
+                          />
+                        )}
+                      </For>
+                    )}
+                  </For>
+                </Grup>
+                <div style={{ "margin-top": "12px" }}>
+                  <Buton
+                    mic
+                    onClick={() =>
+                      openModal({ type: "create_channel", server: server() })
+                    }
+                  >
+                    Canal nou
+                  </Buton>
+                </div>
+              </Sectiune>
+            </Show>
+          </div>
 
-          <Show when={server().havePermission("TimeoutMembers")}>
-            <Amutiti server={server()} laEroare={showError} />
-          </Show>
-          <Show when={server().havePermission("BanMembers")}>
-            <Interzisi server={server()} laEroare={showError} />
-          </Show>
-          <Show when={server().havePermission("ManageCustomisation")}>
-            <Emojiuri server={server()} />
-          </Show>
+          <div style={COLOANA}>
+            <Show when={server().havePermission("TimeoutMembers")}>
+              <Amutiti server={server()} laEroare={showError} />
+            </Show>
+            <Show when={server().havePermission("BanMembers")}>
+              <Interzisi server={server()} laEroare={showError} />
+            </Show>
+            <Show when={server().havePermission("ManageCustomisation")}>
+              <Emojiuri server={server()} />
+            </Show>
 
-          <Show
-            when={
-              server().havePermission("ManageRole") ||
-              server().havePermission("ManagePermissions")
-            }
-          >
-            <Sectiune titlu="Avansat">
-              <div
-                style={{
-                  display: "flex",
-                  "align-items": "center",
-                  "justify-content": "space-between",
-                  gap: "12px",
-                  "flex-wrap": "wrap",
-                }}
-              >
-                <span
+            <Show
+              when={
+                server().havePermission("ManageRole") ||
+                server().havePermission("ManagePermissions")
+              }
+            >
+              <Sectiune titlu="Avansat">
+                <div
                   style={{
-                    flex: "1 1 240px",
-                    color: C.stins,
-                    "font-size": "14px",
-                    "line-height": "1.4",
+                    display: "flex",
+                    "align-items": "center",
+                    "justify-content": "space-between",
+                    gap: "12px",
+                    "flex-wrap": "wrap",
                   }}
                 >
-                  Rolurile vin din BBT și se pun singure. Schimbă de aici doar
-                  dacă știi sigur ce faci.
-                </span>
-                <Buton
-                  piele="alb"
-                  mic
-                  onClick={() =>
-                    openModal({
-                      type: "settings",
-                      config: "server",
-                      context: server(),
-                    })
-                  }
-                >
-                  Roluri și invitații
-                </Buton>
-              </div>
-            </Sectiune>
-          </Show>
+                  <span
+                    style={{
+                      flex: "1 1 240px",
+                      color: C.stins,
+                      "font-size": "14px",
+                      "line-height": "1.4",
+                    }}
+                  >
+                    Rolurile vin din BBT și se pun singure. Schimbă de aici doar
+                    dacă știi sigur ce faci.
+                  </span>
+                  <Buton
+                    piele="alb"
+                    mic
+                    onClick={() =>
+                      openModal({
+                        type: "settings",
+                        config: "server",
+                        context: server(),
+                      })
+                    }
+                  >
+                    Roluri și invitații
+                  </Buton>
+                </div>
+              </Sectiune>
+            </Show>
+          </div>
         </div>
       </Show>
 
@@ -206,6 +220,7 @@ function Grup(props: { children: JSX.Element }) {
 }
 
 function RandApasat(props: {
+  inainte?: JSX.Element;
   text: string;
   detaliu?: string;
   actiune?: string;
@@ -233,6 +248,7 @@ function RandApasat(props: {
         cursor: "pointer",
       }}
     >
+      {props.inainte}
       <span
         style={{
           flex: 1,
@@ -245,7 +261,9 @@ function RandApasat(props: {
         {props.text}
       </span>
       <Show when={props.detaliu}>
-        <span style={{ color: C.stins, "font-size": "14px", "font-weight": 400 }}>
+        <span
+          style={{ color: C.stins, "font-size": "14px", "font-weight": 400 }}
+        >
           {props.detaliu}
         </span>
       </Show>
@@ -265,6 +283,35 @@ function RandApasat(props: {
   );
 }
 
+/** O listă care vine de la server: fără asta, o cerere picată rămânea la nesfârșit pe „Se încarcă". */
+function Lista<T>(props: {
+  date: { data?: T[]; isError: boolean; refetch: () => unknown };
+  gol: string;
+  children: (lista: T[]) => JSX.Element;
+}) {
+  return (
+    <Show
+      when={props.date.data}
+      fallback={
+        <Show when={props.date.isError} fallback={<Incarcare />}>
+          <Mesaj fel="eroare">Lista nu se încarcă acum.</Mesaj>
+          <div style={{ "margin-top": "10px" }}>
+            <Buton piele="alb" mic onClick={() => void props.date.refetch()}>
+              Încearcă din nou
+            </Buton>
+          </div>
+        </Show>
+      }
+    >
+      {(lista) => (
+        <Show when={lista().length} fallback={<Gol>{props.gol}</Gol>}>
+          {props.children(lista())}
+        </Show>
+      )}
+    </Show>
+  );
+}
+
 function Gol(props: { children: JSX.Element }) {
   return (
     <p style={{ margin: 0, color: C.stins, "font-size": "15px" }}>
@@ -280,6 +327,8 @@ function Descriere(props: { server: Server }) {
     tip: "ok" | "err";
     text: string;
   } | null>(null);
+
+  const schimbat = () => text().trim() !== (props.server.description ?? "");
 
   async function salveaza() {
     setLucrez(true);
@@ -314,7 +363,11 @@ function Descriere(props: { server: Server }) {
           "margin-top": "12px",
         }}
       >
-        <Buton mic onClick={() => void salveaza()} dezactivat={lucrez()}>
+        <Buton
+          mic
+          onClick={() => void salveaza()}
+          dezactivat={lucrez() || !schimbat()}
+        >
           {lucrez() ? "Se salvează…" : "Salvează"}
         </Buton>
         <MesajSalvare stare={stare()} />
@@ -336,31 +389,27 @@ function Amutiti(props: { server: Server; laEroare: (e: unknown) => void }) {
 
   return (
     <Sectiune titlu="Oameni amuțiți">
-      <Show when={lista.data} fallback={<Incarcare />}>
+      <Lista date={lista} gol="Nimeni nu e amuțit.">
         {(oameni) => (
-          <Show
-            when={oameni().length}
-            fallback={<Gol>Nimeni nu e amuțit.</Gol>}
-          >
-            <Grup>
-              <For each={oameni()}>
-                {(om) => (
-                  <RandApasat
-                    text={om.displayName ?? om.id.user}
-                    actiune="Ridică"
-                    laApasare={() =>
-                      void om
-                        .edit({ remove: ["Timeout"] })
-                        .then(() => qc.invalidateQueries({ queryKey: cheie() }))
-                        .catch(props.laEroare)
-                    }
-                  />
-                )}
-              </For>
-            </Grup>
-          </Show>
+          <Grup>
+            <For each={oameni}>
+              {(om) => (
+                <RandApasat
+                  text={om.displayName ?? om.id.user}
+                  detaliu={`până ${zi(om.timeout!.toISOString())}, ${ora(om.timeout!.toISOString())}`}
+                  actiune="Ridică"
+                  laApasare={() =>
+                    void om
+                      .edit({ remove: ["Timeout"] })
+                      .then(() => qc.invalidateQueries({ queryKey: cheie() }))
+                      .catch(props.laEroare)
+                  }
+                />
+              )}
+            </For>
+          </Grup>
         )}
-      </Show>
+      </Lista>
     </Sectiune>
   );
 }
@@ -376,27 +425,22 @@ function Interzisi(props: { server: Server; laEroare: (e: unknown) => void }) {
 
   return (
     <Sectiune titlu="Oameni interziși">
-      <Show when={lista.data} fallback={<Incarcare />}>
+      <Lista date={lista} gol="Nimeni nu e interzis.">
         {(oameni) => (
-          <Show
-            when={oameni().length}
-            fallback={<Gol>Nimeni nu e interzis.</Gol>}
-          >
-            <Grup>
-              <For each={oameni()}>
-                {(ban) => (
-                  <RandApasat
-                    text={ban.user?.username ?? ban.id.user}
-                    detaliu={ban.reason ?? undefined}
-                    actiune="Ridică"
-                    laApasare={() => setDeRidicat(ban.id.user)}
-                  />
-                )}
-              </For>
-            </Grup>
-          </Show>
+          <Grup>
+            <For each={oameni}>
+              {(ban) => (
+                <RandApasat
+                  text={ban.user?.username ?? ban.id.user}
+                  detaliu={ban.reason ?? undefined}
+                  actiune="Ridică"
+                  laApasare={() => setDeRidicat(ban.id.user)}
+                />
+              )}
+            </For>
+          </Grup>
         )}
-      </Show>
+      </Lista>
       <Show when={deRidicat()}>
         {(id) => (
           <Fereastra
@@ -506,7 +550,8 @@ function Emojiuri(props: { server: Server }) {
             onChange={(e) => {
               const f = e.currentTarget.files?.[0] ?? null;
               setFisier(f);
-              if (f && !nume()) setNume(numeEmoji(f.name.replace(/\.\w+$/, "")));
+              if (f && !nume())
+                setNume(numeEmoji(f.name.replace(/\.\w+$/, "")));
             }}
           />
           <span
@@ -560,7 +605,11 @@ function Emojiuri(props: { server: Server }) {
                 <img
                   src={e.url}
                   alt=""
-                  style={{ width: "28px", height: "28px", "object-fit": "contain" }}
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    "object-fit": "contain",
+                  }}
                 />
                 <span
                   style={{

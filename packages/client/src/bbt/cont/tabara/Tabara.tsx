@@ -1,7 +1,17 @@
-import { For, JSX, Match, Show, Switch, createSignal, untrack } from "solid-js";
+import {
+  For,
+  JSX,
+  Match,
+  Show,
+  Switch,
+  createEffect,
+  createSignal,
+  untrack,
+} from "solid-js";
 
 import { useQuery } from "@tanstack/solid-query";
 
+import { useLocation } from "@revolt/routing";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { BBT_SITE_URL } from "../../config";
@@ -15,6 +25,7 @@ import {
   useSesiune,
   zi,
   zilePana,
+  zileRo,
 } from "../date";
 import { BaraPlata, perioada } from "../Experiente";
 import { ButonPlateste } from "../Plata";
@@ -145,7 +156,20 @@ export function Tabara(props: { id: string }) {
     ),
     retry: 1,
   }));
-  const [fila, setFila] = createSignal<Fila>("program");
+  // `?fila=camera` și `?la=acte`: scurtăturile de pe cardul din My Camps.
+  const adresa = new URLSearchParams(useLocation().search);
+  const [fila, setFila] = createSignal<Fila>(
+    FILE.find((f) => f.id === adresa.get("fila"))?.id ?? "program",
+  );
+  createEffect(() => {
+    if (info.data && adresa.get("la") === "acte") {
+      requestAnimationFrame(() =>
+        document
+          .getElementById("bbt-acte")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      );
+    }
+  });
   let file: HTMLDivElement | undefined;
   const mergiLa = (f: Fila) => {
     setFila(f);
@@ -229,7 +253,7 @@ export function Tabara(props: { id: string }) {
                     <Pastila fel="asteapta">
                       {zilePana(d().camp.dataStart) === 1
                         ? "mâine"
-                        : `în ${zilePana(d().camp.dataStart)} zile`}
+                        : `în ${zileRo(zilePana(d().camp.dataStart))}`}
                     </Pastila>
                   </Show>
                 }
@@ -246,10 +270,12 @@ export function Tabara(props: { id: string }) {
                 "align-items": "start",
               }}
             >
+              <div id="bbt-acte" style={{ "scroll-margin-top": "16px" }}>
               <PlataSiDocumente
                 experienta={experienta()}
                 inscriere={inscriere()}
               />
+              </div>
               <ProgramAzi d={d()} laToate={() => mergiLa("program")} />
               <CameraPeScurt d={d()} laDetalii={() => mergiLa("camera")} />
             </div>

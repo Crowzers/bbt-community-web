@@ -1,4 +1,4 @@
-import { For, Show } from "solid-js";
+import { For, Show, createSignal, onCleanup } from "solid-js";
 
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
@@ -32,7 +32,7 @@ export function Diplome() {
 
   return (
     <>
-      <TitluPagina>Diplome</TitluPagina>
+      <TitluPagina>Diplomele mele</TitluPagina>
       <Show when={cont.isError}>
         <Mesaj fel="eroare">
           Nu am putut încărca diplomele tale. Încearcă din nou peste un minut.
@@ -52,16 +52,18 @@ export function Diplome() {
             />
           }
         >
-          <p
-            style={{
-              margin: "-6px 0 18px",
-              color: C.stins,
-              "font-size": "14px",
-            }}
-          >
-            Diploma rămâne aici pentru totdeauna. Dacă pierzi emailul, o
-            descarci de aici.
-          </p>
+          <Show when={diplome().length}>
+            <p
+              style={{
+                margin: "-6px 0 18px",
+                color: C.stins,
+                "font-size": "14px",
+              }}
+            >
+              Diploma rămâne aici pentru totdeauna. Dacă pierzi emailul, o
+              descarci de aici.
+            </p>
+          </Show>
           <div
             style={{
               display: "grid",
@@ -98,16 +100,7 @@ export function Diplome() {
                       ? ` · prezent la ${d.prezente} din ${d.intalniriLuate}`
                       : ""}
                   </p>
-                  <p
-                    style={{
-                      margin: 0,
-                      color: C.slab,
-                      "font-size": "14px",
-                      "font-family": "monospace",
-                    }}
-                  >
-                    {d.cod}
-                  </p>
+                  <Cod cod={d.cod} />
                   <div
                     style={{
                       display: "flex",
@@ -142,7 +135,7 @@ export function Diplome() {
                       href={`${BBT_SITE_URL}/diploma/${encodeURIComponent(d.cod)}`}
                       target="_blank"
                     >
-                      Verificare ↗
+                      Pagina de verificare ↗
                     </Buton>
                   </div>
                 </div>
@@ -165,5 +158,48 @@ export function Diplome() {
         </Show>
       </Show>
     </>
+  );
+}
+
+/** Codul se cere pe pagina de verificare, deci se copiază dintr-o apăsare. */
+function Cod(props: { cod: string }) {
+  const [copiat, setCopiat] = createSignal(false);
+  let pauza: ReturnType<typeof setTimeout> | undefined;
+  onCleanup(() => clearTimeout(pauza));
+
+  const copiaza = async () => {
+    await navigator.clipboard.writeText(props.cod);
+    setCopiat(true);
+    clearTimeout(pauza);
+    pauza = setTimeout(() => setCopiat(false), 1500);
+  };
+
+  return (
+    <div style={{ display: "flex", "align-items": "center", gap: "8px" }}>
+      <span
+        style={{
+          color: C.stins,
+          "font-size": "14px",
+          "font-family": "monospace",
+        }}
+      >
+        {props.cod}
+      </span>
+      <button
+        type="button"
+        aria-label="Copiază codul"
+        onClick={() => void copiaza()}
+        style={{
+          display: "inline-flex",
+          padding: "4px",
+          border: 0,
+          background: "transparent",
+          color: copiat() ? C.verde : C.stins,
+          cursor: "pointer",
+        }}
+      >
+        <Symbol size={15}>{copiat() ? "check" : "content_copy"}</Symbol>
+      </button>
+    </div>
   );
 }

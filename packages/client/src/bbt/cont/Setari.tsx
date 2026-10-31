@@ -637,32 +637,17 @@ export function NotificariCont() {
   return (
     <>
       <TitluPagina>Notificări</TitluPagina>
-      <div style={coloana}>
+      {/* Două coloane pe lat, ca „Editează profilul": lista lungă nu mai împinge setările în josul paginii. */}
+      <div
+        style={{
+          display: "grid",
+          "grid-template-columns":
+            "repeat(auto-fit, minmax(min(340px, 100%), 1fr))",
+          gap: "16px",
+          "align-items": "start",
+        }}
+      >
         <ListaNotificari />
-        <Sectiune titlu="Sunete">
-          <div
-            style={{
-              display: "flex",
-              "align-items": "center",
-              "justify-content": "space-between",
-              gap: "12px",
-              "flex-wrap": "wrap",
-            }}
-          >
-            <span
-              style={{
-                color: C.stins,
-                "font-size": "16px",
-                "line-height": "1.45",
-              }}
-            >
-              Note de marimba la reacții și la mesajele trimise.
-            </span>
-            <Buton piele="alb" mic onClick={comutaSunetele}>
-              {sunetePornite() ? "Oprește" : "Pornește"}
-            </Buton>
-          </div>
-        </Sectiune>
         <Sectiune titlu="Pe dispozitivul ăsta">
           <div style={{ display: "grid", gap: "14px" }}>
             <Show when={settings.desktopNotificationsState !== "unsupported"}>
@@ -676,6 +661,7 @@ export function NotificariCont() {
             <Show when={!window.native}>
               <RandComutator
                 text="Notificări cu hub-ul închis"
+                detaliu="Mesaje și mențiuni, și când nu ești aici."
                 pornit={settings.pushNotificationsState === "allowed"}
                 laApasare={() => togglePushPermission(true)}
               />
@@ -684,6 +670,12 @@ export function NotificariCont() {
               text="Sunet la mesaj nou"
               pornit={sounds.enabled("message")}
               laApasare={() => sounds.toggle("message")}
+            />
+            <RandComutator
+              text="Sunete în interfață"
+              detaliu="Note de marimba la reacții și la mesajele trimise."
+              pornit={sunetePornite()}
+              laApasare={comutaSunetele}
             />
           </div>
         </Sectiune>

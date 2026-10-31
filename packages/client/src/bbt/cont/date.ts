@@ -122,6 +122,12 @@ export const ziCuAn = (d: string) =>
     timeZone: TZ,
   });
 
+/** „5 zile", „38 de zile": româna cere „de" de la 20 în sus (și nu la 101-119). */
+export function zileRo(n: number) {
+  const r = n % 100;
+  return r >= 1 && r <= 19 ? `${n} zile` : `${n} de zile`;
+}
+
 export const ziLunga = (d: string) =>
   new Date(d).toLocaleDateString("ro-RO", {
     day: "numeric",

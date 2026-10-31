@@ -28,6 +28,7 @@ import { Experiente } from "./Experiente";
 import { ExperienteTelefon } from "./ExperienteTelefon";
 import { Piese } from "./Piese";
 import { Plati } from "./Plati";
+import { ProfilDesktop } from "./ProfilDesktop";
 import { ProfilTelefon } from "./ProfilTelefon";
 import { Rapoarte } from "./Rapoarte";
 import { NotificariCont } from "./Setari";
@@ -36,15 +37,11 @@ import { NotitaLive } from "./tabara/NotitaLive";
 import { Tabara } from "./tabara/Tabara";
 import { Buton, C, Fereastra, TITLU_COLT } from "./ui";
 import { VoceVideo } from "./VoceVideo";
+import { Wishlist } from "./Wishlist";
 
 /**
  * BBT: „Contul meu" în hub, `/cont/:pagina`. Design: `2026-10-20-hub-standalone-cont-design.md` + macheta 23
  * (30 oct 2026).
- *
- * 🔥 **Meniul din 23**, nu cel al site-ului: My Camps, My Workshops și My Courses au devenit un singur „Experiențele
- * mele" (același card pentru toate, ca în aplicația de telefon); „Setări cont" s-a desfăcut în Profil public / Date
- * personale / Notificări, ca nimeni să nu caute CNP-ul lângă poza de profil. Wishlist a ieșit: nu se cumpără din hub,
- * deci lista de dorințe stă pe site.
  *
  * ⚠️ Adresele vechi (`/cont/mycamps`, `/cont/setari`…) duc în pagina nouă care le-a luat locul: cineva le are în
  * istoric sau într-un link primit.
@@ -76,6 +73,7 @@ const SETARI: Rand[] = [
   { pagina: "profil", nume: "Editează profilul" },
   { pagina: "notificari", nume: "Notificări" },
   { pagina: "voce", nume: "Voce și video" },
+  { pagina: "wishlist", nume: "Wishlist" },
 ];
 
 /** Doar pentru cine are voie (`poateAdministra`, `useRapoarte`). */
@@ -105,6 +103,7 @@ const PAGINI: Record<string, () => JSX.Element> = {
   profil: EditeazaProfil,
   notificari: NotificariCont,
   voce: VoceVideo,
+  wishlist: Wishlist,
   setari: SetariTelefon,
   rapoarte: Rapoarte,
   administrare: Administrare,
@@ -112,7 +111,7 @@ const PAGINI: Record<string, () => JSX.Element> = {
 
 /** Titlurile paginilor pe telefon, din antet. Tabăra n-are: numele ei stă deja mare în pagină. */
 const TITLURI: Record<string, string> = {
-  diplome: "Diplome",
+  diplome: "Diplomele mele",
   plati: "Plăți și facturi",
   piese: "Piesele mele",
   notita: "Notița sesiunii",
@@ -121,12 +120,12 @@ const TITLURI: Record<string, string> = {
   rapoarte: "Rapoarte primite",
   administrare: "Administrare",
   voce: "Voce și video",
+  wishlist: "Wishlist",
   setari: "Setări",
 };
 
 /** Adresele de dinainte de 23 → pagina care le-a luat locul. */
 const ADRESE_VECHI: Record<string, string> = {
-  wishlist: "experiente",
   date: "profil",
 };
 
@@ -200,7 +199,14 @@ export function ContulMeu() {
         <Meniu activ={pagina()} />
       </Show>
       <Show when={ecranTab()}>
-        <Show when={pagina()} fallback={<ProfilTelefon desktop={!telefon()} />}>
+        <Show
+          when={pagina()}
+          fallback={
+            <Show when={telefon()} fallback={<ProfilDesktop />}>
+              <ProfilTelefon />
+            </Show>
+          }
+        >
           <ExperienteTelefon />
         </Show>
       </Show>
@@ -234,7 +240,11 @@ export function ContulMeu() {
             />
           </Show>
           <div
-            class="bbt-pagina-cont"
+            class={
+              pagina() === "piese"
+                ? "bbt-pagina-cont bbt-pagina-piese"
+                : "bbt-pagina-cont"
+            }
             style={{
               "flex-grow": 1,
               "min-width": 0,
@@ -489,15 +499,6 @@ function Meniu(props: { activ?: string }) {
           style={{ margin: "8px 10px", "border-top": `1px solid ${C.linie}` }}
         />
         <Grup randuri={SETARI} dela={ACTIVITATE.length} />
-        {/* Wishlist-ul stă pe site: nu se cumpără din hub. */}
-        <a
-          href={`${BBT_SITE_URL}/dashboard/wishlist`}
-          target="_blank"
-          rel="noopener"
-          style={LINK_MENIU}
-        >
-          Wishlist
-        </a>
         <Show when={administrare().length}>
           <div
             style={{ margin: "8px 10px", "border-top": `1px solid ${C.linie}` }}

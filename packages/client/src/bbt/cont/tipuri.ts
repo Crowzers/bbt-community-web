@@ -83,10 +83,29 @@ export interface InscriereCurs {
   prelungireTransa2?: { zile: number; scadentaNoua: string } | null;
 }
 
+export interface WishlistItem {
+  campId: string;
+  camp: {
+    id: string;
+    slug?: string | null;
+    nume: string;
+    dataStart: string;
+    locatie: string;
+    pretTransa1: number;
+    /** Lipsesc la un admin mai vechi decât 1 nov 2026. */
+    afisUrl?: string | null;
+    imgUrl?: string | null;
+    statusPublic?: string;
+  };
+}
+
 export interface BiletWorkshop {
   id: string;
   cod: string;
+  numarComanda?: string | null;
   suma: number;
+  /** Lipsește la un admin mai vechi decât 1 nov 2026. */
+  plati?: Plata[];
   workshop: {
     id: string;
     slug: string;
@@ -119,6 +138,7 @@ export interface Participant {
   // Profilul public (23f). `numeAfisat` = numele de scenă; `null` = se arată numele real.
   numeAfisat: string | null;
   bio: string | null;
+  roles?: string[];
   mainRole: string | null;
   mainGenre?: string | null;
   musicGenres: string[];
@@ -148,6 +168,7 @@ export interface Participant {
   inscrieri?: Inscriere[];
   inscrieriCurs?: InscriereCurs[];
   bileteWorkshop?: BiletWorkshop[];
+  wishlistItems?: WishlistItem[];
   diplome?: Diploma[];
 }
 

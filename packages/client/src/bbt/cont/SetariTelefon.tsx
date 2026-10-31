@@ -61,6 +61,10 @@ export function SetariTelefon() {
         <Rand
           text="Voce și video"
           laApasare={() => navigate("/cont/voce")}
+        />
+        <Rand
+          text="Wishlist"
+          laApasare={() => navigate("/cont/wishlist")}
           ultim
         />
       </div>

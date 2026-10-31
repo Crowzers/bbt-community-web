@@ -18,6 +18,7 @@ import {
 } from "./date";
 import { ButonPlateste } from "./Plata";
 import type {
+  BiletWorkshop,
   Inscriere,
   InscriereCurs,
   Plata,
@@ -52,11 +53,13 @@ import {
  *
  * ⚠️ Cursurile n-au meniul de anulare, ca pe site: ruta cererii cere un `inscriereId` de TABĂRĂ și ar da 404 pe un
  * id de curs. Anularea unui curs se cere pe email.
+ *
+ * Biletele de workshop stau aici din 1 nov 2026, ca în 23d: ieșeau din „Plătit în total", iar factura lor nu se găsea nicăieri.
  */
 
 type Comanda = {
   id: string;
-  produs: "camp" | "curs";
+  produs: "camp" | "curs" | "workshop";
   numarComanda: string | null;
   titlu: string;
   subtitlu: string;
@@ -98,6 +101,54 @@ const dinCurs = (i: InscriereCurs): Comanda => ({
   prelungireTransa2: i.prelungireTransa2,
 });
 
+/** Biletul se plătește integral. Fără `plati` (admin vechi), rândul se face din sumă, fără factură. */
+const dinBilet = (b: BiletWorkshop): Comanda => ({
+  id: b.id,
+  produs: "workshop",
+  numarComanda: b.numarComanda ?? null,
+  titlu: b.workshop.titlu,
+  subtitlu: `Workshop · ${ziLunga(b.workshop.dataStart)}`,
+  statusPlata: "Achitat",
+  nrTranse: 1,
+  plati: b.plati?.length
+    ? b.plati
+    : [
+        {
+          id: b.id,
+          numarTransa: 1,
+          suma: b.suma,
+          status: "Platita",
+          scadentaLa: null,
+          platitaLa: b.workshop.dataStart,
+          sumaRambursata: null,
+          fgoFacturaNumar: null,
+          fgoFacturaSerie: null,
+          fgoFacturaLink: null,
+        },
+      ],
+});
+
+/** Numele din bază nu sunt pentru oameni: „LinkTrimis" apărea ca atare pe pastilă. */
+const STARE_COMANDA: Record<string, string> = {
+  Inscris: "Înscris",
+  LinkTrimis: "Așteaptă plata",
+  Programat: "Plată programată",
+  "Achitat 1/2": "Rata 1 plătită",
+  "Achitat 2/2": "Achitat",
+  Oferta: "Fără plată",
+  Anulat: "Anulată",
+  Abandonat: "Anulată",
+};
+const stareComanda = (s: string) => STARE_COMANDA[s] ?? s;
+
+/** Cât a rămas la noi dintr-o plată. ⚠️ O rambursare parțială lăsa altfel toată suma afară din „Plătit în total". */
+const incasat = (p: Plata) =>
+  p.status === "Platita"
+    ? p.suma
+    : p.status === "RambursataPartial"
+      ? p.suma - (p.sumaRambursata ?? 0)
+      : 0;
+
 const inactiva = (status: string) =>
   status === "Anulat" || status === "Abandonat";
 
@@ -125,15 +176,15 @@ export function Plati() {
   const comenzi = () => [
     ...(cont.data?.inscrieri ?? []).map(dinTabara),
     ...(cont.data?.inscrieriCurs ?? []).map(dinCurs),
+    ...(cont.data?.bileteWorkshop ?? []).map(dinBilet),
   ];
   const total = () => comenzi().reduce((t, c) => t + restant(c), 0);
   const platit = () =>
     comenzi()
       .flatMap((c) => c.plati)
-      .filter((p) => p.status === "Platita")
-      .reduce((s, p) => s + p.suma, 0);
+      .reduce((s, p) => s + incasat(p), 0);
   const cuPlati = () =>
-    comenzi().filter((c) => c.plati.some((p) => p.status === "Platita")).length;
+    comenzi().filter((c) => c.plati.some((p) => incasat(p) > 0)).length;
 
   // Plățile care se pot face acum, după comandă: aceleași ca butoanele din Experiențele mele.
   const deFacut = () => {
@@ -177,7 +228,7 @@ export function Plati() {
           fallback={
             <StareGoala
               titlu="Nicio plată încă"
-              text="Plățile pentru tabere și cursuri apar aici, cu factura fiecăreia."
+              text="Plățile pentru tabere, cursuri și workshopuri apar aici, cu factura fiecăreia."
             />
           }
         >
@@ -273,7 +324,7 @@ function Rezumat(props: {
       >
         {lei(props.suma)}
       </p>
-      <p style={{ margin: 0, color: C.stins, "font-size": "12px" }}>
+      <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
         {props.sub}
       </p>
     </div>
@@ -365,7 +416,7 @@ function RandTranzactie(props: {
               }
             >
               {anulata()
-                ? c().statusPlata
+                ? stareComanda(c().statusPlata)
                 : (STATUS_TRANSA[p().status] ?? p().status)}
             </Pastila>
           }
@@ -448,8 +499,7 @@ function RandComanda(props: { comanda: Comanda }) {
                   : "asteapta"
             }
           >
-            {/* „Oferta" e numele din bază: omul a fost înscris fără plată, de admin. Ca pe site (27 oct 2026). */}
-            {c().statusPlata === "Oferta" ? "Fără plată" : c().statusPlata}
+            {stareComanda(c().statusPlata)}
           </Pastila>
           <Show when={c().produs === "camp" && !inactiva(c().statusPlata)}>
             <MeniuAnulare
@@ -459,6 +509,22 @@ function RandComanda(props: { comanda: Comanda }) {
           </Show>
         </div>
       </div>
+
+      <Show when={c().produs === "curs" && !inactiva(c().statusPlata)}>
+        <p
+          style={{
+            margin: "8px 0 0",
+            color: C.stins,
+            "font-size": "14px",
+          }}
+        >
+          Vrei să renunți la curs? Scrie-ne la{" "}
+          <a href="mailto:contact@beanbagtheory.ro" style={{ color: C.text }}>
+            contact@beanbagtheory.ro
+          </a>
+          .
+        </p>
+      </Show>
 
       {/* Prelungirea vorbită la telefon, scrisă pe ecran: omul care a sunat ca să nu primească
           penalizare trebuie să VADĂ că a primit-o. ⚠️ Fără motiv și fără numele sellerului. */}

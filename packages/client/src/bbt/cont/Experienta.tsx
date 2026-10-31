@@ -12,7 +12,7 @@ import {
   ziScurta,
 } from "../telefon";
 
-import { lei, ora, useExperiente } from "./date";
+import { lei, ora, useExperiente, zileRo } from "./date";
 import { QrMare } from "./Experiente";
 import { BaraRate } from "./ExperienteTelefon";
 import { ButonPlateste } from "./Plata";
@@ -52,7 +52,7 @@ export function ExperientaTelefon(props: { id: string }) {
       : e()!.azi
         ? "Azi"
         : e()!.zilePanaLa > 1
-          ? `în ${e()!.zilePanaLa} zile`
+          ? `în ${zileRo(e()!.zilePanaLa)}`
           : undefined;
 
   return (
@@ -223,7 +223,7 @@ export function ExperientaTelefon(props: { id: string }) {
                               : "de plătit"}
                         </div>
                       </div>
-                      {/* „Plătește" e galben în 20d: plățile scadente sunt galbene. */}
+                      {/* „Plătește" e roz, ca peste tot. */}
                       <ButonPlateste
                         plata={p()}
                         progres={pr()}
@@ -231,7 +231,7 @@ export function ExperientaTelefon(props: { id: string }) {
                           <button
                             type="button"
                             onClick={deschide}
-                            style={{ ...BUTON, background: C.galben }}
+                            style={{ ...BUTON, background: C.roz }}
                           >
                             {p().actiune === "contract"
                               ? "Semnează"

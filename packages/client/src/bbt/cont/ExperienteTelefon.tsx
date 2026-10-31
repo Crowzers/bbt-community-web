@@ -19,7 +19,7 @@ import {
   ziScurta,
 } from "../telefon";
 
-import { lei, ora, useExperiente } from "./date";
+import { lei, ora, useExperiente, zileRo } from "./date";
 import { QrMare } from "./Experiente";
 import { ButonPlateste } from "./Plata";
 import type { Experienta, PlataExperienta } from "./tipuri";
@@ -262,7 +262,7 @@ function Stare(props: { e: Experienta }) {
       return { text: "Plătit", fundal: C.negru, culoare: C.peNegru };
     if (e.zilePanaLa > 1)
       return {
-        text: `în ${e.zilePanaLa} zile`,
+        text: `în ${zileRo(e.zilePanaLa)}`,
         fundal: C.galben,
         culoare: C.text,
       };
@@ -318,7 +318,11 @@ export function BaraRate(props: { progres: NonNullable<Experienta["progres"]> })
 }
 
 /** Rata de plătit și butonul negru (19c). La contract nesemnat, butonul duce la semnătură, nu la plată. */
-function RandPlata(props: { e: Experienta; plata: PlataExperienta }) {
+function RandPlata(props: {
+  e: Experienta;
+  plata: PlataExperienta;
+  peRoz?: boolean;
+}) {
   const contract = () => props.plata.actiune === "contract";
   return (
     <div
@@ -357,7 +361,12 @@ function RandPlata(props: { e: Experienta; plata: PlataExperienta }) {
             <button
               type="button"
               onClick={deschide}
-              style={{ ...BUTON_NEGRU, padding: "11px 18px" }}
+              // Roz, ca peste tot; pe cardul roz de azi rămâne negru, altfel n-ar mai fi văzut.
+              style={{
+                ...BUTON_NEGRU,
+                padding: "11px 18px",
+                ...(props.peRoz ? {} : { background: C.roz, color: C.negru }),
+              }}
             >
               {contract() ? "Semnează" : "Plătește"}
             </button>
@@ -472,7 +481,7 @@ function CardPrincipal(props: { e: Experienta }) {
         <BaraRate progres={props.e.progres!} />
       </Show>
       <Show when={props.e.plata}>
-        {(p) => <RandPlata e={props.e} plata={p()} />}
+        {(p) => <RandPlata e={props.e} plata={p()} peRoz />}
       </Show>
     </div>
   );
@@ -554,7 +563,11 @@ function CardGri(props: { e: Experienta }) {
 }
 
 /** 18h: contul fără nicio experiență. Starea goală a ecranului, mare, cu drumul spre site. */
-export function Gol() {
+export function Gol(props: {
+  titlu?: string;
+  text?: string;
+  link?: { cale: string; text: string };
+}) {
   return (
     <div style={CENTRU}>
       {/* Beanbag-ul din logo, cu căști, dă din cap pe tempo, ca în aplicație. */}
@@ -566,7 +579,7 @@ export function Gol() {
           color: C.text,
         }}
       >
-        Nicio experiență activă
+        {props.titlu ?? "Nicio experiență activă"}
       </h2>
       <p
         style={{
@@ -577,16 +590,16 @@ export function Gol() {
           "text-align": "center",
         }}
       >
-        Înscrie-te la următoarea experiență BBT pe website. După înscriere,
-        accesul și detaliile apar aici.
+        {props.text ??
+          "Înscrie-te la următoarea experiență BBT pe website. După înscriere, accesul și detaliile apar aici."}
       </p>
       <a
-        href={`${BBT_SITE_URL}/camps`}
+        href={`${BBT_SITE_URL}${props.link?.cale ?? "/camps"}`}
         target="_blank"
         rel="noopener"
         style={{ ...BUTON_NEGRU, "margin-top": "18px", padding: "12px 22px" }}
       >
-        Vezi site <Symbol size={15}>open_in_new</Symbol>
+        {props.link?.text ?? "Vezi site"} <Symbol size={15}>open_in_new</Symbol>
       </a>
     </div>
   );

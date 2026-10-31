@@ -11,7 +11,7 @@ import { deFonte } from "../telefon";
 
 import { CHEIE_CONT, useNotificari, useSesiune } from "./date";
 import type { Notificare } from "./tipuri";
-import { C } from "./ui";
+import { Buton, C, Incarcare, Mesaj } from "./ui";
 
 /**
  * BBT: notificările contului (plăți, anulări, aprecieri), ca ecranul `mobil/src/app/notificari.tsx`. Când nu e nimic nou,
@@ -34,10 +34,19 @@ export function ListaNotificari() {
   }
 
   function deschide(cale: string) {
+    const tabara = cale.match(/^\/my-camp\/([^/?#]+)/);
+    if (tabara) return navigate(`/cont/tabara/${tabara[1]}`);
     if (cale.startsWith("/dashboard/plati")) return navigate("/cont/plati");
     if (cale.startsWith("/dashboard/diplome")) return navigate("/cont/diplome");
     if (cale.startsWith("/dashboard/mycamps") || cale.startsWith("/my-camp"))
-      return navigate("/cont/experiente");
+      return navigate("/cont/mycamps");
+    // ⚠️ Fără ramurile astea, un bilet sau un curs deschidea „Editează profilul".
+    if (cale.startsWith("/dashboard/workshops"))
+      return navigate("/cont/workshops");
+    if (cale.startsWith("/dashboard/cursuri")) return navigate("/cont/cursuri");
+    if (cale.startsWith("/dashboard/wishlist"))
+      return navigate("/cont/wishlist");
+    if (cale.startsWith("/dashboard/profil")) return navigate("/cont");
     if (cale.startsWith("/dashboard")) return navigate("/cont/profil");
     window.open(
       cale.startsWith("http") ? cale : `${BBT_SITE_URL}${cale}`,
@@ -52,7 +61,19 @@ export function ListaNotificari() {
   }
 
   return (
-    <Show when={notificari.data}>
+    <Show
+      when={notificari.data}
+      fallback={
+        <Show when={notificari.isError} fallback={<Incarcare />}>
+          <Mesaj fel="eroare">Notificările nu se încarcă acum.</Mesaj>
+          <div style={{ "margin-top": "10px" }}>
+            <Buton piele="alb" mic onClick={reincarca}>
+              Încearcă din nou
+            </Buton>
+          </div>
+        </Show>
+      }
+    >
       <Show
         when={lista().length > 0}
         fallback={

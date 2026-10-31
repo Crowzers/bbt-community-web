@@ -20,22 +20,21 @@ import { useEtichete } from "./Setari";
 import { C } from "./ui";
 
 /**
- * BBT: tab-ul Profil (macheta 20e), copia ecranului `mobil/src/app/(tabs)/profil.tsx`, cu măsurile de acolo, la `/cont`.
- * Pe desktop și tabletă (`desktop`) e aceeași pagină, pe coloană îngustă, lângă meniul Profilului (`ContulMeu.tsx`), care
- * ține loc și de rotiță. Varianta B (cererea userului, 31 oct 2026): aici stă cine ești, iar pe telefon restul contului e în
- * spatele rotiței (`/cont/setari`).
+ * BBT: tab-ul Profil pe telefon (macheta 20e), copia ecranului `mobil/src/app/(tabs)/profil.tsx`, cu măsurile de acolo, la
+ * `/cont`. Pe desktop și tabletă, `ProfilDesktop.tsx`. Varianta B (cererea userului, 31 oct 2026): aici stă cine ești, iar
+ * restul contului e în spatele rotiței (`/cont/setari`).
  *
  * Ce e altfel decât în aplicație, dinadins:
  * - Rândurile duc la paginile din hub, nu la site: aici contul există întreg, plus sesiunea e deja deschisă.
  * - Poza se schimbă din „Editează profilul": hub-ul n-are alegerea cu camera din aplicație.
  */
-export function ProfilTelefon(props: { desktop?: boolean }) {
+export function ProfilTelefon() {
   const navigate = useNavigate();
   const cont = useCont();
   const experiente = useExperiente();
   const rapoarte = useRapoarte();
   const notificari = useNotificari();
-  const etichete = useEtichete();
+  const descriere = useDescriere();
 
   const toate = () => [
     ...(experiente.data?.active ?? []),
@@ -45,21 +44,6 @@ export function ProfilTelefon(props: { desktop?: boolean }) {
   const diplome = () => toate().filter((e) => e.areDiploma).length;
 
   const nume = () => cont.data?.numeAfisat ?? cont.data?.numeComplet ?? "";
-
-  // Slug-urile din bază („sound_engineer", „hip_hop") trec prin numele din admin, ca în aplicație.
-  const descriere = () => {
-    const p = cont.data;
-    if (!p) return "";
-    const rol = p.mainRole
-      ? (etichete.data?.roluri[p.mainRole] ?? p.mainRole)
-      : undefined;
-    const genuri = [p.mainGenre, ...(p.musicGenres ?? [])]
-      .filter((g, i, a): g is string => !!g && a.indexOf(g) === i)
-      .slice(0, 2)
-      .map((g) => etichete.data?.genuri[g] ?? g)
-      .join(", ");
-    return [rol, genuri, p.oras].filter(Boolean).join(" · ");
-  };
 
   // Cifrele au plecat în Setări odată cu rândurile lor; punctul spune că ai de ce să intri acolo.
   const deVazut = () =>
@@ -107,23 +91,18 @@ export function ProfilTelefon(props: { desktop?: boolean }) {
         color: C.text,
       }}
     >
-      <Show when={!props.desktop}>
-        <AntetPagina>
-          <h1 style={{ ...TITLU_PAGINA, flex: 1 }}>Profil</h1>
-          <Rotita />
-        </AntetPagina>
-      </Show>
+      <AntetPagina>
+        <h1 style={{ ...TITLU_PAGINA, flex: 1 }}>Profil</h1>
+        <Rotita />
+      </AntetPagina>
       <div style={{ "flex-grow": 1, "min-height": 0, "overflow-y": "auto" }}>
         <div
           style={{
             display: "flex",
             "flex-direction": "column",
             gap: "10px",
-            padding: props.desktop
-              ? "24px 22px 48px"
-              : `${LOC_SUB_ANTET} 12px ${LOC_PASTILA}`,
-            "max-width": props.desktop ? "640px" : undefined,
-            margin: props.desktop ? undefined : "0 auto",
+            padding: `${LOC_SUB_ANTET} 12px ${LOC_PASTILA}`,
+            margin: "0 auto",
             "box-sizing": "border-box",
           }}
         >
@@ -295,7 +274,7 @@ export function ProfilTelefon(props: { desktop?: boolean }) {
           />
           <CardDrum
             simbol="workspace_premium"
-            titlu="Diplome și certificate"
+            titlu="Diplomele mele"
             text={
               diplome() === 0
                 ? "Apar aici după ce termini un curs"
@@ -311,8 +290,28 @@ export function ProfilTelefon(props: { desktop?: boolean }) {
   );
 }
 
+/** Rolul, genurile și orașul de sub nume. Slug-urile din bază („sound_engineer", „hip_hop") trec prin numele din admin, ca în aplicație. */
+export function useDescriere() {
+  const cont = useCont();
+  const etichete = useEtichete();
+
+  return () => {
+    const p = cont.data;
+    if (!p) return "";
+    const rol = p.mainRole
+      ? (etichete.data?.roluri[p.mainRole] ?? p.mainRole)
+      : undefined;
+    const genuri = [p.mainGenre, ...(p.musicGenres ?? [])]
+      .filter((g, i, a): g is string => !!g && a.indexOf(g) === i)
+      .slice(0, 2)
+      .map((g) => etichete.data?.genuri[g] ?? g)
+      .join(", ");
+    return [rol, genuri, p.oras].filter(Boolean).join(" · ");
+  };
+}
+
 /** „Vlad Dobrescu" → „VD", „Tyzzu" → „TY". */
-function initiale(nume: string) {
+export function initiale(nume: string) {
   const cuvinte = nume.trim().split(/\s+/).filter(Boolean);
   if (cuvinte.length === 0) return "?";
   if (cuvinte.length === 1) return cuvinte[0].slice(0, 2).toUpperCase();

@@ -363,3 +363,15 @@
     animation: none;
   }
 }
+
+/* Piesele mele: pagina ține cât foaia, ca playerul să stea jos de tot și când lista e scurtă. */
+.bbt-pagina-piese {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+}
+.bbt-pagina-piese > div:last-child {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
