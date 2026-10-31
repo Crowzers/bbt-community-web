@@ -6,6 +6,7 @@ import { useSesiune } from "../date";
 import { C } from "../ui";
 
 import { diferenta, mutaEditarea, mutaPozitia } from "./diferentaNotita";
+import { InstrumentaleNotita } from "./InstrumentaleNotita";
 import { LegaturaNotita, type StareNotita } from "./legaturaNotita";
 
 /** Cât ține serverul din notiță (`MAX_LEN` din `admin/lib/notite-live.ts`): ce trece de atât nu s-ar mai salva. */
@@ -47,6 +48,7 @@ export function NotitaLive() {
   const sesiune = useSesiune();
   const [stare, setStare] = createSignal<StareNotita>("conectare");
   const [prezenti, setPrezenti] = createSignal<string[]>([]);
+  const [semnal, setSemnal] = createSignal(0);
   let camp: HTMLTextAreaElement | undefined;
   let randat = "";
   let ultimaTasta = 0;
@@ -59,7 +61,12 @@ export function NotitaLive() {
       nume: (cerere.nume ?? "").split(" ")[0] || "Anonim",
       culoare: culoarePentru(cerere.participant ?? ""),
     },
-    { laText: randeaza, laStare: setStare, laPrezenti: setPrezenti },
+    {
+      laText: randeaza,
+      laStare: setStare,
+      laPrezenti: setPrezenti,
+      laInstrumentale: () => setSemnal((n) => n + 1),
+    },
   );
 
   function randeaza() {
@@ -140,6 +147,12 @@ export function NotitaLive() {
         <span style={{ flex: 1 }}>{mesaj()}</span>
         <span style={{ "font-weight": 400 }}>Studio {cerere.studio}</span>
       </div>
+      <InstrumentaleNotita
+        sesiune={sesiune}
+        sesiuneId={params.id}
+        euId={cerere.participant ?? ""}
+        semnal={semnal()}
+      />
       <textarea
         ref={camp}
         onInput={laScris}
