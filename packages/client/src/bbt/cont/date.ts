@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/solid-query";
 
+import { useClient } from "@revolt/client";
 import { useState } from "@revolt/state";
 
 import { incarcaRapoarte } from "../raport";
@@ -32,6 +33,17 @@ export function useCont() {
     queryFn: () =>
       cerereCont<Participant>(sesiune(), "/api/public/participant/me"),
   }));
+}
+
+/** Salutul: numele de scenă, dacă omul are unul, apoi prenumele din contul BBT; fără ele, primul cuvânt de pe Community. */
+export function useSalut() {
+  const client = useClient();
+  const cont = useCont();
+  return () =>
+    cont.data?.numeAfisat?.trim() ||
+    cont.data?.prenume ||
+    client().user?.displayName.split(/\s+/)[0] ||
+    "";
 }
 
 /**

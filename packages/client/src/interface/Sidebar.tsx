@@ -38,6 +38,23 @@ const MainBar = styled("div", {
   },
 });
 
+/** BBT: colțurile foii albe de pe desktop: 32, raza suprafețelor mari din aplicație. */
+export const RAZA_FOAIE = "32px";
+
+/** BBT: dacă lista (canale sau conversații) stă lângă conținut. Pe desktop, de ea depinde unde începe foaia albă. */
+export function useListaLaVedere() {
+  const state = useState();
+  const location = useLocation();
+  const { layout } = useDevice();
+
+  return () =>
+    state.layout.getSectionState(LAYOUT_SECTIONS.PRIMARY_SIDEBAR, true) &&
+    !location.pathname.startsWith("/discover") &&
+    // BBT: pe desktop contul are meniul lui lângă pastilă (23b), fără lista de conversații între ele. Pe
+    // telefon lista rămâne: e ecranul de sub cont (SlideDrawer).
+    (layout() === "phone" || !location.pathname.startsWith("/cont"));
+}
+
 /**
  * Left-most channel navigation sidebar
  */
@@ -51,10 +68,10 @@ export const Sidebar = (_props: {
   const client = useClient();
 
   const params = useParams<{ server: string }>();
-  const location = useLocation();
 
   const { layout } = useDevice();
   const telefon = () => layout() === "phone";
+  const cuLista = useListaLaVedere();
 
   // BBT: în locul listei de servere (`ServerList`), bara de secțiuni BBT — src/bbt/BaraSectiuni.tsx.
   // Pe telefon, ecranul cu lista de canale devine o coloană: bara de sus (contul) → canalele → bara
@@ -79,21 +96,18 @@ export const Sidebar = (_props: {
           display: "flex",
           "flex-grow": 1,
           "min-height": 0,
-          ...(telefon() ? { width: "100%" } : {}),
+          ...(telefon()
+            ? { width: "100%" }
+            : cuLista()
+              ? {
+                  overflow: "hidden",
+                  background: "#FFFFFF",
+                  "border-radius": `${RAZA_FOAIE} 0 0 0`,
+                }
+              : {}),
         }}
       >
-        <Show
-          when={
-            state.layout.getSectionState(
-              LAYOUT_SECTIONS.PRIMARY_SIDEBAR,
-              true,
-            ) &&
-            !location.pathname.startsWith("/discover") &&
-            // BBT: pe desktop contul are meniul lui lângă rail (23b), fără lista de conversații între ele. Pe
-            // telefon lista rămâne: e ecranul de sub cont (SlideDrawer).
-            (telefon() || !location.pathname.startsWith("/cont"))
-          }
-        >
+        <Show when={cuLista()}>
           <Switch fallback={<Home />}>
             {/* BBT: pe telefon, ecranul Comunitate din aplicație (19a); `ServerSidebar` rămâne pe desktop (21a). */}
             <Match when={params.server && telefon()}>

@@ -23,7 +23,7 @@ import { orderedCategories } from "../interface/navigation/channels/ordering";
 import { AntetPagina, LOC_SUB_ANTET } from "./AntetPagina";
 import { AvatarCanal } from "./AvatarCanal";
 import { CardAzi, experientaDeAzi } from "./CardAzi";
-import { useCont, useExperiente, useNotificari } from "./cont/date";
+import { useExperiente, useNotificari, useSalut } from "./cont/date";
 import { C } from "./cont/ui";
 import { LOC_PASTILA } from "./PastilaDeJos";
 import {
@@ -50,7 +50,7 @@ import {
  */
 export function ComunitateTelefon() {
   const client = useClient();
-  const cont = useCont();
+  const salut = useSalut();
   const experiente = useExperiente();
   const notificari = useNotificari();
   const navigate = useNavigate();
@@ -87,13 +87,6 @@ export function ComunitateTelefon() {
     client()
       .users.toList()
       .filter((u) => u.online).length;
-
-  // Salutul: numele de scenă, dacă omul are unul, apoi prenumele din contul BBT; fără ele, primul cuvânt de pe Community.
-  const salut = () =>
-    cont.data?.numeAfisat?.trim() ||
-    cont.data?.prenume ||
-    client().user?.displayName.split(/\s+/)[0] ||
-    "";
 
   const necitite = () => notificari.data?.necitite ?? 0;
 

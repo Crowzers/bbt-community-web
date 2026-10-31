@@ -49,6 +49,8 @@ export function useAlunecare(activ: () => number) {
   const Strat = (p: {
     culoare: string;
     raza: string;
+    /** Arcul mișcării, dacă stratul nu folosește curba comună. */
+    tranzitie?: string;
     stil?: JSX.CSSProperties;
   }) => (
     <Show when={loc()}>
@@ -67,7 +69,8 @@ export function useAlunecare(activ: () => number) {
             "pointer-events": "none",
             "z-index": 0,
             transition: gata()
-              ? "transform 320ms cubic-bezier(0.32, 0.72, 0, 1), height 320ms cubic-bezier(0.32, 0.72, 0, 1)"
+              ? (p.tranzitie ??
+                "transform 320ms cubic-bezier(0.32, 0.72, 0, 1), height 320ms cubic-bezier(0.32, 0.72, 0, 1)")
               : "none",
             ...p.stil,
           }}

@@ -127,8 +127,8 @@ export function ProfilTelefon(props: { desktop?: boolean }) {
           }}
         >
           <Show when={props.desktop}>
-            <div style={{ display: "flex", "align-items": "center" }}>
-              <h1 style={{ ...TITLU_PAGINA, flex: 1, margin: 0 }}>Profil</h1>
+            {/* Titlul stă pe banda roz (`BaraSus.tsx`), aici rămâne doar drumul spre Setări. */}
+            <div style={{ display: "flex", "justify-content": "flex-end" }}>
               <Rotita />
             </div>
           </Show>

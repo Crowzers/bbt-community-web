@@ -3,7 +3,7 @@ import { For, Show, createSignal, onCleanup } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 
 import { useClient, useClientLifecycle } from "@revolt/client";
-import { useNavigate } from "@revolt/routing";
+import { useLocation, useNavigate } from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { Avatar } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
@@ -11,8 +11,16 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 import Wordmark from "../../public/assets/web/wordmark.svg?component-solid";
 
 import { ButonInstalare } from "./ButonInstalare";
-import { CautareSus, Clopotel } from "./CautareSiAlerte";
+import {
+  CautareSus,
+  Clopotel,
+  STICLA,
+  STICLA_APASATA,
+} from "./CautareSiAlerte";
 import { BBT_ADMIN_URL } from "./config";
+import { useSalut } from "./cont/date";
+import { eInExperiente } from "./cont/pagini";
+import { TITLU_PAGINA, UN_RAND } from "./telefon";
 
 /**
  * Bara de sus a BBT Community — copia barei din Community-ul vechi
@@ -26,8 +34,9 @@ import { BBT_ADMIN_URL } from "./config";
  *   „Completează profilul" (chihlimbar), exact regula de pe site (telefon confirmat). La hover
  *   (desktop) sau atingere, meniul de cont: Profil, Setări și ieșirea (`LINKURI` de mai jos).
  *
- * Bara e albă, de 72px, ca în 21 și 23 (30 oct 2026). Până atunci: neagră, de 64px (compromisul din 5 oct,
- * „foarte puțin mai mari, cât să încapă logoul mai mare").
+ * 🔥 Banda roz (cererea userului, 31 oct 2026, demo-ul „A cu pastila scurtă"): bara nu mai are fundal, stă pe `FundalRama`,
+ * are 112px și titlul paginii în De Fonte: pe Comunitate salutul din aplicație, altfel numele tab-ului. Până atunci: albă,
+ * de 72px (21/23), iar înainte neagră, de 64px.
  *
  * Căutarea (în canalul deschis) și clopoțelul (mențiuni + mesaje directe necitite) stau lângă cont,
  * ca în pânza TRW — vezi `CautareSiAlerte.tsx` pentru ce pot și ce nu pot face. Lângă ele, chiar
@@ -47,7 +56,6 @@ type ProfilEu = {
 // Bara albă din 21 și 23 (30 oct 2026); până atunci neagră, ca adminul întunecat.
 const LINIE = "#E5E5E5";
 const FOAIE = "#FFFFFF";
-const GRI = "#F2F2F3";
 const ROZ = "#FFA8CD";
 const TEXT = "#0A0A0B";
 const VERDE = "#216043";
@@ -89,6 +97,26 @@ export function BaraSus(props: { compact?: boolean }) {
   const eu = () => client().user;
   const nume = () =>
     eu()?.displayName ?? profil.data?.numeComplet ?? "Contul meu";
+
+  const location = useLocation();
+  const salut = useSalut();
+  const inComunitate = () => location.pathname.startsWith("/server");
+  const titlu = () => {
+    const cale = location.pathname;
+    if (inComunitate()) return salut() ? `Hei, ${salut()}` : "Hei";
+    if (cale.startsWith("/friends") || cale.startsWith("/channel"))
+      return "Mesaje";
+    if (!cale.startsWith("/cont")) return "";
+    if (eInExperiente(cale)) return "Experiențe";
+    const pagina = cale.split("/")[2];
+    return !pagina || ["piese", "diplome"].includes(pagina)
+      ? "Profil"
+      : "Setări";
+  };
+  const online = () =>
+    client()
+      .users.toList()
+      .filter((u) => u.online).length;
   const randMeniu = {
     display: "flex",
     "align-items": "center",
@@ -110,8 +138,9 @@ export function BaraSus(props: { compact?: boolean }) {
 
   return (
     <header
+      class="bbt-bara-sus"
       style={{
-        height: props.compact ? "56px" : "72px",
+        height: props.compact ? "56px" : "112px",
         "flex-shrink": 0,
         // Deasupra conținutului: meniul de cont cade peste lista de canale și mesaje.
         // ⚠️ Pe telefon bara stă în ecranul cu lista de canale, iar ecranul canalului ALUNECĂ peste el:
@@ -137,8 +166,8 @@ export function BaraSus(props: { compact?: boolean }) {
         // `no-drag` mai jos: în zona de tras, Windows nu mai trimite clicuri și nici hover.
         "-webkit-app-region": "drag",
         "-webkit-user-select": "none",
-        background: FOAIE,
-        "border-bottom": `1px solid ${LINIE}`,
+        background: props.compact ? FOAIE : "transparent",
+        "border-bottom": props.compact ? `1px solid ${LINIE}` : "0",
         color: TEXT,
       }}
     >
@@ -197,6 +226,42 @@ export function BaraSus(props: { compact?: boolean }) {
         </span>
       </button>
 
+      <Show when={!props.compact && titlu()}>
+        <div class="bbt-titlu-sus" style={{ flex: 1, "min-width": 0 }}>
+          <h1 class="bbt-titlu-sus-text" style={{ ...TITLU_PAGINA, ...UN_RAND }}>
+            {titlu()}
+            <Show when={inComunitate()}>
+              {" "}
+              <span class="bbt-mana">👋</span>
+            </Show>
+          </h1>
+          <Show when={inComunitate() && online() > 0}>
+            <div
+              class="bbt-online-sus"
+              style={{
+                display: "flex",
+                "align-items": "center",
+                gap: "5px",
+                "margin-top": "2px",
+                "font-size": "13px",
+                "line-height": "16px",
+                "font-weight": 700,
+              }}
+            >
+              <span
+                style={{
+                  width: "7px",
+                  height: "7px",
+                  "border-radius": "4px",
+                  background: "#55DB9C",
+                }}
+              />
+              {online()} online
+            </div>
+          </Show>
+        </div>
+      </Show>
+
       {/* BBT: căutarea în canal și clopoțelul, lângă cont (pânza TRW) — src/bbt/CautareSiAlerte.tsx. */}
       <div
         style={{
@@ -247,12 +312,12 @@ export function BaraSus(props: { compact?: boolean }) {
             padding: props.compact ? "4px" : "4px 14px 4px 4px",
             "border-radius": "999px",
             border: "0",
-            // Pastila gri din 23, mai închisă cât e deschis meniul.
+            // Sticla de pe banda roz, mai plină cât e deschis meniul.
             background: props.compact
               ? "transparent"
               : meniu()
-                ? "#E9E9EC"
-                : GRI,
+                ? STICLA_APASATA
+                : STICLA,
             color: TEXT,
             cursor: "pointer",
             font: "inherit",

@@ -50,6 +50,38 @@
   }
 }
 
+/*
+ * Banda roz (`BaraSus.tsx`): titlul cade deasupra conversației, adică după pastila de 84 și lista de 280. Pe tabletă sau pe
+ * o fereastră scundă, banda are 72, ca să rămână loc de lucru, iar titlul se strânge.
+ */
+.bbt-titlu-sus {
+  padding-left: 150px;
+}
+.bbt-cautare-sus input::placeholder {
+  color: rgba(10, 10, 11, 0.7);
+}
+@media (max-width: 1100px) {
+  .bbt-titlu-sus {
+    padding-left: 24px;
+  }
+}
+@media (max-width: 840px), (max-height: 600px) {
+  .bbt-bara-sus {
+    height: 72px !important;
+  }
+  .bbt-titlu-sus-text {
+    font-size: 24px !important;
+    line-height: 30px !important;
+  }
+  .bbt-online-sus {
+    display: none !important;
+  }
+}
+/* Sub cursor, iconițele din pastilă primesc ce primesc sub deget în aplicație: un cerc de sticlă clară. */
+.bbt-tab-pastila:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
 /* Contul (23b): meniul de 280 + rail-ul de 104 lăsau paginii sub 450px pe o tabletă. */
 @media (min-width: 601px) and (max-width: 1100px) {
   .bbt-meniu-cont {

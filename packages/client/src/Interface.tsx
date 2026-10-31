@@ -28,9 +28,10 @@ import { SlideDrawer } from "../components/ui/components/navigation/SlideDrawer"
 import { ApelPrimit } from "./bbt/ApelPrimit";
 import { BaraSus } from "./bbt/BaraSus";
 import { firDeschis } from "./bbt/fir";
+import { FundalRama } from "./bbt/FundalRama";
 import { membriDeschisi } from "./bbt/MembriComunitate";
 import { PastilaDeJos } from "./bbt/PastilaDeJos";
-import { Sidebar } from "./interface/Sidebar";
+import { RAZA_FOAIE, Sidebar, useListaLaVedere } from "./interface/Sidebar";
 
 /**
  * Application layout
@@ -43,6 +44,8 @@ const Interface = (props: { children: JSX.Element }) => {
   const location = useLocation();
   const { pathname } = location;
   const { layout } = useDevice();
+  const telefon = () => layout() === "phone";
+  const cuLista = useListaLaVedere();
 
   useBeforeLeave((e) => {
     if (!e.defaultPrevented) {
@@ -106,7 +109,14 @@ const Interface = (props: { children: JSX.Element }) => {
 
   return (
     <MessageCache client={client()}>
-      <AppRoot ref={rootRef} class="app_root">
+      <AppRoot
+        ref={rootRef}
+        class="app_root"
+        // BBT: stiva în care `FundalRama` stă sub bară și sub foaie.
+        style={
+          telefon() ? undefined : { position: "relative", isolation: "isolate" }
+        }
+      >
         <Titlebar />
         <Switch fallback={<LoadingScreen />}>
           <Match when={!isLoggedIn()}>
@@ -114,12 +124,17 @@ const Interface = (props: { children: JSX.Element }) => {
           </Match>
           <Match when={lifecycle.loadedOnce()}>
             {/* BBT: bara de sus cu contul separat — doar desktop; pe telefon, pastila de jos. src/bbt/BaraSus.tsx */}
-            <Show when={layout() !== "phone"}>
+            <Show when={!telefon()}>
+              <FundalRama />
               <BaraSus />
             </Show>
             <Layout
               disconnected={isDisconnected()}
-              style={{ "flex-grow": 1, "min-height": 0 }}
+              style={{
+                "flex-grow": 1,
+                "min-height": 0,
+                ...(telefon() ? {} : { background: "transparent" }),
+              }}
               onDragOver={(e) => {
                 if (e.dataTransfer) e.dataTransfer.dropEffect = "none";
               }}
@@ -147,6 +162,17 @@ const Interface = (props: { children: JSX.Element }) => {
                   LAYOUT_SECTIONS.PRIMARY_SIDEBAR,
                   true,
                 )}
+                // BBT: foaia albă începe de la lista din `Sidebar` și continuă aici; fără listă, foaia e toată aici.
+                style={
+                  telefon()
+                    ? undefined
+                    : {
+                        overflow: "hidden",
+                        "border-radius": cuLista()
+                          ? `0 ${RAZA_FOAIE} 0 0`
+                          : `${RAZA_FOAIE} ${RAZA_FOAIE} 0 0`,
+                      }
+                }
               >
                 {props.children}
               </Content>

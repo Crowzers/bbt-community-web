@@ -8,6 +8,10 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { cereCautare } from "./cautare";
 
+/** Sticla butoanelor de pe banda roz, ca butonul de notificări din `ComunitateTelefon.tsx`. */
+export const STICLA = "rgba(255,255,255,0.55)";
+export const STICLA_APASATA = "rgba(255,255,255,0.8)";
+
 /**
  * Căutarea și clopoțelul din bara de sus (pânza TRW aprobată, 5 oct 2026).
  *
@@ -43,15 +47,15 @@ export function CautareSus() {
           display: "flex",
           "align-items": "center",
           gap: "8px",
-          // Pastila gri din 21/23 (30 oct 2026); până atunci un câmp închis, de 34px.
+          // Sticla de pe antetul roz (31 oct 2026); în 21/23, pastilă gri.
           width: "320px",
           height: "44px",
           padding: "0 16px",
           "box-sizing": "border-box",
           "border-radius": "999px",
-          background: "#F2F2F3",
+          background: STICLA,
           border: "0",
-          color: "#8D8D9A",
+          color: "#0A0A0B",
           "font-size": "14px",
         }}
       >
@@ -148,7 +152,7 @@ export function Clopotel() {
           height: "44px",
           border: "0",
           "border-radius": "999px",
-          background: deschis() ? "#E9E9EC" : "#F2F2F3",
+          background: deschis() ? STICLA_APASATA : STICLA,
           color: "#0A0A0B",
           display: "flex",
           "align-items": "center",
