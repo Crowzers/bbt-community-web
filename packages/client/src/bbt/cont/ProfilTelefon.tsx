@@ -85,7 +85,7 @@ export function ProfilTelefon() {
           <button
             type="button"
             aria-label="Setări"
-            onClick={() => navigate("/cont/date")}
+            onClick={() => navigate("/cont/profil")}
             style={CERC_40}
           >
             <IconRotita />
@@ -242,12 +242,8 @@ export function ProfilTelefon() {
         <div style={GRUP}>
           <Rand
             text="Editează profilul"
+            detaliu="Date, adresă, facturare"
             laApasare={() => navigate("/cont/profil")}
-          />
-          <Rand
-            text="Date personale"
-            detaliu="Adresă, telefon, facturare"
-            laApasare={() => navigate("/cont/date")}
           />
           <Rand text="Plăți" laApasare={() => navigate("/cont/plati")} />
           <Rand

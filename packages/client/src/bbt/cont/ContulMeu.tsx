@@ -25,7 +25,12 @@ import { Experiente } from "./Experiente";
 import { ExperienteTelefon } from "./ExperienteTelefon";
 import { Plati } from "./Plati";
 import { ProfilTelefon } from "./ProfilTelefon";
-import { DatePersonaleCont, NotificariCont, ProfilPublic } from "./Setari";
+import {
+  DatePersonaleCont,
+  EditeazaProfilTelefon,
+  NotificariCont,
+  ProfilPublic,
+} from "./Setari";
 import { Tabara } from "./tabara/Tabara";
 import { Buton, C, Fereastra } from "./ui";
 
@@ -73,7 +78,6 @@ const TITLURI: Record<string, string> = {
   diplome: "Diplome",
   plati: "Plăți",
   profil: "Editează profilul",
-  date: "Date personale",
   notificari: "Notificări",
 };
 
@@ -110,13 +114,19 @@ export function ContulMeu() {
   const pagina = () => {
     const p = params.pagina;
     if (!p) return telefon() ? undefined : "experiente";
-    return ADRESE_VECHI[p] ?? p;
+    const noua = ADRESE_VECHI[p] ?? p;
+    // Pe telefon datele personale stau în „Editează profilul", ca în aplicație.
+    return telefon() && noua === "date" ? "profil" : noua;
   };
+  const componenta = () =>
+    telefon() && pagina() === "profil"
+      ? EditeazaProfilTelefon
+      : PAGINI[pagina() ?? ""];
   // ⚠️ `keyed`, ca pagina să se schimbe la fiecare rând apăsat. Varianta veche citea `pagina()` o
   // singură dată, la montare, iar `<Match>` de mai jos nu se re-randează cât condiția rămâne
   // adevărată: din My Camps pe Plăți se schimba adresa și rândul activ, dar conținutul rămânea.
   const Pagina = () => (
-    <Show when={PAGINI[pagina() ?? ""]} keyed>
+    <Show when={componenta()} keyed>
       {(P) => <P />}
     </Show>
   );

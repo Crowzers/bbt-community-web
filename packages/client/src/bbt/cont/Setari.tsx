@@ -526,25 +526,44 @@ async function micsoreaza(f: File): Promise<string> {
 
 /* ── Date personale ──────────────────────────────────────────────────────────────────────── */
 
+function SectiuniDate(props: { p: Participant }) {
+  return (
+    <div style={coloana}>
+      <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
+        Ce trece pe contract și pe factură. Nu apare pe profilul public.
+      </p>
+      <NumeReal p={props.p} />
+      <DatePersonale p={props.p} />
+      <DateFacturare p={props.p} />
+      <DateCont p={props.p} />
+      <ZonaDeRisc />
+    </div>
+  );
+}
+
 export function DatePersonaleCont() {
   return (
     <>
       <TitluPagina>Date personale</TitluPagina>
-      <CuCont>
-        {(p) => (
-          <div style={coloana}>
-            <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
-              Ce trece pe contract și pe factură. Nu apare pe profilul public.
-            </p>
-            <NumeReal p={p} />
-            <DatePersonale p={p} />
-            <DateFacturare p={p} />
-            <DateCont p={p} />
-            <ZonaDeRisc />
-          </div>
-        )}
-      </CuCont>
+      <CuCont>{(p) => <SectiuniDate p={p} />}</CuCont>
     </>
+  );
+}
+
+/**
+ * Pe telefon, „Editează profilul" ține tot: profilul public și datele de mai sus, pe un singur ecran, ca în aplicație
+ * (cererea userului, 31 oct: cele două pagini păreau același lucru). Desktopul își păstrează cele două pagini din meniu.
+ */
+export function EditeazaProfilTelefon() {
+  return (
+    <CuCont>
+      {(p) => (
+        <div style={coloana}>
+          <FormularProfil p={p} />
+          <SectiuniDate p={p} />
+        </div>
+      )}
+    </CuCont>
   );
 }
 
