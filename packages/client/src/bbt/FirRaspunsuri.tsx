@@ -1,8 +1,16 @@
-import { For, Show, createEffect, createMemo, on } from "solid-js";
+import {
+  For,
+  Show,
+  createEffect,
+  createMemo,
+  createSignal,
+  on,
+} from "solid-js";
 
 import { Channel } from "stoat.js";
 
 import { useClient } from "@revolt/client";
+import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { Message } from "../../components/app/interface/channels/text/Message";
 
@@ -136,6 +144,212 @@ export function FirRaspunsuri(props: { channel: Channel }) {
             />
           )}
         </For>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * BBT: firul pe desktop (24e): panou de 400 în dreapta canalului, în locul listei de membri. Canalul rămâne la vedere,
+ * cu mesajul original evidențiat.
+ *
+ * ⚠️ Bara de scris de aici e doar pentru text: `Composition.tsx` ține o singură instanță pe canal (ciorna și
+ * `_setNodeReplacement` sunt ale canalului), deci a doua, lângă cea a canalului, și-ar amesteca textul cu ea.
+ */
+export function FirPanou(props: { channel: Channel }) {
+  const client = useClient();
+  let lista!: HTMLDivElement;
+
+  const original = () => client().messages.get(firDeschis() ?? "");
+  const raspunsuri = createMemo(
+    () => grupare().firuri.get(firDeschis() ?? "") ?? [],
+  );
+  const autor = () =>
+    original()?.member?.nickname ?? original()?.author?.displayName ?? "";
+
+  createEffect(
+    on(
+      () => raspunsuri().length,
+      () => requestAnimationFrame(() => (lista.scrollTop = lista.scrollHeight)),
+    ),
+  );
+
+  return (
+    <div
+      class="bbt-fir-panou"
+      style={{
+        display: "flex",
+        "flex-direction": "column",
+        "flex-shrink": 0,
+        width: "400px",
+        "max-width": "55%",
+        "min-height": 0,
+        "border-left": "1px solid #E5E5E5",
+        background: "#FFFFFF",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          "align-items": "center",
+          gap: "10px",
+          height: "60px",
+          "flex-shrink": 0,
+          padding: "0 20px",
+          "box-sizing": "border-box",
+          "border-bottom": "1px solid #E5E5E5",
+        }}
+      >
+        <div style={{ flex: 1, "min-width": 0 }}>
+          <div
+            style={{
+              ...deFonte(18),
+              "letter-spacing": "-.03em",
+              color: "#0A0A0B",
+            }}
+          >
+            Răspunsuri
+          </div>
+          <div
+            style={{
+              ...UN_RAND,
+              "font-size": "12px",
+              color: "rgba(10,10,11,.6)",
+            }}
+          >
+            la mesajul lui {autor()}
+          </div>
+        </div>
+        <button
+          type="button"
+          aria-label="Închide firul"
+          onClick={inchideFir}
+          style={{ ...CERC_40, width: "36px", height: "36px" }}
+        >
+          <Symbol size={18}>close</Symbol>
+        </button>
+      </div>
+
+      <div
+        style={{
+          "flex-shrink": 0,
+          "max-height": "40%",
+          "overflow-y": "auto",
+          padding: "10px 8px",
+          "border-bottom": "1px solid #E5E5E5",
+        }}
+      >
+        <Show when={original()} keyed>
+          {(mesaj) => <Message message={mesaj} inFir avatarFir={32} />}
+        </Show>
+      </div>
+
+      <div
+        ref={lista}
+        style={{
+          flex: 1,
+          "min-height": 0,
+          "overflow-y": "auto",
+          "margin-left": "36px",
+          padding: "10px 0",
+          "border-left": "3px solid #FFB3D9",
+        }}
+      >
+        <For each={raspunsuri()}>
+          {(mesaj) => <Message message={mesaj} inFir avatarFir={28} />}
+        </For>
+      </div>
+
+      <Show when={props.channel.havePermission("SendMessage")}>
+        <BaraFir channel={props.channel} />
+      </Show>
+    </div>
+  );
+}
+
+function BaraFir(props: { channel: Channel }) {
+  const [text, setText] = createSignal("");
+  const [trimit, setTrimit] = createSignal(false);
+
+  async function trimite() {
+    const continut = text().trim();
+    const id = firDeschis();
+    if (!continut || !id || trimit()) return;
+
+    setTrimit(true);
+    try {
+      await props.channel.sendMessage({
+        content: continut,
+        replies: [{ id, mention: true }],
+      });
+      setText("");
+    } finally {
+      setTrimit(false);
+    }
+  }
+
+  return (
+    <div style={{ padding: "12px 20px 16px", "flex-shrink": 0 }}>
+      <div
+        style={{
+          display: "flex",
+          "align-items": "center",
+          gap: "6px",
+          padding: "6px 6px 6px 18px",
+          "border-radius": "26px",
+          background: "#0A0A0B",
+        }}
+      >
+        <textarea
+          rows={1}
+          value={text()}
+          onInput={(e) => setText(e.currentTarget.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              void trimite();
+            }
+          }}
+          placeholder="Răspunde în fir…"
+          aria-label="Răspunde în fir"
+          style={{
+            flex: 1,
+            "min-width": 0,
+            "max-height": "120px",
+            padding: 0,
+            border: 0,
+            outline: 0,
+            resize: "none",
+            background: "transparent",
+            color: "#FFFFFF",
+            "font-family": "inherit",
+            "font-size": "14px",
+            "line-height": "20px",
+          }}
+        />
+        <button
+          type="button"
+          aria-label="Trimite răspunsul"
+          disabled={!text().trim() || trimit()}
+          onClick={() => void trimite()}
+          style={{
+            display: "flex",
+            "align-items": "center",
+            "justify-content": "center",
+            width: "40px",
+            height: "40px",
+            "flex-shrink": 0,
+            padding: 0,
+            border: 0,
+            "border-radius": "50%",
+            background: "#FFB3D9",
+            color: "#0A0A0B",
+            opacity: text().trim() ? 1 : 0.35,
+            cursor: "pointer",
+          }}
+        >
+          <Symbol size={20}>send</Symbol>
+        </button>
       </div>
     </div>
   );

@@ -22,7 +22,6 @@ import { styled } from "styled-system/jsx";
 
 import { useClient, useClientLifecycle } from "@revolt/client";
 import { State } from "@revolt/client/Controller";
-import { useDevice } from "@revolt/common";
 import { useTime } from "@revolt/i18n";
 import { useState } from "@revolt/state";
 import {
@@ -107,28 +106,21 @@ export function Messages(props: Props) {
   const client = useClient();
   const state = useState();
   const dayjs = useTime();
-  const { layout } = useDevice();
 
   /**
    * Loaded messages
    */
   const [messages, setMessages] = createSignal<MessageInterface[]>([]);
 
-  // BBT: pe telefon, răspunsurile ies din canal și stau în firul mesajului (`src/bbt/fir.ts`, 24a).
-  const grupare = createMemo(() =>
-    layout() === "phone" ? grupeazaRaspunsuri(messages()) : undefined,
-  );
-  createEffect(() => {
-    const g = grupare();
-    if (g) setGrupare(g);
-    else faraGrupare();
-  });
+  // BBT: răspunsurile ies din canal și stau în firul mesajului (`src/bbt/fir.ts`, 24a și 24e).
+  const grupare = createMemo(() => grupeazaRaspunsuri(messages()));
+  createEffect(() => setGrupare(grupare()));
   onCleanup(faraGrupare);
 
   // Un link spre un răspuns (notificare, căutare) deschide firul lui: în canal, răspunsul nu se mai vede.
   createEffect(() => {
     const id = props.highlightedMessageId();
-    if (id && grupare()?.radacini.has(id)) deschideFir(id);
+    if (id && grupare().radacini.has(id)) deschideFir(id);
   });
 
   /**
@@ -807,10 +799,8 @@ export function Messages(props: Props) {
       }
     };
 
-    const radacini = grupare()?.radacini;
-    const arr = radacini
-      ? messages().filter((m) => !radacini.has(m.id))
-      : messages();
+    const { radacini } = grupare();
+    const arr = messages().filter((m) => !radacini.has(m.id));
     arr.forEach((message, index) => {
       const next = arr[index + 1];
       let tail = true;

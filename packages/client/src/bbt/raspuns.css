@@ -214,6 +214,12 @@
   }
 }
 
+/* Panoul firului de pe desktop (24e): avatare mai mici, text 14. */
+.bbt-fir-panou {
+  --bbt-col-avatar: 38px;
+  --message-size: 14px;
+}
+
 /* Firul (24b): bulele celorlalți sunt gri pe alb, nu albe pe gri. `!important`: culoarea bulei e inline. */
 .bbt-fir .bbt-bula:not(.bbt-bula-mea) {
   background: #f2f2f3 !important;

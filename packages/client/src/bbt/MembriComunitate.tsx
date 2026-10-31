@@ -16,6 +16,78 @@ const [membriDeschisi, setMembriDeschisi] = createSignal(false);
 
 export { membriDeschisi, setMembriDeschisi };
 
+/** Bara de căutare din Mesaje (`MesajeTelefon.tsx`), comună ecranului de telefon și panoului de pe desktop. */
+export function CautareMembri(props: {
+  valoare: string;
+  laSchimbare: (text: string) => void;
+}) {
+  return (
+    <label
+      style={{
+        display: "flex",
+        "align-items": "center",
+        gap: "8px",
+        height: "42px",
+        "flex-shrink": 0,
+        margin: "0 16px 6px",
+        padding: "0 14px",
+        "border-radius": "999px",
+        background: C.foaieTare,
+        color: C.slab,
+      }}
+    >
+      <IconCautare size={16} />
+      {/* 16 în câmp: sub 16, iOS mărește pagina la focus. */}
+      <input
+        value={props.valoare}
+        onInput={(e) => props.laSchimbare(e.currentTarget.value)}
+        placeholder="Caută o persoană"
+        style={{
+          flex: 1,
+          "min-width": 0,
+          padding: 0,
+          border: 0,
+          outline: 0,
+          background: "transparent",
+          color: C.text,
+          "font-family": "inherit",
+          "font-size": "16px",
+        }}
+      />
+    </label>
+  );
+}
+
+/** Mesajul de sub o căutare fără rezultat. */
+export function NimeniGasit(props: { channel: Channel; cautare: string }) {
+  const client = useClient();
+
+  // Boții sunt în listă doar pentru cine poate da roluri (`MemberSidebar`): și căutarea îi socotește la fel.
+  const gasiti = createMemo(() =>
+    [...client().serverMembers.values()].some(
+      (m) =>
+        m.id.server === props.channel.serverId &&
+        (!m.user?.bot || props.channel.server?.havePermission("AssignRoles")) &&
+        membruPotrivit(m, props.cautare),
+    ),
+  );
+
+  return (
+    <Show when={!gasiti()}>
+      <p
+        style={{
+          margin: "24px 16px",
+          "text-align": "center",
+          "font-size": "14px",
+          color: C.slab,
+        }}
+      >
+        N-am găsit pe nimeni cu numele ăsta.
+      </p>
+    </Show>
+  );
+}
+
 /**
  * BBT: toți membrii comunității, pe telefon, ecran deschis din avatarele din antetul canalului (cererea userului,
  * 31 oct 2026). Lista e cea de pe desktop, pe grupe de rol, dar cu toată lumea: dintr-un canal restricționat, panoul de
@@ -33,15 +105,6 @@ export function MembriComunitate(props: { channel: Channel }) {
   const online = () => membri().filter((m) => m.user?.online).length;
 
   const [cautare, setCautare] = createSignal("");
-  // Boții sunt în listă doar pentru cine poate da roluri (`MemberSidebar`): și căutarea îi socotește la fel.
-  const gasiti = createMemo(() =>
-    [...client().serverMembers.values()].some(
-      (m) =>
-        m.id.server === props.channel.serverId &&
-        (!m.user?.bot || props.channel.server?.havePermission("AssignRoles")) &&
-        membruPotrivit(m, cautare()),
-    ),
-  );
 
   return (
     <div
@@ -91,40 +154,7 @@ export function MembriComunitate(props: { channel: Channel }) {
           </div>
         </div>
       </div>
-      {/* Bara de căutare din Mesaje (`MesajeTelefon.tsx`). */}
-      <label
-        style={{
-          display: "flex",
-          "align-items": "center",
-          gap: "8px",
-          height: "42px",
-          "flex-shrink": 0,
-          margin: "0 16px 6px",
-          padding: "0 14px",
-          "border-radius": "999px",
-          background: C.foaieTare,
-          color: C.slab,
-        }}
-      >
-        <IconCautare size={16} />
-        {/* 16 în câmp: sub 16, iOS mărește pagina la focus. */}
-        <input
-          value={cautare()}
-          onInput={(e) => setCautare(e.currentTarget.value)}
-          placeholder="Caută o persoană"
-          style={{
-            flex: 1,
-            "min-width": 0,
-            padding: 0,
-            border: 0,
-            outline: 0,
-            background: "transparent",
-            color: C.text,
-            "font-family": "inherit",
-            "font-size": "16px",
-          }}
-        />
-      </label>
+      <CautareMembri valoare={cautare()} laSchimbare={setCautare} />
       <div
         ref={lista}
         style={{ flex: 1, "min-height": 0, "overflow-y": "auto" }}
@@ -135,18 +165,7 @@ export function MembriComunitate(props: { channel: Channel }) {
           totaComunitatea
           cautare={cautare()}
         />
-        <Show when={!gasiti()}>
-          <p
-            style={{
-              margin: "24px 16px",
-              "text-align": "center",
-              "font-size": "14px",
-              color: C.slab,
-            }}
-          >
-            N-am găsit pe nimeni cu numele ăsta.
-          </p>
-        </Show>
+        <NimeniGasit channel={props.channel} cautare={cautare()} />
       </div>
     </div>
   );

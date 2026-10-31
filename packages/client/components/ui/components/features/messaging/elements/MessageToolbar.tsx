@@ -4,11 +4,12 @@ import { cva } from "styled-system/css";
 import { styled } from "styled-system/jsx";
 
 import { MessageContextMenu, useMessage } from "@revolt/app";
-import { useUser } from "@revolt/client";
 import { useModals } from "@revolt/modal";
 import { useState } from "@revolt/state";
 import { Ripple } from "@revolt/ui/components/design";
 import { iconSize } from "@revolt/ui/components/utils";
+
+import { deschideFir } from "../../../../../../src/bbt/fir";
 
 import MdDelete from "@material-design-icons/svg/outlined/delete.svg?component-solid";
 import MdEdit from "@material-design-icons/svg/outlined/edit.svg?component-solid";
@@ -17,7 +18,6 @@ import MdMoreVert from "@material-design-icons/svg/outlined/more_vert.svg?compon
 import MdReply from "@material-design-icons/svg/outlined/reply.svg?component-solid";
 
 export function MessageToolbar() {
-  const user = useUser();
   const state = useState();
   const { openModal } = useModals();
   const { message, reactPicker } = useMessage();
@@ -43,10 +43,7 @@ export function MessageToolbar() {
   return (
     <Base class="Toolbar">
       <Show when={message?.channel?.havePermission("SendMessage")}>
-        <div
-          class={tool()}
-          onClick={() => state.draft.addReply(message!, user()!.id)}
-        >
+        <div class={tool()} onClick={() => deschideFir(message!.id)}>
           <Ripple />
           <MdReply {...iconSize(20)} />
         </div>

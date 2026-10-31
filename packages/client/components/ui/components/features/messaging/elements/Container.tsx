@@ -143,6 +143,11 @@ type Props = CommonProps & {
    * BBT: pastila cu rolul omului, în dreapta numelui, pe telefon.
    */
   rol?: JSX.Element;
+
+  /**
+   * BBT: mesajul al cărui fir e deschis în panoul din dreapta (24e).
+   */
+  selectat?: boolean;
 };
 
 /**
@@ -260,7 +265,8 @@ const Info = styled("div", {
     compact: {
       true: {},
       false: {
-        width: "54px",
+        // BBT: panoul firului (24e) are avatare mai mici (`bbt-fir-panou`).
+        width: "var(--bbt-col-avatar, 54px)",
       },
     },
   },
@@ -529,6 +535,11 @@ function ContainerLiniar(props: Props) {
       ref={props.ref}
       onMouseEnter={() => props.onHover && props.onHover(true)}
       onMouseLeave={() => props.onHover && props.onHover(false)}
+      style={
+        props.selectat
+          ? { background: "#FFEEF5", "border-radius": "18px" }
+          : undefined
+      }
       class={
         "group " +
         base({

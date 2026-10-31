@@ -86,6 +86,9 @@ export function MessageComposition(props: Props) {
     return state.draft.getDraft(props.channel.id);
   }
 
+  // BBT: pe telefon, bara asta scrie și în firul deschis; pe desktop firul are bara lui (`bbt/FirRaspunsuri.tsx`).
+  const firAici = () => (telefon() ? firDeschis() : undefined);
+
   const messageLength = () => draft().content?.length ?? 0;
   const maxMessageLength = () => limits().message_length;
   const isAlmostTooLong = () => messageLength() > maxMessageLength() - 200;
@@ -199,7 +202,7 @@ export function MessageComposition(props: Props) {
    * BBT: din fir, orice mesaj pleacă drept răspuns la mesajul de la care a pornit firul (`src/bbt/fir.ts`).
    */
   function legaDeFir() {
-    const id = firDeschis();
+    const id = firAici();
     if (id) {
       state.draft.setDraft(props.channel.id, {
         replies: [{ id, mention: true }],
@@ -420,7 +423,7 @@ export function MessageComposition(props: Props) {
         isSpoiler={isSpoiler}
         toggleSpoiler={toggleSpoiler}
       />
-      <For each={firDeschis() ? [] : (draft().replies ?? [])}>
+      <For each={firAici() ? [] : (draft().replies ?? [])}>
         {(reply) => {
           const message = client()!.messages.get(reply.id);
 
@@ -540,7 +543,7 @@ export function MessageComposition(props: Props) {
             }
             placeholder={
               // BBT: copy-ul din pânză, în română direct (interfața BBT nu are altă limbă).
-              firDeschis()
+              firAici()
                 ? "Răspunde în fir…"
                 : props.channel.type === "SavedMessages"
                   ? "Scrie o notiță pentru tine"

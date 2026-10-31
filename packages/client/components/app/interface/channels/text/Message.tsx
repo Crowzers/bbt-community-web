@@ -48,7 +48,11 @@ import {
 } from "../../../menus/UserContextMenu";
 
 import { createIsTimedOut } from "@revolt/common/lib/createIsTimedOut";
-import { PastilaRaspunsuri } from "../../../../../src/bbt/PastilaRaspunsuri";
+import {
+  PastilaRaspunsuri,
+  RaspundeInFir,
+} from "../../../../../src/bbt/PastilaRaspunsuri";
+import { firDeschis, grupare } from "../../../../../src/bbt/fir";
 import { AvatarOm } from "../../../../../src/bbt/telefon";
 import { EditMessage } from "./EditMessage";
 
@@ -93,6 +97,11 @@ interface Props {
    * BBT: mesajul de la care pornește firul, cardul din capul ecranului
    */
   cardFir?: boolean;
+
+  /**
+   * BBT: mărimea avatarului în panoul firului de pe desktop (24e)
+   */
+  avatarFir?: number;
 }
 
 interface MessageContextShape {
@@ -233,6 +242,7 @@ export function Message(props: Props) {
         bula={bula()}
         doarMedia={doarMedia()}
         cardFir={props.cardFir}
+        selectat={!props.inFir && firDeschis() === props.message.id}
         rol={pastilaRol()}
         subBula={
           <>
@@ -258,7 +268,13 @@ export function Message(props: Props) {
               colour="#5C4ADE"
               // 15 / 800, ca în 21a; în bulă, 12 / 800, ca în 19b.
               style={{
-                "font-size": props.cardFir ? "14px" : bula() ? "12px" : "15px",
+                "font-size": props.cardFir
+                  ? "14px"
+                  : props.avatarFir
+                    ? "13px"
+                    : bula()
+                      ? "12px"
+                      : "15px",
                 "font-weight": 800,
               }}
             />
@@ -274,7 +290,7 @@ export function Message(props: Props) {
               when={bula()}
               fallback={
                 <Avatar
-                  size={40}
+                  size={props.avatarFir ?? 40}
                   src={
                     isHovering()
                       ? props.message.animatedAvatarURL
@@ -538,6 +554,23 @@ export function Message(props: Props) {
           {(embed) => <Embed embed={embed} />}
         </For>
         <Show when={!bula()}>{reactii()}</Show>
+        {/* Pe desktop, sub mesaj: pastila firului sau „Răspunde", ca în 24e. Pe telefon, pastila stă sub bulă. */}
+        <Show
+          when={
+            !bula() &&
+            !props.inFir &&
+            !props.isLink &&
+            !props.editing &&
+            !props.message.systemMessage
+          }
+        >
+          <Show
+            when={grupare().firuri.has(props.message.id)}
+            fallback={<RaspundeInFir mesajId={props.message.id} />}
+          >
+            <PastilaRaspunsuri mesajId={props.message.id} />
+          </Show>
+        </Show>
       </MessageContainer>
     </MessageContext>
   );

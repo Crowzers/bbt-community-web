@@ -5,7 +5,6 @@ import { css } from "styled-system/css";
 import { styled } from "styled-system/jsx";
 
 import { MessageContextMenu, useMessage } from "@revolt/app";
-import { useDevice } from "@revolt/common";
 import { useModals } from "@revolt/modal";
 import { Column } from "@revolt/ui/components/layout";
 import { SizedContent, Spoiler } from "@revolt/ui/components/utils";
@@ -39,10 +38,9 @@ export function Attachment(props: { file: File; message?: Message }) {
     height: number;
   }>();
 
-  // BBT: pe telefon, video-ul are Play în mijloc, ca la WhatsApp și în aplicație (`mobil/src/fir/RandMesaj.tsx`: cerc de
-  // 52, negru 45%). Comenzile browserului apar abia după prima pornire, altfel Play-ul lor stătea tot jos.
-  const { layout } = useDevice();
-  const playPeMijloc = () => layout() === "phone" && !props.file.isSpoiler;
+  // BBT: video-ul are Play în mijloc, ca la WhatsApp și în aplicație (`mobil/src/fir/RandMesaj.tsx`: cerc de 52, negru
+  // 45%). Comenzile browserului apar abia după prima pornire, altfel Play-ul lor stătea tot jos.
+  const playPeMijloc = () => !props.file.isSpoiler;
   const [pornit, setPornit] = createSignal(false);
   const [redare, setRedare] = createSignal(false);
   let video: HTMLVideoElement | undefined;

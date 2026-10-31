@@ -29,9 +29,11 @@ import {
 import { VoiceChannelCallCardMount } from "@revolt/ui/components/features/voice/callCard/VoiceCallCard";
 
 import { BandaFixat } from "../../../bbt/BandaFixat";
-import { FirRaspunsuri } from "../../../bbt/FirRaspunsuri";
+import { FirPanou, FirRaspunsuri } from "../../../bbt/FirRaspunsuri";
 import {
+  CautareMembri,
   MembriComunitate,
+  NimeniGasit,
   membriDeschisi,
   setMembriDeschisi,
 } from "../../../bbt/MembriComunitate";
@@ -182,6 +184,9 @@ export function TextChannel(props: ChannelPageProps) {
     state: "default",
   });
 
+  // BBT: căutarea din panoul de membri, ca pe telefon (`bbt/MembriComunitate.tsx`).
+  const [cautareMembri, setCautareMembri] = createSignal("");
+
   // todo: in the future maybe persist per ID?
   createEffect(
     on(
@@ -190,6 +195,7 @@ export function TextChannel(props: ChannelPageProps) {
         setSidebarState({ state: "default" });
         inchideFir();
         setMembriDeschisi(false);
+        setCautareMembri("");
       },
     ),
   );
@@ -290,7 +296,7 @@ export function TextChannel(props: ChannelPageProps) {
           <div
             style={{
               position: "relative",
-              "z-index": firDeschis() ? 41 : undefined,
+              "z-index": firDeschis() && layout() === "phone" ? 41 : undefined,
             }}
           >
             <MessageComposition
@@ -299,14 +305,18 @@ export function TextChannel(props: ChannelPageProps) {
             />
           </div>
         </main>
+        <Show when={layout() !== "phone" && firDeschis()}>
+          <FirPanou channel={props.channel} />
+        </Show>
         <Show
           when={
-            (state.layout.getSectionState(
+            !(layout() !== "phone" && firDeschis()) &&
+            ((state.layout.getSectionState(
               LAYOUT_SECTIONS.MEMBER_SIDEBAR,
               true,
             ) &&
               canIHasSidebar(props.channel)) ||
-            sidebarState().state !== "default"
+              sidebarState().state !== "default")
           }
         >
           <div
@@ -359,11 +369,27 @@ export function TextChannel(props: ChannelPageProps) {
                     props.channel.recipient
                   }
                   fallback={
-                    <MemberSidebar
-                      channel={props.channel}
-                      scrollTargetElement={sidebarScrollTargetElement}
-                      isLargeServer={isLargeServer(props.channel.server)}
-                    />
+                    <>
+                      <Show when={props.channel.type === "TextChannel"}>
+                        <CautareMembri
+                          valoare={cautareMembri()}
+                          laSchimbare={setCautareMembri}
+                        />
+                      </Show>
+                      <MemberSidebar
+                        channel={props.channel}
+                        scrollTargetElement={sidebarScrollTargetElement}
+                        isLargeServer={isLargeServer(props.channel.server)}
+                        totaComunitatea
+                        cautare={cautareMembri()}
+                      />
+                      <Show when={props.channel.type === "TextChannel"}>
+                        <NimeniGasit
+                          channel={props.channel}
+                          cautare={cautareMembri()}
+                        />
+                      </Show>
+                    </>
                   }
                 >
                   {(om) => (
