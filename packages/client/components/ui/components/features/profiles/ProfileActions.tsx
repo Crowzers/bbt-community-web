@@ -57,11 +57,7 @@ export function ProfileActions(props: {
     // poză doar aici) ar fi acoperit numele și poza din contul BBT — un server, o identitate.
     // ⚠️ Pe ALTCINEVA rămâne ca la ei: moderatorii resetează de aici porecla/poza unui membru.
     if (props.user.self) {
-      openModal({
-        type: "settings",
-        config: "user",
-        context: { page: "profile" },
-      });
+      navigate("/cont/profil");
       props.onClose();
       return;
     }

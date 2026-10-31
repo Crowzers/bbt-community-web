@@ -172,18 +172,8 @@ export function PanouLogin() {
         >
           <Wordmark
             aria-label="BBT"
-            style={{ height: "30px", width: "auto", color: "#0A0A0B" }}
+            style={{ height: "48px", width: "auto", color: "#0A0A0B" }}
           />
-          <span
-            style={{
-              "font-size": "15px",
-              "font-weight": 700,
-              "letter-spacing": "0.18em",
-              "text-transform": "uppercase",
-            }}
-          >
-            Community
-          </span>
         </div>
 
         <div

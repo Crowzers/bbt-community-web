@@ -5,6 +5,7 @@ import { Channel } from "stoat.js";
 
 import { useInstance } from "@revolt/instance";
 import { useModals } from "@revolt/modal";
+import { useNavigate } from "@revolt/routing";
 import { useState } from "@revolt/state";
 
 import MdBadge from "@material-design-icons/svg/outlined/badge.svg?component-solid";
@@ -30,6 +31,7 @@ import { NotificationContextMenu } from "./shared/NotificationContextMenu";
 export function ChannelContextMenu(props: { channel: Channel }) {
   const state = useState();
   const instance = useInstance();
+  const navigate = useNavigate();
   const { openModal } = useModals();
 
   /**
@@ -81,6 +83,11 @@ export function ChannelContextMenu(props: { channel: Channel }) {
    * Edit channel
    */
   function editChannel() {
+    // BBT: canalele serverului, în Administrarea noastră. Grupurile rămân la ei.
+    if (props.channel.serverId) {
+      navigate(`/cont/administrare/${props.channel.id}`);
+      return;
+    }
     openModal({
       type: "settings",
       config: "channel",

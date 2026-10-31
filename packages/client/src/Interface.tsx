@@ -18,8 +18,12 @@ import { useClient, useClientLifecycle } from "@revolt/client";
 import { State } from "@revolt/client/Controller";
 import { NotificationsWorker } from "@revolt/client/NotificationsWorker";
 import { useDevice } from "@revolt/common";
-import { useModals } from "@revolt/modal";
-import { Navigate, useBeforeLeave, useLocation } from "@revolt/routing";
+import {
+  Navigate,
+  useBeforeLeave,
+  useLocation,
+  useNavigate,
+} from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { LAYOUT_SECTIONS } from "@revolt/state/stores/Layout";
 import { LoadingScreen } from "@revolt/ui";
@@ -39,7 +43,7 @@ import { RAZA_FOAIE, Sidebar, useListaLaVedere } from "./interface/Sidebar";
 const Interface = (props: { children: JSX.Element }) => {
   const state = useState();
   const client = useClient();
-  const { openModal } = useModals();
+  const navigate = useNavigate();
   const { isLoggedIn, lifecycle } = useClientLifecycle();
   const location = useLocation();
   const { pathname } = location;
@@ -50,8 +54,9 @@ const Interface = (props: { children: JSX.Element }) => {
   useBeforeLeave((e) => {
     if (!e.defaultPrevented) {
       if (e.to === "/settings") {
+        // BBT: setările noastre, nu panoul lor.
         e.preventDefault();
-        openModal({ type: "settings", config: "user" });
+        navigate("/cont/profil");
       } else if (typeof e.to === "string") {
         state.layout.setLastActivePath(e.to);
       }

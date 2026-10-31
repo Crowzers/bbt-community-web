@@ -1,7 +1,6 @@
 import { JSX, Show, createSignal } from "solid-js";
 
-import { useClientLifecycle } from "@revolt/client";
-import { useModals } from "@revolt/modal";
+import { useClient, useClientLifecycle } from "@revolt/client";
 import { useNavigate } from "@revolt/routing";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
@@ -9,6 +8,7 @@ import { BBT_SITE_URL } from "../config";
 import { comutaSunetele, sunetePornite } from "../sunete";
 import { UN_RAND } from "../telefon";
 
+import { poateAdministra } from "./Administrare";
 import { useNotificari, useRapoarte } from "./date";
 import { Buton, C, Fereastra } from "./ui";
 
@@ -16,18 +16,17 @@ import { Buton, C, Fereastra } from "./ui";
  * BBT: Setări pe telefon, în spatele rotiței din Profil (varianta B, cererea userului, 31 oct 2026), ca
  * `mobil/src/app/setari.tsx`. Pe desktop și tabletă aceleași rânduri stau în meniul din stânga (`ContulMeu.tsx`).
  *
- * Față de aplicație are și grupul Community: setările clientului există doar aici, iar meniul de la avatar nu le mai ține.
+ * Față de aplicație are și „Voce și video": în aplicație microfonul și camera le alege telefonul.
  */
 export function SetariTelefon() {
   const navigate = useNavigate();
-  const { openModal } = useModals();
+  const client = useClient();
   const notificari = useNotificari();
   const rapoarte = useRapoarte();
   const { logout } = useClientLifecycle();
   const [iesire, setIesire] = createSignal(false);
 
-  const deschideCommunity = (page: string) =>
-    openModal({ type: "settings", config: "user", context: { page } });
+  const administreaza = () => poateAdministra(client().servers.toList()[0]);
 
   return (
     <div style={{ display: "flex", "flex-direction": "column", gap: "10px" }}>
@@ -60,28 +59,33 @@ export function SetariTelefon() {
 
       <div style={GRUP}>
         <Rand
-          text="Profilul în Community"
-          laApasare={() => deschideCommunity("profile")}
-        />
-        <Rand
-          text="Setări Community"
-          laApasare={() => deschideCommunity("notifications")}
+          text="Voce și video"
+          laApasare={() => navigate("/cont/voce")}
           ultim
         />
       </div>
 
-      {/* Doar pentru cine are voie la rapoarte, ca „Administrare Community" din aplicație. */}
-      <Show when={rapoarte.data}>
-        {(lista) => (
-          <div style={GRUP}>
+      {/* Doar pentru cine are ce administra, ca „Administrare Community" din aplicație. */}
+      <Show when={administreaza() || rapoarte.data}>
+        <div style={GRUP}>
+          <Show when={administreaza()}>
             <Rand
-              text="Rapoarte"
-              detaliu={lista().length ? String(lista().length) : undefined}
-              laApasare={() => navigate("/cont/rapoarte")}
-              ultim
+              text="Administrare"
+              laApasare={() => navigate("/cont/administrare")}
+              ultim={!rapoarte.data}
             />
-          </div>
-        )}
+          </Show>
+          <Show when={rapoarte.data}>
+            {(lista) => (
+              <Rand
+                text="Rapoarte"
+                detaliu={lista().length ? String(lista().length) : undefined}
+                laApasare={() => navigate("/cont/rapoarte")}
+                ultim
+              />
+            )}
+          </Show>
+        </div>
       </Show>
 
       <div style={GRUP}>

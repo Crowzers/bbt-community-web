@@ -9,18 +9,18 @@ import {
   on,
 } from "solid-js";
 
-import { useClientLifecycle } from "@revolt/client";
+import { useClient, useClientLifecycle } from "@revolt/client";
 import { useDevice } from "@revolt/common";
-import { useModals } from "@revolt/modal";
 import { useNavigate, useParams } from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { useAlunecare } from "../Alunecare";
 import { BBT_SITE_URL } from "../config";
-import { CERC_40, IconInapoi, UN_RAND, deFonte } from "../telefon";
+import { CERC_40, IconInapoi, UN_RAND } from "../telefon";
 
-import { useRapoarte } from "./date";
+import { Administrare, poateAdministra } from "./Administrare";
+import { useNotificari, useRapoarte } from "./date";
 import { Diplome } from "./Diplome";
 import { EditeazaProfil } from "./EditeazaProfil";
 import { ExperientaTelefon } from "./Experienta";
@@ -34,7 +34,8 @@ import { NotificariCont } from "./Setari";
 import { SetariTelefon } from "./SetariTelefon";
 import { NotitaLive } from "./tabara/NotitaLive";
 import { Tabara } from "./tabara/Tabara";
-import { Buton, C, Fereastra } from "./ui";
+import { Buton, C, Fereastra, TITLU_COLT } from "./ui";
+import { VoceVideo } from "./VoceVideo";
 
 /**
  * BBT: „Contul meu" în hub, `/cont/:pagina`. Design: `2026-10-20-hub-standalone-cont-design.md` + macheta 23
@@ -51,34 +52,62 @@ import { Buton, C, Fereastra } from "./ui";
  * Peste tot: `/cont` = tab-ul Profil, `/cont/experiente` = tab-ul Experiențe, ca în aplicație. Până pe 31 oct, meniul stătea
  * lângă toate paginile, deci setările de profil apăreau și la Experiențe; userul: „nu prea face sens".
  *
- * 🔥 Varianta B (cererea userului, 31 oct 2026): Profil arată cine ești (piese, diplome), iar rotița duce la Setări. Lista
- * veche punea banii între piese și diplome. Pe telefon `/cont/setari` e o listă, cu „înapoi" sus. Pe desktop și tabletă
- * meniul din stânga există doar la Setări și ține locul listei, deci `/cont/setari` deschide primul rând.
+ * 🔥 Varianta B (cererea userului, 31 oct 2026): Profil arată cine ești (piese, diplome), iar pe telefon rotița duce la Setări.
+ * Pe telefon `/cont/setari` e o listă, cu „înapoi" sus.
+ *
+ * 🔥 Pe desktop și tabletă (cererea userului, 31 oct 2026): Profilul are meniul din dashboard-ul site-ului, cu My Camps și
+ * restul, urmat de setări. Ține locul listei și începe cu „Profil", ca „Mesaje" lângă conversații. Experiențele n-au meniu.
  */
 
 type Rand = { pagina: string; nume: string };
 
-const SETARI: Rand[] = [
-  { pagina: "profil", nume: "Editează profilul" },
-  { pagina: "plati", nume: "Plăți și facturi" },
-  { pagina: "notificari", nume: "Notificări" },
+/** Numele din `website/src/lib/dashboardNavItems.ts`. Piesele există doar aici. */
+const ACTIVITATE: Rand[] = [
+  { pagina: "", nume: "Profilul meu" },
+  { pagina: "mycamps", nume: "My Camps" },
+  { pagina: "workshops", nume: "My Workshops" },
+  { pagina: "cursuri", nume: "My Courses" },
+  { pagina: "diplome", nume: "Diplomele mele" },
+  { pagina: "piese", nume: "Piesele mele" },
 ];
 
-/** Doar pentru cine are voie la rapoarte (`useRapoarte`). */
-const MODERARE: Rand[] = [{ pagina: "rapoarte", nume: "Rapoarte" }];
+const SETARI: Rand[] = [
+  { pagina: "plati", nume: "Plăți și facturi" },
+  { pagina: "profil", nume: "Editează profilul" },
+  { pagina: "notificari", nume: "Notificări" },
+  { pagina: "voce", nume: "Voce și video" },
+];
 
-const PAGINI_SETARI = [...SETARI, ...MODERARE].map((r) => r.pagina);
+/** Doar pentru cine are voie (`poateAdministra`, `useRapoarte`). */
+const ADMINISTRARE: Rand = { pagina: "administrare", nume: "Administrare" };
+const RAPOARTE: Rand = { pagina: "rapoarte", nume: "Rapoarte" };
+
+const PAGINI_MENIU = [...ACTIVITATE, ...SETARI, ADMINISTRARE, RAPOARTE].map(
+  (r) => r.pagina,
+);
+
+/** Ce deschide Setările de pe telefon, deci unde duce „înapoi" din antet. */
+const PAGINI_SETARI = [
+  ...SETARI.map((r) => r.pagina),
+  ADMINISTRARE.pagina,
+  RAPOARTE.pagina,
+];
 
 const PAGINI: Record<string, () => JSX.Element> = {
-  experiente: Experiente,
+  experiente: () => <Experiente />,
+  mycamps: () => <Experiente fel="camp" titlu="My Camps" />,
+  workshops: () => <Experiente fel="workshop" titlu="My Workshops" />,
+  cursuri: () => <Experiente fel="curs" titlu="My Courses" />,
   diplome: Diplome,
   plati: Plati,
   piese: Piese,
   notita: NotitaLive,
   profil: EditeazaProfil,
   notificari: NotificariCont,
+  voce: VoceVideo,
   setari: SetariTelefon,
   rapoarte: Rapoarte,
+  administrare: Administrare,
 };
 
 /** Titlurile paginilor pe telefon, din antet. Tabăra n-are: numele ei stă deja mare în pagină. */
@@ -90,16 +119,22 @@ const TITLURI: Record<string, string> = {
   profil: "Editează profilul",
   notificari: "Notificări",
   rapoarte: "Rapoarte primite",
+  administrare: "Administrare",
+  voce: "Voce și video",
   setari: "Setări",
 };
 
 /** Adresele de dinainte de 23 → pagina care le-a luat locul. */
 const ADRESE_VECHI: Record<string, string> = {
+  wishlist: "experiente",
+  date: "profil",
+};
+
+/** Pe telefon n-au meniu: Experiențe le ține pe toate. */
+const ADRESE_TELEFON: Record<string, string> = {
   mycamps: "experiente",
   workshops: "experiente",
   cursuri: "experiente",
-  wishlist: "experiente",
-  date: "profil",
 };
 
 export function ContulMeu() {
@@ -126,7 +161,8 @@ export function ContulMeu() {
   const pagina = () => {
     const p = params.pagina;
     if (!p) return undefined;
-    const noua = ADRESE_VECHI[p] ?? p;
+    const noua =
+      ADRESE_VECHI[p] ?? (telefon() ? ADRESE_TELEFON[p] : undefined) ?? p;
     return !telefon() && noua === "setari" ? "profil" : noua;
   };
   const componenta = () => PAGINI[pagina() ?? ""];
@@ -145,8 +181,8 @@ export function ContulMeu() {
   // Detaliul experienței (20d) are „înapoi" în partea lui roz, deci nici antet, nici marginile paginilor.
   const ecranExperienta = () =>
     telefon() && pagina() === "experienta" && params.id;
-  // Meniul e al Setărilor. Profilul, Piesele, Diplomele și Experiențele ocupă toată lățimea, ca tab-urile din aplicație.
-  const cuMeniu = () => !telefon() && PAGINI_SETARI.includes(pagina() ?? "");
+  // Meniul e al Profilului. Experiențele ocupă toată lățimea, ca tab-ul din aplicație: conținutul începe din stânga foii.
+  const cuMeniu = () => !telefon() && PAGINI_MENIU.includes(pagina() ?? "");
 
   return (
     <div
@@ -160,6 +196,9 @@ export function ContulMeu() {
         "font-family": "Inter, sans-serif",
       }}
     >
+      <Show when={cuMeniu()}>
+        <Meniu activ={pagina()} />
+      </Show>
       <Show when={ecranTab()}>
         <Show when={pagina()} fallback={<ProfilTelefon desktop={!telefon()} />}>
           <ExperienteTelefon />
@@ -167,9 +206,6 @@ export function ContulMeu() {
       </Show>
       <Show when={ecranExperienta()}>
         <ExperientaTelefon id={params.id!} />
-      </Show>
-      <Show when={cuMeniu()}>
-        <Meniu activ={pagina()} />
       </Show>
       <Show when={pagina() && !ecranTab() && !ecranExperienta()}>
         <div
@@ -204,7 +240,7 @@ export function ContulMeu() {
               "min-width": 0,
               "min-height": 0,
               "overflow-y": "auto",
-              padding: telefon() ? "4px 16px 32px" : "32px 40px 48px",
+              padding: telefon() ? "4px 16px 32px" : "16px 22px 48px",
             }}
           >
             {/* Pagina taberei are „‹ Experiențele mele" pe desktop (23e); pe telefon, „înapoi" stă în antet. */}
@@ -214,18 +250,13 @@ export function ContulMeu() {
                 laApasare={() => navigate("/cont/experiente")}
               />
             </Show>
-            <Show
-              when={["piese", "diplome"].includes(pagina()!) && !telefon()}
-            >
-              <Inapoi text="Profil" laApasare={() => navigate("/cont")} />
-            </Show>
             <Show when={pagina() === "notita" && !telefon()}>
               <Inapoi text="Înapoi" laApasare={() => navigate(-1)} />
             </Show>
             <div
               style={{
-                "max-width": "1100px",
-                margin: cuMeniu() ? undefined : "0 auto",
+                "max-width": cuMeniu() || telefon() ? "1100px" : undefined,
+                margin: telefon() ? "0 auto" : undefined,
               }}
             >
               <Switch>
@@ -324,7 +355,8 @@ const LINK_MENIU: JSX.CSSProperties = {
   display: "flex",
   "align-items": "center",
   width: "100%",
-  height: "38px",
+  "flex-shrink": 0,
+  "min-height": "38px",
   padding: "0 12px",
   "box-sizing": "border-box",
   border: 0,
@@ -340,33 +372,40 @@ const LINK_MENIU: JSX.CSSProperties = {
 
 function Meniu(props: { activ?: string }) {
   const navigate = useNavigate();
-  const { openModal } = useModals();
+  const client = useClient();
   const rapoarte = useRapoarte();
+  const notificari = useNotificari();
   const { logout } = useClientLifecycle();
   const [iesire, setIesire] = createSignal(false);
   const cifra = (pagina: string) =>
-    pagina === "rapoarte" ? (rapoarte.data?.length ?? 0) : 0;
+    pagina === "rapoarte"
+      ? (rapoarte.data?.length ?? 0)
+      : pagina === "notificari"
+        ? (notificari.data?.necitite ?? 0)
+        : 0;
 
-  const deschideCommunity = (page: string) =>
-    openModal({ type: "settings", config: "user", context: { page } });
+  // ⚠️ Rapoartele intră în listă abia după răspunsul adminului, când există și rândul lor de măsurat.
+  const administrare = () => [
+    ...(poateAdministra(client().servers.toList()[0]) ? [ADMINISTRARE] : []),
+    ...(rapoarte.data ? [RAPOARTE] : []),
+  ];
 
   // Fundalul gri al rândului activ alunecă spre rândul nou, peste toate grupurile (`Alunecare.tsx`, 30 oct 2026).
-  // ⚠️ Rapoartele intră în listă abia după răspunsul adminului, când există și rândul lor de măsurat.
   const alunecare = useAlunecare(() =>
-    [...SETARI, ...(rapoarte.data ? MODERARE : [])].findIndex(
-      (r) => r.pagina === props.activ,
+    [...ACTIVITATE, ...SETARI, ...administrare()].findIndex(
+      (r) => r.pagina === (props.activ ?? ""),
     ),
   );
 
   const Grup = (p: { randuri: Rand[]; dela: number }) => (
     <For each={p.randuri}>
       {(r, i) => {
-        const activ = () => props.activ === r.pagina;
+        const activ = () => (props.activ ?? "") === r.pagina;
         return (
           <button
             ref={alunecare.rand(p.dela + i())}
             type="button"
-            onClick={() => navigate(`/cont/${r.pagina}`)}
+            onClick={() => navigate(r.pagina ? `/cont/${r.pagina}` : "/cont")}
             aria-current={activ() ? "page" : undefined}
             style={{
               display: "flex",
@@ -434,15 +473,8 @@ function Meniu(props: { activ?: string }) {
         gap: "2px",
       }}
     >
-      {/* Fără avatar și nume: omul apărea de patru ori pe ecran. Aici contează doar unde ești și cum te întorci. */}
-      <button
-        type="button"
-        onClick={() => navigate("/cont")}
-        style={{ ...LINK_MENIU, gap: "6px" }}
-      >
-        <Symbol size={18}>arrow_back</Symbol> Profil
-      </button>
-      <div style={{ ...deFonte(24), padding: "6px 12px 14px" }}>Setări</div>
+      {/* Titlul ca „Mesaje" deasupra conversațiilor. Fără avatar și nume: omul apărea de patru ori pe ecran. */}
+      <h1 style={{ ...TITLU_COLT, padding: "4px 10px 16px" }}>Profil</h1>
       <div
         style={{
           position: "relative",
@@ -452,31 +484,30 @@ function Meniu(props: { activ?: string }) {
         }}
       >
         <alunecare.Strat culoare={C.foaie} raza="14px" />
-        <Grup randuri={SETARI} dela={0} />
-        <Show when={rapoarte.data}>
+        <Grup randuri={ACTIVITATE} dela={0} />
+        <div
+          style={{ margin: "8px 10px", "border-top": `1px solid ${C.linie}` }}
+        />
+        <Grup randuri={SETARI} dela={ACTIVITATE.length} />
+        {/* Wishlist-ul stă pe site: nu se cumpără din hub. */}
+        <a
+          href={`${BBT_SITE_URL}/dashboard/wishlist`}
+          target="_blank"
+          rel="noopener"
+          style={LINK_MENIU}
+        >
+          Wishlist
+        </a>
+        <Show when={administrare().length}>
           <div
             style={{ margin: "8px 10px", "border-top": `1px solid ${C.linie}` }}
           />
-          <Grup randuri={MODERARE} dela={SETARI.length} />
+          <Grup
+            randuri={administrare()}
+            dela={ACTIVITATE.length + SETARI.length}
+          />
         </Show>
       </div>
-      <div
-        style={{ margin: "8px 10px", "border-top": `1px solid ${C.linie}` }}
-      />
-      <button
-        type="button"
-        onClick={() => deschideCommunity("profile")}
-        style={LINK_MENIU}
-      >
-        Profilul în Community
-      </button>
-      <button
-        type="button"
-        onClick={() => deschideCommunity("notifications")}
-        style={LINK_MENIU}
-      >
-        Setări Community
-      </button>
       <div style={{ "flex-grow": 1, "min-height": "24px" }} />
       {/* Ca în Setările de pe telefon. Linkuri, nu rânduri din listă: nu sunt pagini din cont, deci nu primesc fundalul care alunecă. */}
       <a href="mailto:contact@beanbagtheory.ro" style={LINK_MENIU}>

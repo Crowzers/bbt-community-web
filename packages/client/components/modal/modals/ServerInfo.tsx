@@ -3,13 +3,13 @@ import { Trans } from "@lingui/solid/macro";
 import { Markdown } from "@revolt/markdown";
 import { Dialog, DialogProps } from "@revolt/ui";
 
-import { useModals } from "..";
+import { useNavigate } from "@revolt/routing";
 import { Modals } from "../types";
 
 export function ServerInfoModal(
   props: DialogProps & Modals & { type: "server_info" },
 ) {
-  const { openModal } = useModals();
+  const navigate = useNavigate();
 
   const canOpenSettings = () =>
     props.server.orPermission(
@@ -30,11 +30,8 @@ export function ServerInfoModal(
               {
                 text: <Trans>Settings</Trans>,
                 onClick() {
-                  openModal({
-                    type: "settings",
-                    config: "server",
-                    context: props.server,
-                  });
+                  // BBT: Administrarea noastră, nu panoul lor.
+                  navigate("/cont/administrare");
                 },
               },
             ]

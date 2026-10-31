@@ -61,7 +61,18 @@ export const DE_FONTE: JSX.CSSProperties = {
   "font-synthesis": "none",
 };
 
-/** Titlul paginii (23b: „Experiențele mele" mare), cu ce stă în dreapta lui (23b: „Vezi site ↗", 23d: „Schimbă…"). */
+/** „Mesaje" din `HomeSidebar.tsx`. */
+export const TITLU_COLT: JSX.CSSProperties = {
+  ...DE_FONTE,
+  margin: 0,
+  "font-size": "22px",
+  color: C.text,
+};
+
+/**
+ * Titlul paginii, în colțul foii, ca „Mesaje" și „Canale": aceeași mărime și același loc pe toate paginile, ca să curgă de la
+ * una la alta (cererea userului, 31 oct 2026). În dreapta lui, ce ține de pagină (23b: „Vezi site ↗", 23d: „Schimbă…").
+ */
 export function TitluPagina(props: {
   children: JSX.Element;
   dreapta?: JSX.Element;
@@ -79,20 +90,12 @@ export function TitluPagina(props: {
           "justify-content": telefon() ? "flex-end" : "space-between",
           gap: "16px",
           "flex-wrap": "wrap",
-          margin: "0 0 20px",
+          "min-height": "36px",
+          margin: "0 0 10px",
         }}
       >
         <Show when={!telefon()}>
-          <h1
-            style={{
-              ...DE_FONTE,
-              margin: 0,
-              // 36, ca în 23b.
-              "font-size": "36px",
-              "line-height": "1.05",
-              color: C.text,
-            }}
-          >
+          <h1 style={TITLU_COLT}>
             {props.children}
           </h1>
         </Show>

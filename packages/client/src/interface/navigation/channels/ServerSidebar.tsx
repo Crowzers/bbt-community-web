@@ -7,14 +7,12 @@ import {
   Switch,
   createMemo,
   createSignal,
-  onMount,
 } from "solid-js";
 
 import { useLingui } from "@lingui/solid/macro";
 import type { Channel, Server, ServerFlags } from "stoat.js";
 import { styled } from "styled-system/jsx";
 
-import { useClient } from "@revolt/client";
 import { useDevice } from "@revolt/common";
 import { KeybindAction, createKeybind } from "@revolt/keybinds";
 import { TextWithEmoji } from "@revolt/markdown";
@@ -337,23 +335,6 @@ function ServerInfo(
     canManageServer: boolean;
   },
 ) {
-  const client = useClient();
-
-  // BBT (pânza TRW): sub nume, „● N online · M membri". Lista de membri se aduce o dată pe sesiune
-  // (`syncMembers` ține minte), aceeași pe care o folosește și coloana de membri.
-  onMount(() => void props.server.syncMembers().catch(() => {}));
-  const numarare = createMemo(() => {
-    let total = 0;
-    let online = 0;
-    for (const member of client().serverMembers.values()) {
-      if (member.id.server !== props.server.id) continue;
-      total++;
-      if (member.user?.online) online++;
-    }
-    return { total, online };
-  });
-  const numar = (n: number) => n.toLocaleString("ro-RO");
-
   return (
     <Row align grow minWidth={0}>
       <ServerBadge flags={props.server.flags} />
@@ -372,20 +353,6 @@ function ServerInfo(
         >
           Canale
         </span>
-        <Show when={numarare().total > 0}>
-          <span
-            style={{
-              display: "block",
-              "font-size": "12px",
-              "font-weight": 700,
-              "line-height": "1.3",
-              color: "#216043",
-            }}
-          >
-            ● {numar(numarare().online)} online · {numar(numarare().total)}{" "}
-            membri
-          </span>
-        </Show>
       </ServerName>
       <Show when={props.canManageServer}>
         {/* Cercul gri de 34 din 21a. */}
@@ -587,6 +554,7 @@ function Entry(
 ) {
   const state = useState();
   const voice = useVoice();
+  const navigate = useNavigate();
   const { openModal } = useModals();
   const { isMobile } = useDevice();
 
@@ -639,11 +607,8 @@ function Entry(
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              openModal({
-                type: "settings",
-                config: "channel",
-                context: props.channel,
-              });
+              // BBT: în Administrarea noastră, nu în panoul lor.
+              navigate(`/cont/administrare/${props.channel.id}`);
             }}
           >
             <Symbol size={14}>settings</Symbol>

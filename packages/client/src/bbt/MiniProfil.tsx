@@ -4,7 +4,6 @@ import type { ServerMember, User } from "stoat.js";
 
 import { UserContextMenu } from "@revolt/app/menus/UserContextMenu";
 import { useClient } from "@revolt/client";
-import { useModals } from "@revolt/modal";
 import { useNavigate } from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { Avatar, IconButton } from "@revolt/ui";
@@ -77,7 +76,6 @@ export function MiniProfilBBT(props: {
 }) {
   const state = useState();
   const navigate = useNavigate();
-  const { openModal } = useModals();
 
   const profil = useQuery(() => ({
     queryKey: ["bbt-profil", props.user.id],
@@ -102,11 +100,7 @@ export function MiniProfilBBT(props: {
   }
 
   function editeaza() {
-    openModal({
-      type: "settings",
-      config: "user",
-      context: { page: "profile" },
-    });
+    navigate("/cont/profil");
     props.onClose();
   }
 

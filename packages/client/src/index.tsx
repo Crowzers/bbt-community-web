@@ -73,10 +73,8 @@ function PWARedirect() {
  * Open settings and redirect to last active path
  */
 function SettingsRedirect() {
-  const { openModal } = useModals();
-
-  onMount(() => openModal({ type: "settings", config: "user" }));
-  return <PWARedirect />;
+  // BBT: setările noastre, nu panoul lor.
+  return <Navigate href="/cont/profil" />;
 }
 
 /**

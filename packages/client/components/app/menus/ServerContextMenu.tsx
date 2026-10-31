@@ -4,7 +4,7 @@ import { Trans } from "@lingui/solid/macro";
 import dayjs from "dayjs";
 import { Server } from "stoat.js";
 
-import { useModals } from "@revolt/modal";
+import { useNavigate } from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { Column, Text, Time } from "@revolt/ui";
 
@@ -32,7 +32,7 @@ import {
  */
 export function ServerContextMenu(props: { server: Server }) {
   const state = useState();
-  const { openModal } = useModals();
+  const navigate = useNavigate();
 
   /**
    * Mark server as read
@@ -45,11 +45,8 @@ export function ServerContextMenu(props: { server: Server }) {
    * Open server settings
    */
   function openSettings() {
-    openModal({
-      type: "settings",
-      config: "server",
-      context: props.server,
-    });
+    // BBT: Administrarea noastră, nu panoul lor.
+    navigate("/cont/administrare");
   }
 
   /**

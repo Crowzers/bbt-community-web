@@ -10,7 +10,12 @@ import {
 } from "@revolt/app";
 import { useClient } from "@revolt/client";
 import { useModals } from "@revolt/modal";
-import { useLocation, useParams, useSmartParams } from "@revolt/routing";
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSmartParams,
+} from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { LAYOUT_SECTIONS } from "@revolt/state/stores/Layout";
 
@@ -177,6 +182,7 @@ const Home: Component = () => {
  */
 const Server: Component = () => {
   const { openModal } = useModals();
+  const navigate = useNavigate();
   const params = useSmartParams();
   const client = useClient();
 
@@ -200,14 +206,10 @@ const Server: Component = () => {
   }
 
   /**
-   * Open the server settings modal
+   * BBT: rotița de lângă „Canale" duce în Administrarea noastră, nu în panoul lor.
    */
   function openServerSettings() {
-    openModal({
-      type: "settings",
-      config: "server",
-      context: server(),
-    });
+    navigate("/cont/administrare");
   }
 
   return (

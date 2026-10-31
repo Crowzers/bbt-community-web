@@ -38,10 +38,15 @@ import {
  * - Cardul e roz doar pentru ce ține AZI (workshopul din seara asta, tabăra în curs), ca bannerul „Azi" din aplicație.
  *   Restul e gri: rozul ar fi încetat să spună ceva dacă era pe toate.
  */
-export function Experiente() {
+export function Experiente(props: {
+  /** My Camps, My Workshops, My Courses din meniul Profilului (ca pe site): doar experiențele de felul ăsta. */
+  fel?: "camp" | "workshop" | "curs";
+  titlu?: string;
+}) {
   const experiente = useExperiente();
-  const active = () => experiente.data?.active ?? [];
-  const trecute = () => experiente.data?.trecute ?? [];
+  const alFelului = (e: { fel: string }) => !props.fel || e.fel === props.fel;
+  const active = () => (experiente.data?.active ?? []).filter(alFelului);
+  const trecute = () => (experiente.data?.trecute ?? []).filter(alFelului);
 
   return (
     <>
@@ -61,7 +66,7 @@ export function Experiente() {
           </Show>
         }
       >
-        Experiențele mele
+        {props.titlu ?? "Experiențe"}
       </TitluPagina>
       <Show when={experiente.isError}>
         <Mesaj fel="eroare">

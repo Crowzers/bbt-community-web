@@ -24,8 +24,7 @@ import {
  * BBT: rapoartele din Community în hub, `/cont/rapoarte` (31 oct 2026), după „Rapoarte primite" din
  * `mobil/src/app/administrare.tsx`: până atunci se citeau doar în aplicație, iar un moderator de pe desktop nu le vedea.
  *
- * Doar rapoartele: canalele, amuțirile și interdicțiile din Administrare au deja locul lor în hub (setările serverului,
- * meniul de pe om).
+ * Doar rapoartele: canalele, amuțirile și interdicțiile stau în `Administrare.tsx`, iar măsurile pe un om în mini-profil.
  *
  * Rutele `/api/public/stoat/rapoarte` cer sesiunea Stoat și hotărăsc singure cine are voie. Măsurile nu se iau aici: de
  * la „Vezi omul" moderatorul ajunge la profil, cu meniul ⋮, iar raportul se închide separat.

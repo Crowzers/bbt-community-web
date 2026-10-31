@@ -3,13 +3,12 @@ import { For, Show, createSignal, onCleanup } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 
 import { useClient, useClientLifecycle } from "@revolt/client";
-import { useLocation, useNavigate } from "@revolt/routing";
+import { useNavigate } from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { Avatar } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import Wordmark from "../../public/assets/web/wordmark.svg?component-solid";
-
 import { ButonInstalare } from "./ButonInstalare";
 import {
   CautareSus,
@@ -19,7 +18,7 @@ import {
 } from "./CautareSiAlerte";
 import { BBT_ADMIN_URL } from "./config";
 import { useSalut } from "./cont/date";
-import { eInExperiente } from "./cont/pagini";
+import { textMembri, useNumarMembri } from "./numarMembri";
 import { TITLU_PAGINA, UN_RAND } from "./telefon";
 
 /**
@@ -28,15 +27,15 @@ import { TITLU_PAGINA, UN_RAND } from "./telefon";
  * (5 oct 2026): „logoul să fie mare cum e în Community-ul vechi, iar user card-ul din dreapta
  * sus să fie același cu cel de pe website".
  *
- * - Stânga: sigla BBT neagră într-un pătrat roz + „Community" în De Fonte (21/23, 30 oct 2026; până atunci
- *   sigla albă pe negru și „COMMUNITY" cu majuscule rărite).
+ * - Stânga: doar logoul BBT, fără text (cererea userului, 31 oct 2026).
  * - Dreapta: caseta de cont — avatar 34px, nume, sub el „Artist verificat" (verde) sau
  *   „Completează profilul" (chihlimbar), exact regula de pe site (telefon confirmat). La hover
  *   (desktop) sau atingere, meniul de cont: Profil, Setări și ieșirea (`LINKURI` de mai jos).
  *
  * 🔥 Banda roz (cererea userului, 31 oct 2026, demo-ul „A cu pastila scurtă"): bara nu mai are fundal, stă pe `FundalRama`,
- * are 112px și titlul paginii în De Fonte: pe Comunitate salutul din aplicație, altfel numele tab-ului. Până atunci: albă,
- * de 72px (21/23), iar înainte neagră, de 64px.
+ * are 112px și salutul din aplicație în De Fonte, cu online și totalul membrilor. E același pe toate paginile: titlul paginii
+ * stă în colțul foii, ca „Mesaje" (`TitluPagina`), ca să curgă de la o pagină la alta. Până atunci: albă, de 72px (21/23),
+ * iar înainte neagră, de 64px.
  *
  * Căutarea (în canalul deschis) și clopoțelul (mențiuni + mesaje directe necitite) stau lângă cont,
  * ca în pânza TRW — vezi `CautareSiAlerte.tsx` pentru ce pot și ce nu pot face. Lângă ele, chiar
@@ -98,25 +97,8 @@ export function BaraSus(props: { compact?: boolean }) {
   const nume = () =>
     eu()?.displayName ?? profil.data?.numeComplet ?? "Contul meu";
 
-  const location = useLocation();
   const salut = useSalut();
-  const inComunitate = () => location.pathname.startsWith("/server");
-  const titlu = () => {
-    const cale = location.pathname;
-    if (inComunitate()) return salut() ? `Hei, ${salut()}` : "Hei";
-    if (cale.startsWith("/friends") || cale.startsWith("/channel"))
-      return "Mesaje";
-    if (!cale.startsWith("/cont")) return "";
-    if (eInExperiente(cale)) return "Experiențe";
-    const pagina = cale.split("/")[2];
-    return !pagina || ["piese", "diplome"].includes(pagina)
-      ? "Profil"
-      : "Setări";
-  };
-  const online = () =>
-    client()
-      .users.toList()
-      .filter((u) => u.online).length;
+  const numar = useNumarMembri(() => client().servers.toList()[0]);
   const randMeniu = {
     display: "flex",
     "align-items": "center",
@@ -175,7 +157,7 @@ export function BaraSus(props: { compact?: boolean }) {
           20 oct 2026: „e mai natural așa"). Din cont, din mesaje, de oriunde. */}
       <button
         type="button"
-        aria-label="BBT Community, înapoi în chat"
+        aria-label="BBT, înapoi în chat"
         onClick={() => {
           const s = client().servers.toList()[0];
           if (s) navigate(`/server/${s.id}`);
@@ -194,48 +176,23 @@ export function BaraSus(props: { compact?: boolean }) {
           "-webkit-app-region": "no-drag",
         }}
       >
-        {/* 21/23: sigla neagră într-un pătrat roz, lângă „Community" în De Fonte (până pe 30 oct, sigla albă
-            pe negru și „COMMUNITY" cu majuscule rărite). */}
-        <span
+        <Wordmark
+          aria-label="BBT"
           style={{
-            width: props.compact ? "34px" : "40px",
-            height: props.compact ? "34px" : "40px",
-            "flex-shrink": 0,
-            display: "flex",
-            "align-items": "center",
-            "justify-content": "center",
-            "border-radius": props.compact ? "12px" : "14px",
-            background: ROZ,
+            height: props.compact ? "34px" : "44px",
+            width: "auto",
+            color: TEXT,
           }}
-        >
-          <Wordmark
-            aria-label="BBT"
-            style={{ width: "76%", height: "auto", color: TEXT }}
-          />
-        </span>
-        <span
-          class="bbt-text-community"
-          style={{
-            "font-family": '"De Fonte BBT", Inter, sans-serif',
-            "font-size": props.compact ? "18px" : "20px",
-            "letter-spacing": "0.01em",
-            "font-synthesis": "none",
-          }}
-        >
-          Community
-        </span>
+        />
       </button>
 
-      <Show when={!props.compact && titlu()}>
+      <Show when={!props.compact}>
         <div class="bbt-titlu-sus" style={{ flex: 1, "min-width": 0 }}>
           <h1 class="bbt-titlu-sus-text" style={{ ...TITLU_PAGINA, ...UN_RAND }}>
-            {titlu()}
-            <Show when={inComunitate()}>
-              {" "}
-              <span class="bbt-mana">👋</span>
-            </Show>
+            {salut() ? `Hei, ${salut()}` : "Hei"}{" "}
+            <span class="bbt-mana">👋</span>
           </h1>
-          <Show when={inComunitate() && online() > 0}>
+          <Show when={numar().total > 0}>
             <div
               class="bbt-online-sus"
               style={{
@@ -256,7 +213,7 @@ export function BaraSus(props: { compact?: boolean }) {
                   background: "#55DB9C",
                 }}
               />
-              {online()} online
+              {textMembri(numar())}
             </div>
           </Show>
         </div>

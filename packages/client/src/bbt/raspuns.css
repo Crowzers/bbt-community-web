@@ -11,7 +11,7 @@
  * - sub 1100: căutarea din bara de sus se strânge, numele din pastila contului dispare (rămâne avatarul).
  * - tabletă (sub 841 sau sub 601 pe înălțime, `Breakpoint.tablet`): căutarea iese din bara de sus; o are antetul
  *   canalului, ca iconiță (`ChannelHeader.tsx`, „layout() !== desktop").
- * - sub 760: „Community" de lângă siglă și textul de pe „Instalează" ies, rămân sigla și iconița.
+ * - sub 760: textul de pe „Instalează" iese, rămâne iconița.
  */
 
 @media (max-width: 1179px) {
@@ -40,7 +40,6 @@
 }
 
 @media (max-width: 760px) {
-  .bbt-text-community,
   .bbt-instalare-text {
     display: none !important;
   }
@@ -51,11 +50,12 @@
 }
 
 /*
- * Banda roz (`BaraSus.tsx`): titlul cade deasupra conversației, adică după pastila de 84 și lista de 280. Pe tabletă sau pe
- * o fereastră scundă, banda are 72, ca să rămână loc de lucru, iar titlul se strânge.
+ * Banda roz (`BaraSus.tsx`): salutul cade deasupra conversației, adică după pastila de 84 și lista de 280. 243 = cei 364 până
+ * acolo, minus marginea de 18, logoul de 91 și golul de 12. Pe tabletă sau pe o fereastră scundă, banda are 72, ca să rămână
+ * loc de lucru, iar salutul se strânge.
  */
 .bbt-titlu-sus {
-  padding-left: 150px;
+  padding-left: 243px;
 }
 .bbt-cautare-sus input::placeholder {
   color: rgba(10, 10, 11, 0.7);
@@ -72,9 +72,6 @@
   .bbt-titlu-sus-text {
     font-size: 24px !important;
     line-height: 30px !important;
-  }
-  .bbt-online-sus {
-    display: none !important;
   }
 }
 /* Sub cursor, iconițele din pastilă primesc ce primesc sub deget în aplicație: un cerc de sticlă clară. */

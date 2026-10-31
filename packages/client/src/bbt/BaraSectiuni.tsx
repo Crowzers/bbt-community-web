@@ -122,8 +122,11 @@ export function BaraSectiuni(props: {
         width: "84px",
         "flex-shrink": 0,
         display: "flex",
-        "justify-content": "center",
-        "align-items": "flex-start",
+        "flex-direction": "column",
+        "justify-content": "space-between",
+        "align-items": "center",
+        "padding-bottom": "16px",
+        "box-sizing": "border-box",
       }}
     >
       <nav
@@ -190,18 +193,6 @@ export function BaraSectiuni(props: {
               </button>
             )}
           </For>
-          {/* „Site": în browser același tab, în aplicația instalată se deschide în browser (`tintaSite`). */}
-          <a
-            href={BBT_SITE_URL}
-            target={tintaSite()}
-            rel="noopener"
-            class="bbt-moale bbt-tab-pastila"
-            title="Site"
-            aria-label="Site"
-            style={{ ...BUTON, color: ALB, "text-decoration": "none" }}
-          >
-            <Symbol size={22}>open_in_new</Symbol>
-          </a>
           {/* Avatarul stă într-un buton de 46, ca tab-urile; 34 + 2 × 3 de inel = 40, ca în aplicație. */}
           <button
             ref={alunecare.rand(sectiuni.length)}
@@ -225,6 +216,25 @@ export function BaraSectiuni(props: {
           </button>
         </div>
       </nav>
+      {/* „Site", jos în stânga, sub pastilă (cererea userului, 31 oct 2026): nu e o secțiune, duce afară. În browser același
+          tab, în aplicația instalată se deschide în browser (`tintaSite`). */}
+      <a
+        href={BBT_SITE_URL}
+        target={tintaSite()}
+        rel="noopener"
+        class="bbt-moale bbt-tab-pastila"
+        title="Site"
+        aria-label="Site"
+        style={{
+          ...BUTON,
+          color: ALB,
+          "text-decoration": "none",
+          background: "rgba(10,10,11,0.92)",
+          "box-shadow": "0 8px 18px rgba(0,0,0,0.28)",
+        }}
+      >
+        <Symbol size={22}>open_in_new</Symbol>
+      </a>
     </div>
   );
 }

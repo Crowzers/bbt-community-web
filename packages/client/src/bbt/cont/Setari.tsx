@@ -2,8 +2,8 @@ import { For, Show, createSignal, untrack } from "solid-js";
 
 import { useQuery, useQueryClient } from "@tanstack/solid-query";
 
-import { useClientLifecycle } from "@revolt/client";
-import { useModals } from "@revolt/modal";
+import { useClientLifecycle, useNotifications } from "@revolt/client";
+import { useState } from "@revolt/state";
 import { Avatar } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
@@ -16,6 +16,7 @@ import { CHEIE_CONT, useCont, useSesiune } from "./date";
 import { ListaNotificari } from "./Notificari";
 import { DateFacturare, DatePersonale } from "./SetariDate";
 import type { Participant } from "./tipuri";
+import { RandComutator } from "./VoceVideo";
 import {
   Buton,
   C,
@@ -38,8 +39,8 @@ import {
  * să nu caute CNP-ul lângă poza de profil.
  *
  * Ce e altfel decât pe site, dinadins:
- * - Notificările deschid setările Community (`settings → notifications`), nu butonul de push al site-ului: în hub,
- *   notificările vin de la Community, cu setările lor.
+ * - Notificările au comutatoarele Community, nu butonul de push al site-ului: în hub, notificările vin de la Community.
+ *   Până pe 31 oct deschideau panoul lor.
  * - Parola se schimbă AICI, nu pe `/schimba-parola`: e același `auth/change-password`.
  * - „Deconectează de pe toate dispozitivele" închide și sesiunile din Community: o face adminul,
  *   în `deconecteazaDeTot` (`admin/lib/stoat/sesiuni.ts`), deci la fel și de pe site.
@@ -629,7 +630,10 @@ function NumeReal(props: { p: Participant }) {
 /* ── Notificări ──────────────────────────────────────────────────────────────────────────── */
 
 export function NotificariCont() {
-  const { openModal } = useModals();
+  const { settings, sounds } = useState();
+  const { toggleNotificationPermission, togglePushPermission } =
+    useNotifications();
+
   return (
     <>
       <TitluPagina>Notificări</TitluPagina>
@@ -659,39 +663,28 @@ export function NotificariCont() {
             </Buton>
           </div>
         </Sectiune>
-        <Sectiune titlu="Community">
-          <div
-            style={{
-              display: "flex",
-              "align-items": "center",
-              "justify-content": "space-between",
-              gap: "12px",
-              "flex-wrap": "wrap",
-            }}
-          >
-            <span
-              style={{
-                color: C.stins,
-                "font-size": "16px",
-                "line-height": "1.45",
-              }}
-            >
-              Mesaje, mențiuni și canale: ce notificări primești de la
-              Community, pe dispozitivul ăsta.
-            </span>
-            <Buton
-              piele="alb"
-              mic
-              onClick={() =>
-                openModal({
-                  type: "settings",
-                  config: "user",
-                  context: { page: "notifications" },
-                })
-              }
-            >
-              <Symbol size={15}>notifications</Symbol> Setări notificări
-            </Buton>
+        <Sectiune titlu="Pe dispozitivul ăsta">
+          <div style={{ display: "grid", gap: "14px" }}>
+            <Show when={settings.desktopNotificationsState !== "unsupported"}>
+              <RandComutator
+                text="Notificări cât hub-ul e deschis"
+                detaliu="Mesaje și mențiuni, chiar dacă ești în altă fereastră."
+                pornit={settings.desktopNotificationsState === "allowed"}
+                laApasare={() => toggleNotificationPermission(true)}
+              />
+            </Show>
+            <Show when={!window.native}>
+              <RandComutator
+                text="Notificări cu hub-ul închis"
+                pornit={settings.pushNotificationsState === "allowed"}
+                laApasare={() => togglePushPermission(true)}
+              />
+            </Show>
+            <RandComutator
+              text="Sunet la mesaj nou"
+              pornit={sounds.enabled("message")}
+              laApasare={() => sounds.toggle("message")}
+            />
           </div>
         </Sectiune>
       </div>

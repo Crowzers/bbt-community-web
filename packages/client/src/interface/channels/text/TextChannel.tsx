@@ -254,16 +254,9 @@ export function TextChannel(props: ChannelPageProps) {
         />
       </Header>
       <Content>
-        {/* BBT: conversația directă pe gri, cu mesajele pe alb și roz deasupra (23a); canalele rămân albe (21a). Pe
-            telefon, gri peste tot: bulele sunt și în canale, ca în aplicație (19b). */}
-        <main
-          class={main()}
-          style={
-            props.channel.type === "DirectMessage" || layout() === "phone"
-              ? { background: "#F2F2F3" }
-              : undefined
-          }
-        >
+        {/* BBT: locul unde se vorbește e gri peste tot, în canale ca în conversațiile directe (cererea userului, 31 oct
+            2026; până atunci canalele erau albe pe desktop). */}
+        <main class={main()} style={{ background: "#F2F2F3" }}>
           {/* BBT: ultimul mesaj fixat, ca bandă sub antet (pânza TRW). */}
           <BandaFixat
             channel={props.channel}

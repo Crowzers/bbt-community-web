@@ -20,6 +20,7 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { orderedCategories } from "../interface/navigation/channels/ordering";
 
+import { textMembri, useNumarMembri } from "./numarMembri";
 import { AntetPagina, LOC_SUB_ANTET } from "./AntetPagina";
 import { AvatarCanal } from "./AvatarCanal";
 import { CardAzi, experientaDeAzi } from "./CardAzi";
@@ -83,10 +84,7 @@ export function ComunitateTelefon() {
       : categorii()
     ).flatMap((c) => c.canale);
 
-  const online = () =>
-    client()
-      .users.toList()
-      .filter((u) => u.online).length;
+  const numar = useNumarMembri(() => client().servers.toList()[0]);
 
   const necitite = () => notificari.data?.necitite ?? 0;
 
@@ -159,7 +157,7 @@ export function ComunitateTelefon() {
             {" "}
             <span class="bbt-mana">👋</span>
           </h1>
-          <Show when={online() > 0}>
+          <Show when={numar().total > 0}>
             <div
               style={{
                 display: "flex",
@@ -185,7 +183,7 @@ export function ComunitateTelefon() {
                   "font-weight": 700,
                 }}
               >
-                {online()} online
+                {textMembri(numar())}
               </span>
             </div>
           </Show>

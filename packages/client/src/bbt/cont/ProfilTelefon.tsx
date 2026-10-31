@@ -21,8 +21,9 @@ import { C } from "./ui";
 
 /**
  * BBT: tab-ul Profil (macheta 20e), copia ecranului `mobil/src/app/(tabs)/profil.tsx`, cu măsurile de acolo, la `/cont`.
- * Pe desktop și tabletă (`desktop`) e aceeași pagină, pe coloană îngustă, cu titlul în locul antetului roz. Varianta B
- * (cererea userului, 31 oct 2026): aici stă cine ești, iar restul contului e în spatele rotiței (`/cont/setari`).
+ * Pe desktop și tabletă (`desktop`) e aceeași pagină, pe coloană îngustă, lângă meniul Profilului (`ContulMeu.tsx`), care
+ * ține loc și de rotiță. Varianta B (cererea userului, 31 oct 2026): aici stă cine ești, iar pe telefon restul contului e în
+ * spatele rotiței (`/cont/setari`).
  *
  * Ce e altfel decât în aplicație, dinadins:
  * - Rândurile duc la paginile din hub, nu la site: aici contul există întreg, plus sesiunea e deja deschisă.
@@ -73,7 +74,7 @@ export function ProfilTelefon(props: { desktop?: boolean }) {
       style={{
         ...CERC_40,
         position: "relative",
-        background: props.desktop ? C.foaie : C.fundal,
+        background: C.fundal,
       }}
     >
       <IconRotita />
@@ -119,19 +120,13 @@ export function ProfilTelefon(props: { desktop?: boolean }) {
             "flex-direction": "column",
             gap: "10px",
             padding: props.desktop
-              ? "32px 16px 48px"
+              ? "24px 22px 48px"
               : `${LOC_SUB_ANTET} 12px ${LOC_PASTILA}`,
             "max-width": props.desktop ? "640px" : undefined,
-            margin: "0 auto",
+            margin: props.desktop ? undefined : "0 auto",
             "box-sizing": "border-box",
           }}
         >
-          <Show when={props.desktop}>
-            {/* Titlul stă pe banda roz (`BaraSus.tsx`), aici rămâne doar drumul spre Setări. */}
-            <div style={{ display: "flex", "justify-content": "flex-end" }}>
-              <Rotita />
-            </div>
-          </Show>
           {/* Cardul de sus: raza 32, 16 de jur împrejur, totul centrat. Tot el duce la profilul public. */}
           <a
             href={

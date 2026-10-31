@@ -9,6 +9,7 @@ import { useClient } from "@revolt/client";
 import { useDevice } from "@revolt/common";
 import { TextWithEmoji } from "@revolt/markdown";
 import { useModals } from "@revolt/modal";
+import { useNavigate } from "@revolt/routing";
 import { useVoice } from "@revolt/rtc";
 import { useState } from "@revolt/state";
 import { LAYOUT_SECTIONS } from "@revolt/state/stores/Layout";
@@ -64,6 +65,7 @@ export function ChannelHeader(props: Props) {
 }
 
 function AntetLat(props: Props) {
+  const navigate = useNavigate();
   const { openModal } = useModals();
   const client = useClient();
   const { t } = useLingui();
@@ -224,11 +226,14 @@ function AntetLat(props: Props) {
       >
         <IconButton
           onPress={() =>
-            openModal({
-              type: "settings",
-              config: "channel",
-              context: props.channel,
-            })
+            // BBT: canalele serverului, în Administrarea noastră. Grupurile rămân la ei.
+            props.channel.serverId
+              ? navigate(`/cont/administrare/${props.channel.id}`)
+              : openModal({
+                  type: "settings",
+                  config: "channel",
+                  context: props.channel,
+                })
           }
           use:floating={{
             tooltip: {
