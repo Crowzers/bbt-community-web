@@ -148,8 +148,23 @@
   color: transparent;
 }
 .bbt-bula-autor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
   margin-bottom: 4px;
   padding-left: 14px;
+  line-height: 15px;
+}
+/* Rolul din dreapta numelui rămâne întreg; dacă nu încape, se taie numele. */
+.bbt-bula-autor > :first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bbt-bula-autor .bbt-rol {
+  flex-shrink: 0;
   line-height: 15px;
 }
 .bbt-bula-ora {

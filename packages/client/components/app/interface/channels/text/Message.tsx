@@ -191,6 +191,31 @@ export function Message(props: Props) {
       (f) => f.metadata.type === "Image" || f.metadata.type === "Video",
     );
 
+  const pastilaRol = () => (
+    <Show when={props.message.member?.hoistedRole}>
+      {(rol) => (
+        <span
+          class="bbt-rol"
+          style={{
+            // 21a: rolul e o pastilă galbenă cu text negru („ECHIPA BBT", „MENTOR"), aceeași pentru
+            // toate rolurile; până pe 30 oct, culoarea rolului din Stoat pe gri închis.
+            "font-size": "12px",
+            "font-weight": 700,
+            "letter-spacing": "0.04em",
+            "text-transform": "uppercase",
+            padding: "2px 7px",
+            "border-radius": "999px",
+            color: "#0A0A0B",
+            // Galbenul pal din 21a (#FFEFAD), nu cel plin.
+            background: "#FFEFAD",
+          }}
+        >
+          {rol().name}
+        </span>
+      )}
+    </Show>
+  );
+
   const reactii = () => (
     <Reactions
       reactions={props.message.reactions as never as Map<string, Set<string>>}
@@ -208,6 +233,7 @@ export function Message(props: Props) {
         bula={bula()}
         doarMedia={doarMedia()}
         cardFir={props.cardFir}
+        rol={pastilaRol()}
         subBula={
           <>
             <div class="bbt-reactii">{reactii()}</div>
@@ -311,27 +337,7 @@ export function Message(props: Props) {
           <>
             {/* BBT: eticheta rolului lângă nume, ca pastila „MENTOR" din pânza TRW — rolul afișat
               separat al omului (rolul muzical din onboarding sau unul de staff), în culoarea lui. */}
-            <Show when={props.message.member?.hoistedRole}>
-              {(rol) => (
-                <span
-                  style={{
-                    // 21a: rolul e o pastilă galbenă cu text negru („ECHIPA BBT", „MENTOR"), aceeași pentru
-                    // toate rolurile; până pe 30 oct, culoarea rolului din Stoat pe gri închis.
-                    "font-size": "12px",
-                    "font-weight": 700,
-                    "letter-spacing": "0.04em",
-                    "text-transform": "uppercase",
-                    padding: "2px 7px",
-                    "border-radius": "999px",
-                    color: "#0A0A0B",
-                    // Galbenul pal din 21a (#FFEFAD), nu cel plin.
-                    background: "#FFEFAD",
-                  }}
-                >
-                  {rol().name}
-                </span>
-              )}
-            </Show>
+            {pastilaRol()}
             <Switch fallback={<div />}>
               <Match when={props.message.iconRole}>
                 <Tooltip content={props.message.iconRole!.name} placement="top">

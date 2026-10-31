@@ -138,6 +138,11 @@ type Props = CommonProps & {
    * BBT: mesajul de la care pornește firul, cardul din capul ecranului de răspunsuri (24b).
    */
   cardFir?: boolean;
+
+  /**
+   * BBT: pastila cu rolul omului, în dreapta numelui, pe telefon.
+   */
+  rol?: JSX.Element;
 };
 
 /**
@@ -398,6 +403,7 @@ function CardFir(props: Props) {
       <div style={{ flex: 1, "min-width": 0 }}>
         <div style={{ display: "flex", gap: "8px", "align-items": "baseline" }}>
           {props.username}
+          {props.rol}
           <span style={{ "font-size": "11px", color: "rgba(10,10,11,.6)" }}>
             {ceasMesaj(props)}
           </span>
@@ -462,7 +468,10 @@ function ContainerBula(props: Props) {
       >
         {/* Numele stă deasupra bulei, ca în 24a: cererea userului, 31 oct 2026. Până atunci, în bulă (19b). */}
         <Show when={!mea() && !props.tail}>
-          <div class="bbt-bula-autor">{props.username}</div>
+          <div class="bbt-bula-autor">
+            {props.username}
+            {props.rol}
+          </div>
         </Show>
         <div
           class={`bbt-bula${mea() ? " bbt-bula-mea" : ""}${props.doarMedia ? " bbt-bula-media" : ""}`}
