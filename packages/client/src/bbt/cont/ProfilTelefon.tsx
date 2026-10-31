@@ -18,8 +18,7 @@ import { Buton, C, Fereastra } from "./ui";
  *
  * Ce e altfel decât în aplicație, dinadins:
  * - Rândurile duc la paginile din hub, nu la site: aici contul există întreg, plus sesiunea e deja deschisă.
- * - „Plăți" și „Notificări" în plus: în aplicație plățile stau pe Experiențe, iar notificările așteaptă push-ul; pe hub
- *   ambele pagini există și altfel n-ar mai avea drum pe telefon.
+ * - „Notificări" în plus: în aplicație așteaptă push-ul; pe hub pagina există și altfel n-ar mai avea drum pe telefon.
  * - Fără „Piesele mele": pe hub n-are pagină (playlist-ul stă în pagina taberei).
  * - Poza se schimbă din „Profil public": hub-ul n-are alegerea cu camera din aplicație.
  */
