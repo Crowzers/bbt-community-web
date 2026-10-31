@@ -25,7 +25,6 @@ import MdRateReview from "@material-design-icons/svg/outlined/rate_review.svg?co
 import MdScience from "@material-design-icons/svg/outlined/science.svg?component-solid";
 import MdSmartToy from "@material-design-icons/svg/outlined/smart_toy.svg?component-solid";
 import MdVerifiedUser from "@material-design-icons/svg/outlined/verified_user.svg?component-solid";
-import MdWorkspacePremium from "@material-design-icons/svg/outlined/workspace_premium.svg?component-solid";
 
 import pkg from "../../../../../../package.json";
 import { ProfilBBT } from "../../../../src/bbt/ProfilBBT";
@@ -41,7 +40,6 @@ import { LanguageSettings } from "./user/Language";
 import Native from "./user/Native";
 import Notifications from "./user/notifications/Notifications";
 import { Sessions } from "./user/Sessions";
-import { EditSubscription } from "./user/subscriptions";
 import { VoiceSettings } from "./user/voice/VoiceSettings";
 
 const Config: SettingsConfiguration<{ server: Server }> = {
@@ -93,8 +91,6 @@ const Config: SettingsConfiguration<{ server: Server }> = {
         return <LanguageSettings />;
       case "feedback":
         return <Feedback />;
-      case "subscribe":
-        return <EditSubscription />;
       case "native":
         return <Native />;
       case "voice":
@@ -244,17 +240,6 @@ const Config: SettingsConfiguration<{ server: Server }> = {
               hidden: true,
               icon: <MdRateReview {...iconSize(20)} />,
               title: <Trans>Feedback</Trans>,
-            },
-          ],
-        },
-        {
-          title: <Trans>Subscriptions</Trans>,
-          hidden: import.meta.env.PROD,
-          entries: [
-            {
-              id: "subscribe",
-              icon: <MdWorkspacePremium {...iconSize(20)} />,
-              title: "[premium]",
             },
           ],
         },
