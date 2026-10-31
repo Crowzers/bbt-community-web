@@ -31,6 +31,9 @@ const MainBar = styled("div", {
       position: "absolute",
       width: "100vw",
       height: "100%",
+      // BBT: ⚠️ lista stă SUB conținut (`SlideDrawer` îi pune `z-index: 1`). Fără izolare, antetul ei (`AntetPagina`,
+      // `z-index: 2`) trecea peste ecranele din conținut: pe Experiențe și Profil se vedea tot „Mesaje".
+      isolation: "isolate",
     },
   },
 });
