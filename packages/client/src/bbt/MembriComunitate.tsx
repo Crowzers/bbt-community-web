@@ -1,12 +1,16 @@
-import { createMemo, createSignal } from "solid-js";
+import { Show, createMemo, createSignal } from "solid-js";
 
 import { Channel } from "stoat.js";
 
 import { useClient } from "@revolt/client";
 
-import { MemberSidebar } from "../interface/channels/text/MemberSidebar";
+import {
+  MemberSidebar,
+  membruPotrivit,
+} from "../interface/channels/text/MemberSidebar";
 
-import { CERC_40, IconInapoi, UN_RAND, deFonte } from "./telefon";
+import { C } from "./cont/ui";
+import { CERC_40, IconCautare, IconInapoi, UN_RAND, deFonte } from "./telefon";
 
 const [membriDeschisi, setMembriDeschisi] = createSignal(false);
 
@@ -27,6 +31,17 @@ export function MembriComunitate(props: { channel: Channel }) {
     ),
   );
   const online = () => membri().filter((m) => m.user?.online).length;
+
+  const [cautare, setCautare] = createSignal("");
+  // Boții sunt în listă doar pentru cine poate da roluri (`MemberSidebar`): și căutarea îi socotește la fel.
+  const gasiti = createMemo(() =>
+    [...client().serverMembers.values()].some(
+      (m) =>
+        m.id.server === props.channel.serverId &&
+        (!m.user?.bot || props.channel.server?.havePermission("AssignRoles")) &&
+        membruPotrivit(m, cautare()),
+    ),
+  );
 
   return (
     <div
@@ -76,6 +91,40 @@ export function MembriComunitate(props: { channel: Channel }) {
           </div>
         </div>
       </div>
+      {/* Bara de căutare din Mesaje (`MesajeTelefon.tsx`). */}
+      <label
+        style={{
+          display: "flex",
+          "align-items": "center",
+          gap: "8px",
+          height: "42px",
+          "flex-shrink": 0,
+          margin: "0 16px 6px",
+          padding: "0 14px",
+          "border-radius": "999px",
+          background: C.foaieTare,
+          color: C.slab,
+        }}
+      >
+        <IconCautare size={16} />
+        {/* 16 în câmp: sub 16, iOS mărește pagina la focus. */}
+        <input
+          value={cautare()}
+          onInput={(e) => setCautare(e.currentTarget.value)}
+          placeholder="Caută o persoană"
+          style={{
+            flex: 1,
+            "min-width": 0,
+            padding: 0,
+            border: 0,
+            outline: 0,
+            background: "transparent",
+            color: C.text,
+            "font-family": "inherit",
+            "font-size": "16px",
+          }}
+        />
+      </label>
       <div
         ref={lista}
         style={{ flex: 1, "min-height": 0, "overflow-y": "auto" }}
@@ -84,7 +133,20 @@ export function MembriComunitate(props: { channel: Channel }) {
           channel={props.channel}
           scrollTargetElement={lista}
           totaComunitatea
+          cautare={cautare()}
         />
+        <Show when={!gasiti()}>
+          <p
+            style={{
+              margin: "24px 16px",
+              "text-align": "center",
+              "font-size": "14px",
+              color: C.slab,
+            }}
+          >
+            N-am găsit pe nimeni cu numele ăsta.
+          </p>
+        </Show>
       </div>
     </div>
   );

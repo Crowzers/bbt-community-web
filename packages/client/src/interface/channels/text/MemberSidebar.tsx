@@ -32,6 +32,27 @@ interface Props {
    * BBT: toți membrii serverului, și dintr-un canal restricționat (`bbt/MembriComunitate.tsx`)
    */
   totaComunitatea?: boolean;
+
+  /**
+   * BBT: textul din căutare; lista păstrează doar oamenii care se potrivesc
+   */
+  cautare?: string;
+}
+
+/** BBT: „Andrei" se găsește și cu „andrei", iar „Mădă" și cu „mada". */
+const faraDiacritice = (text: string) =>
+  text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+
+/**
+ * BBT: dacă un membru se potrivește cu textul căutat, după numele de scenă, numele afișat sau numele de utilizator.
+ */
+export function membruPotrivit(member: ServerMember, cautare: string) {
+  const cautat = faraDiacritice(cautare.trim());
+  return faraDiacritice(
+    [member.nickname, member.user?.displayName, member.user?.username].join(
+      " ",
+    ),
+  ).includes(cautat);
 }
 
 /**
@@ -52,6 +73,7 @@ export function MemberSidebar(props: Props) {
           scrollTargetElement={props.scrollTargetElement}
           isLargeServer={props.isLargeServer}
           totaComunitatea={props.totaComunitatea}
+          cautare={props.cautare}
         />
       </Match>
     </Switch>
@@ -93,6 +115,9 @@ export function ServerMemberSidebar(props: Props) {
 
     for (const member of client().serverMembers.values()) {
       if (member.id.server !== props.channel.serverId) {
+        continue;
+      }
+      if (props.cautare && !membruPotrivit(member, props.cautare)) {
         continue;
       }
       if (member.user?.bot) {
@@ -204,26 +229,30 @@ export function ServerMemberSidebar(props: Props) {
                 width: "100%",
               }}
             >
-              <Switch
-                fallback={
-                  <CategoryTitle>
-                    <Show when={item.item.icon}>
-                      <RoleIcon src={item.item.icon!} alt="" />
-                    </Show>
-                    <span>
-                      {(item.item as { name: string }).name}
-                      {" — "}
-                      {(item.item as { count: number }).count}
-                    </span>
-                  </CategoryTitle>
-                }
-              >
-                <Match when={item.item.t === 1}>
-                  <Member
-                    member={(item.item as { member: ServerMember }).member}
-                  />
-                </Match>
-              </Switch>
+              {/* BBT: când lista se micșorează (căutarea), lista virtuală lasă rânduri cu `item.item` gol. ⚠️ Fără `Show` și `?.`,
+                  meniul rândului citea un membru inexistent la curățare, iar eroarea oprea toată actualizarea. */}
+              <Show when={item.item}>
+                <Switch
+                  fallback={
+                    <CategoryTitle>
+                      <Show when={item.item?.icon}>
+                        <RoleIcon src={item.item.icon!} alt="" />
+                      </Show>
+                      <span>
+                        {(item.item as { name: string })?.name}
+                        {" — "}
+                        {(item.item as { count: number })?.count}
+                      </span>
+                    </CategoryTitle>
+                  }
+                >
+                  <Match when={item.item?.t === 1}>
+                    <Member
+                      member={(item.item as { member: ServerMember })?.member}
+                    />
+                  </Match>
+                </Switch>
+              </Show>
             </div>
           )}
         </VirtualContainer>
