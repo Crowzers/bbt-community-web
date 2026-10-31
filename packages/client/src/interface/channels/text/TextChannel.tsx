@@ -243,7 +243,7 @@ export function TextChannel(props: ChannelPageProps) {
       <Show when={layout() === "phone" && membriDeschisi()}>
         <MembriComunitate channel={props.channel} />
       </Show>
-      <Show when={layout() === "phone" && cautareTelefon()}>
+      <Show when={cautareTelefon()}>
         <CautareTelefon channel={props.channel} />
       </Show>
       <Header placement="primary">

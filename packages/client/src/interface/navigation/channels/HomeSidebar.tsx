@@ -21,6 +21,7 @@ import { useNavigate } from "@revolt/routing";
 import { Avatar, Deferred, UserStatus } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
+import { MesajNou } from "../../../bbt/MesajNou";
 import { SidebarBase } from "./common";
 
 interface Props {
@@ -52,6 +53,7 @@ export const HomeSidebar = (props: Props) => {
   // BBT: filtrele din 23a. „Mentori" și „Echipa BBT" lipsesc: rolul omului nu stă în conversație, iar un filtru
   // care ar cere rolurile tuturor la fiecare deschidere a listei n-ar merita.
   const [filtru, setFiltru] = createSignal<"toate" | "necitite">("toate");
+  const [mesajNou, setMesajNou] = createSignal(false);
 
   let scrollTargetElement!: HTMLDivElement;
 
@@ -95,12 +97,12 @@ export const HomeSidebar = (props: Props) => {
             >
               Mesaje
             </h2>
-            {/* „+" = alege omul căruia îi scrii (22k); în Community, dintre prieteni. */}
+            {/* „+" = alege omul căruia îi scrii (22k): prietenii, sau pe cineva din comunitate, cu o cerere de prietenie. */}
             <button
               type="button"
               aria-label="Mesaj nou"
               title="Mesaj nou"
-              onClick={() => navigate("/friends")}
+              onClick={() => setMesajNou(true)}
               style={{
                 width: "36px",
                 height: "36px",
@@ -116,11 +118,12 @@ export const HomeSidebar = (props: Props) => {
             >
               <Symbol size={20}>add</Symbol>
             </button>
+            <Show when={mesajNou()}>
+              <MesajNou laInchidere={() => setMesajNou(false)} />
+            </Show>
           </div>
 
-          <div
-            style={{ display: "flex", gap: "6px", padding: "0 18px 10px" }}
-          >
+          <div style={{ display: "flex", gap: "6px", padding: "0 18px 10px" }}>
             <Filtru
               activ={filtru() === "toate"}
               onClick={() => setFiltru("toate")}

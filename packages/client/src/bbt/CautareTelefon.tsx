@@ -1,8 +1,11 @@
 import { For, Show, createEffect, createSignal, on, onCleanup } from "solid-js";
 
+import { Portal } from "solid-js/web";
+
 import type { Channel, Message } from "stoat.js";
 
 import { useClient } from "@revolt/client";
+import { useDevice } from "@revolt/common";
 import { useNavigate } from "@revolt/routing";
 
 import { setCautareTelefon } from "./cautare";
@@ -22,12 +25,60 @@ import {
 const PAUZA_MS = 350;
 
 /**
- * BBT: căutarea într-o conversație pe telefon, ca ecranul `mobil/src/app/cauta.tsx`. Pe desktop e panoul din dreapta, care pe
- * telefon n-are loc. Stoat caută doar în câte o conversație, deci ecranul se deschide din antetul ei și nu promite mai mult.
+ * BBT: căutarea într-o conversație, ca ecranul `mobil/src/app/cauta.tsx`, oriunde n-are loc câmpul din bara de sus: pe telefon
+ * peste conversație, pe tabletă (și pe ferestrele joase, sub 600 de înălțime) ca fereastră. ⚠️ Pe tabletă, lupa din antet
+ * deschidea panoul din dreapta cu o căutare goală și fără câmp de scris, deci acolo nu se putea căuta deloc.
  *
- * Tap pe un rezultat duce la mesaj, ca rezultatele de pe desktop.
+ * Stoat caută doar în câte o conversație, deci ecranul se deschide din antetul ei și nu promite mai mult. Tap pe un rezultat
+ * duce la mesaj, ca rezultatele de pe desktop.
  */
 export function CautareTelefon(props: { channel: Channel }) {
+  const { layout } = useDevice();
+  return (
+    <Show
+      when={layout() === "phone"}
+      fallback={
+        <Portal>
+          <div
+            onClick={() => setCautareTelefon(false)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              "z-index": 1000,
+              display: "flex",
+              "align-items": "center",
+              "justify-content": "center",
+              background: "rgba(0,0,0,0.5)",
+            }}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Caută în conversație"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: "440px",
+                "max-width": "calc(100% - 32px)",
+                height: "80%",
+                "max-height": "620px",
+                overflow: "hidden",
+                "border-radius": "24px",
+              }}
+            >
+              <Ecran channel={props.channel} />
+            </div>
+          </div>
+        </Portal>
+      }
+    >
+      <div style={{ position: "absolute", inset: 0, "z-index": 40 }}>
+        <Ecran channel={props.channel} />
+      </div>
+    </Show>
+  );
+}
+
+function Ecran(props: { channel: Channel }) {
   const client = useClient();
   const navigate = useNavigate();
   const [text, setText] = createSignal("");
@@ -74,11 +125,11 @@ export function CautareTelefon(props: { channel: Channel }) {
   return (
     <div
       style={{
-        position: "absolute",
-        inset: 0,
-        "z-index": 40,
         display: "flex",
         "flex-direction": "column",
+        height: "100%",
+        "padding-top": "6px",
+        "box-sizing": "border-box",
         background: C.fundal,
         color: C.text,
       }}

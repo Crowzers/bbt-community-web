@@ -1,14 +1,11 @@
 import {
   For,
-  Match,
   Show,
-  Switch,
   createEffect,
   createMemo,
   createSignal,
   on,
 } from "solid-js";
-import { Portal } from "solid-js/web";
 
 import type { Channel, User } from "stoat.js";
 
@@ -20,6 +17,7 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { AntetPagina, LOC_SUB_ANTET } from "./AntetPagina";
 import { C } from "./cont/ui";
+import { MesajNou } from "./MesajNou";
 import { mesajSistem } from "./mesajSistem";
 import { LOC_PASTILA } from "./PastilaDeJos";
 import { trimiteCererea } from "./relatii";
@@ -31,7 +29,6 @@ import {
   IconPlus,
   TITLU_PAGINA,
   UN_RAND,
-  deFonte,
   dupaNavigare,
   numeDin,
   oraRand,
@@ -395,130 +392,5 @@ function RandCerere(props: { om: User }) {
       {buton("Acceptă", true, () => trimiteCererea(client(), props.om))}
       {buton("Refuză", false, () => props.om.removeFriend())}
     </div>
-  );
-}
-
-/** „+" din 18a: prietenii tăi, la un tap o conversație, într-o foaie care urcă de jos (`mobil/src/ui/Foaie.tsx`). */
-function MesajNou(props: { laInchidere: () => void }) {
-  const client = useClient();
-  const state = useState();
-  const navigate = useNavigate();
-  const [eroare, setEroare] = createSignal("");
-
-  const prieteni = createMemo(() =>
-    client()
-      .users.toList()
-      .filter((u) => u.relationship === "Friend")
-      .sort((a, b) => a.displayName.localeCompare(b.displayName, "ro")),
-  );
-
-  async function scrie(om: User) {
-    try {
-      const dm = await om.openDM();
-      props.laInchidere();
-      navigate(`/channel/${dm.id}`);
-      dupaNavigare(() => state.appDrawer()?.setShown(true));
-    } catch {
-      setEroare("Conversația nu se deschide acum. Încearcă din nou.");
-    }
-  }
-
-  return (
-    <Portal>
-      <div
-        onClick={() => props.laInchidere()}
-        style={{
-          position: "fixed",
-          inset: 0,
-          "z-index": 1000,
-          display: "flex",
-          "align-items": "flex-end",
-          background: "rgba(0,0,0,0.5)",
-        }}
-      >
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Mesaj nou"
-          onClick={(e) => e.stopPropagation()}
-          style={{
-            width: "100%",
-            "max-height": "80%",
-            "overflow-y": "auto",
-            padding: "8px 0 calc(env(safe-area-inset-bottom) + 12px)",
-            "box-sizing": "border-box",
-            "border-radius": "18px 18px 0 0",
-            background: C.fundal,
-            color: C.text,
-            "font-family": "Inter, sans-serif",
-          }}
-        >
-          <div
-            style={{
-              width: "40px",
-              height: "4px",
-              margin: "0 auto 8px",
-              "border-radius": "2px",
-              background: C.foaie,
-            }}
-          />
-          <h2 style={{ ...deFonte(20), margin: 0, padding: "4px 18px 8px" }}>
-            Mesaj nou
-          </h2>
-          <Switch>
-            <Match when={prieteni().length === 0}>
-              <p style={NOTA}>
-                Încă n-ai prieteni aici. Apasă pe numele cuiva într-un canal și
-                trimite-i o cerere de prietenie.
-              </p>
-            </Match>
-            <Match when={true}>
-              <For each={prieteni().slice(0, 40)}>
-                {(om) => (
-                  <button
-                    type="button"
-                    onClick={() => void scrie(om)}
-                    style={{
-                      ...RAND,
-                      width: "calc(100% - 16px)",
-                      "box-sizing": "border-box",
-                      border: 0,
-                      background: "transparent",
-                      "font-family": "inherit",
-                      "text-align": "left",
-                      cursor: "pointer",
-                    }}
-                  >
-                    <AvatarOm om={om} marime={36} />
-                    <span
-                      style={{
-                        ...UN_RAND,
-                        flex: 1,
-                        "font-size": "15px",
-                        "font-weight": 800,
-                      }}
-                    >
-                      {om.displayName}
-                    </span>
-                  </button>
-                )}
-              </For>
-            </Match>
-          </Switch>
-          <Show when={eroare()}>
-            <p
-              style={{
-                margin: 0,
-                padding: "8px 18px",
-                color: C.rosu,
-                "font-size": "14px",
-              }}
-            >
-              {eroare()}
-            </p>
-          </Show>
-        </div>
-      </div>
-    </Portal>
   );
 }

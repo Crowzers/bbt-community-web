@@ -28,6 +28,7 @@ import MdSettings from "@material-design-icons/svg/outlined/settings.svg?compone
 
 import { AntetFirTelefon } from "../../bbt/AntetFirTelefon";
 import { AvatarCanal } from "../../bbt/AvatarCanal";
+import { setCautareTelefon } from "../../bbt/cautare";
 import { HeaderIcon } from "../common/CommonHeader";
 
 import { canIHasSidebar, SidebarState } from "./text/TextChannel";
@@ -370,10 +371,10 @@ function AntetLat(props: Props) {
       </Show>
 
       {/* BBT: pe desktop căutarea stă în bara de sus (src/bbt/BaraSus.tsx); aici rămâne doar
-          iconița, pe telefon și tabletă, unde bara de sus n-are câmp. */}
+          iconița, pe tabletă, unde bara de sus n-are câmp. Telefonul are antetul lui (`AntetFirTelefon`). */}
       <Show when={searchValue() !== null && layout() !== "desktop"}>
         <IconButton
-          onPress={() => props.setSidebarState!({ state: "search", query: "" })}
+          onPress={() => setCautareTelefon(true)}
           use:floating={{
             tooltip: {
               placement: "bottom",
