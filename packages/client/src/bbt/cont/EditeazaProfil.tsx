@@ -15,7 +15,9 @@ import {
   CampText,
   Eticheta2,
   MesajSalvare,
+  NotaAdresa,
   Sectiune,
+  usernameBun,
 } from "./ui";
 
 /** Rețelele pe care le primește ruta, ca în aplicație și pe profilul public de pe site. */
@@ -123,6 +125,9 @@ function Formular(props: { p: Participant }) {
 
   const pj = () => f().tipPersoana === "PJ";
   const usernameNou = () => f().username.trim().toLowerCase();
+  const usernameSchimbat = () => usernameNou() !== baza().username;
+  // Regula apare abia după ce omul iese din câmp sau apasă „Salvează": altfel ar clipi la primele litere scrise.
+  const [atins, setAtins] = createSignal(false);
   const telefon = () => f().telefon.trim();
   const telSchimbat = () => telefon() !== baza().telefon;
   // Numărul se compară separat: se scrie prin verificare, nu prin „Salvează".
@@ -132,6 +137,8 @@ function Formular(props: { p: Participant }) {
 
   async function salveaza(e?: SubmitEvent) {
     e?.preventDefault();
+    if (usernameSchimbat() && !usernameBun(usernameNou()))
+      return void setAtins(true);
     const x = f();
     const b = baza();
     const prenume = x.prenume.trim();
@@ -183,8 +190,7 @@ function Formular(props: { p: Participant }) {
       if (FACTURARE.some((c) => x[c] !== b[c])) {
         // Pe persoană fizică golim datele de firmă: altfel rămân în bază și, la o comutare înapoi, factura pleacă pe un CUI vechi.
         personale.tipPersoana = x.tipPersoana;
-        for (const c of FACTURARE.slice(1))
-          personale[c] = pj() ? x[c] : "";
+        for (const c of FACTURARE.slice(1)) personale[c] = pj() ? x[c] : "";
       }
       if (Object.keys(personale).length)
         await cerereCont(sesiune(), "/api/public/participant/date-personale", {
@@ -248,20 +254,15 @@ function Formular(props: { p: Participant }) {
               inainte="/u/"
               valoare={f().username}
               laSchimbare={(v) => schimba({ username: v.toLowerCase() })}
+              laIesire={() => setAtins(true)}
               maxim={30}
               placeholder="numele.tau"
             />
-            <p
-              style={{
-                margin: "6px 0 0",
-                color: usernameNou() !== baza().username ? C.chihlimbar : C.stins,
-                "font-size": "14px",
-              }}
-            >
-              {usernameNou() !== baza().username
-                ? "Dacă schimbi adresa, linkurile vechi către profilul tău nu mai merg."
-                : "Litere mici, cifre, punct și underscore. Între 3 și 30 de caractere."}
-            </p>
+            <NotaAdresa
+              username={usernameNou()}
+              schimbat={usernameSchimbat()}
+              atins={atins()}
+            />
           </div>
         </div>
       </Sectiune>

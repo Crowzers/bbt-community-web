@@ -71,6 +71,11 @@ function AntetLat(props: Props) {
   const voice = useVoice();
   const { layout } = useDevice();
 
+  const deschideProfilul = () => {
+    const user = props.channel.recipient;
+    if (user) openModal({ type: "user_profile", user });
+  };
+
   const searchValue = () => {
     if (!props.sidebarState) return null;
 
@@ -141,27 +146,11 @@ function AntetLat(props: Props) {
         </Match>
         <Match when={props.channel.type === "DirectMessage"}>
           {/* BBT (23a, 30 oct 2026): avatarul, numele și sub el „online" verde sau „offline", în locul lui „@" și al
-              punctului de stare. Tot blocul deschide profilul omului, ca pastila din aplicație și de pe telefon. */}
-          <button
-            type="button"
-            aria-label={`Vezi profilul lui ${props.channel.recipient?.displayName ?? ""}`}
-            onClick={() => {
-              const user = props.channel.recipient;
-              if (user) openModal({ type: "user_profile", user });
-            }}
-            style={{
-              display: "flex",
-              "align-items": "center",
-              gap: "10px",
-              "min-width": 0,
-              padding: 0,
-              border: 0,
-              background: "transparent",
-              color: "inherit",
-              "font-family": "inherit",
-              "text-align": "left",
-              cursor: "pointer",
-            }}
+              punctului de stare. Avatarul și numele deschid profilul omului, ca pastila din aplicație și de pe telefon.
+              ⚠️ Fără un `<button>` în jurul lor: așa, numele dispărea din antet (live, 31 oct). Tastatura are „Vezi profilul". */}
+          <span
+            onClick={deschideProfilul}
+            style={{ display: "contents", cursor: "pointer" }}
           >
             <Avatar
               size={40}
@@ -169,34 +158,39 @@ function AntetLat(props: Props) {
               fallback={props.channel.recipient?.displayName}
               fallbackBackground
             />
-            <div style={{ "min-width": 0, "line-height": "1.25" }}>
-              {/* 23a: numele la 18, titlu (De Fonte la noi), sub el starea la 12 gros. */}
-              <OverflowingText
-                style={{
-                  "font-family": '"De Fonte BBT", Inter, sans-serif',
-                  "font-size": "18px",
-                  "font-weight": 400,
-                  "letter-spacing": "0.01em",
-                  "font-synthesis": "none",
-                }}
-              >
-                {/* BBT: numele afișat (ca în lista de prieteni), nu username-ul. */}
-                <TextWithEmoji content={props.channel.recipient?.displayName} />
-              </OverflowingText>
-              <span
-                style={{
-                  display: "block",
-                  "font-size": "12px",
-                  "font-weight": 700,
-                  color: props.channel.recipient?.online
-                    ? "#216043"
-                    : "#8D8D9A",
-                }}
-              >
-                {props.channel.recipient?.online ? "online" : "offline"}
-              </span>
-            </div>
-          </button>
+          </span>
+          <div
+            onClick={deschideProfilul}
+            style={{
+              "min-width": 0,
+              "line-height": "1.25",
+              cursor: "pointer",
+            }}
+          >
+            {/* 23a: numele la 18, titlu (De Fonte la noi), sub el starea la 12 gros. */}
+            <OverflowingText
+              style={{
+                "font-family": '"De Fonte BBT", Inter, sans-serif',
+                "font-size": "18px",
+                "font-weight": 400,
+                "letter-spacing": "0.01em",
+                "font-synthesis": "none",
+              }}
+            >
+              {/* BBT: numele afișat (ca în lista de prieteni), nu username-ul. */}
+              <TextWithEmoji content={props.channel.recipient?.displayName} />
+            </OverflowingText>
+            <span
+              style={{
+                display: "block",
+                "font-size": "12px",
+                "font-weight": 700,
+                color: props.channel.recipient?.online ? "#216043" : "#8D8D9A",
+              }}
+            >
+              {props.channel.recipient?.online ? "online" : "offline"}
+            </span>
+          </div>
         </Match>
         <Match when={props.channel.type === "SavedMessages"}>
           <HeaderIcon>

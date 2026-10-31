@@ -1,4 +1,5 @@
 import { Show, createSignal, onMount } from "solid-js";
+import { usernameBun } from "./cont/ui";
 
 import { useState } from "@revolt/state";
 import { Avatar, Button, Column, Row, Text, TextField } from "@revolt/ui";
@@ -230,7 +231,11 @@ export function ProfilBBT() {
               />
               <TextField
                 label="Username"
-                helper="Litere mici, cifre, punct și underscore (3–30). E și adresa profilului tău."
+                helper={
+                  username() && !usernameBun(username().trim())
+                    ? "Adresa merge doar cu litere mici, cifre, punct și underscore, între 3 și 30 de caractere."
+                    : undefined
+                }
                 maxlength={30}
                 autocapitalize="none"
                 value={username()}

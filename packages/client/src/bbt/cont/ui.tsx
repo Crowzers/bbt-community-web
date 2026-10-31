@@ -363,6 +363,58 @@ export function Mesaj(props: {
   );
 }
 
+/** Aceeași regulă ca `USERNAME_REGEX` din `admin/lib/profilPublic.ts`, care decide la salvare. */
+export const usernameBun = (username: string) =>
+  /^[a-z0-9_.]{3,30}$/.test(username);
+
+/**
+ * Sub adresa profilului: regula apare doar când omul a greșit și a ieșit din câmp (`atins`), ca o notiță, iar avertismentul
+ * despre linkurile vechi doar când schimbă adresa cu una bună. Altfel, nimic (cererea userului, 31 oct).
+ */
+export function NotaAdresa(props: {
+  username: string;
+  schimbat: boolean;
+  atins: boolean;
+}) {
+  const gresit = () => props.schimbat && !usernameBun(props.username);
+  return (
+    <Show
+      when={gresit()}
+      fallback={
+        <Show when={props.schimbat}>
+          <p
+            style={{
+              margin: "6px 0 0",
+              color: C.chihlimbar,
+              "font-size": "14px",
+            }}
+          >
+            Dacă schimbi adresa, linkurile vechi către profilul tău nu mai merg.
+          </p>
+        </Show>
+      }
+    >
+      <Show when={props.atins}>
+        <p
+          role="alert"
+          style={{
+            margin: "8px 0 0",
+            padding: "10px 12px",
+            "border-radius": "14px",
+            background: "rgba(202,26,56,0.08)",
+            color: C.rosu,
+            "font-size": "14px",
+            "line-height": "1.45",
+          }}
+        >
+          Adresa merge doar cu litere mici, cifre, punct și underscore, între 3
+          și 30 de caractere.
+        </p>
+      </Show>
+    </Show>
+  );
+}
+
 /** Rândul cu pictogramă + text mic (dată, loc), ca pe cardurile site-ului. */
 export function RandInfo(props: { simbol: string; children: JSX.Element }) {
   return (
@@ -528,6 +580,8 @@ export function CampText(props: {
   randuri?: number;
   /** Pe pagina albă (23f): pastilă gri de 48, nu câmp alb pe cardul gri. */
   peAlb?: boolean;
+  /** Când omul iese din câmp. Doar la câmpul cu `inainte`, singurul care cere o verificare. */
+  laIesire?: () => void;
 }) {
   const stil = (): JSX.CSSProperties =>
     props.peAlb
@@ -590,6 +644,7 @@ export function CampText(props: {
             value={props.valoare}
             placeholder={props.placeholder}
             onInput={(e) => props.laSchimbare(e.currentTarget.value)}
+            onBlur={() => props.laIesire?.()}
             style={{
               "flex-grow": 1,
               "min-width": 0,

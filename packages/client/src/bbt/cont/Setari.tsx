@@ -10,8 +10,8 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 import { BBT_ADMIN_URL, BBT_SITE_URL } from "../config";
 import { cerereCont, uitaTokenBbt } from "../tokenBbt";
 
-import { CHEIE_CONT, useCont, useSesiune } from "./date";
 import { comutaSunetele, sunetePornite } from "../sunete";
+import { CHEIE_CONT, useCont, useSesiune } from "./date";
 
 import { ListaNotificari } from "./Notificari";
 import { DateFacturare, DatePersonale } from "./SetariDate";
@@ -24,9 +24,11 @@ import {
   Incarcare,
   Mesaj,
   MesajSalvare,
+  NotaAdresa,
   RandValoare,
   Sectiune,
   TitluPagina,
+  usernameBun,
 } from "./ui";
 
 /**
@@ -147,8 +149,10 @@ function FormularProfil(props: { p: Participant }) {
   });
   const [lucrez, setLucrez] = createSignal(false);
   const [stare, setStare] = createSignal<Stare>(null);
-  const schimbat = () =>
-    username().trim().toLowerCase() !== (p0.username ?? "");
+  const usernameNou = () => username().trim().toLowerCase();
+  const schimbat = () => usernameNou() !== (p0.username ?? "");
+  // Regula apare abia după ce omul iese din câmp sau apasă „Salvează": altfel ar clipi la primele litere scrise.
+  const [atins, setAtins] = createSignal(false);
 
   const rol = () =>
     props.p.mainRole
@@ -161,6 +165,7 @@ function FormularProfil(props: { p: Participant }) {
 
   async function salveaza(e?: SubmitEvent) {
     e?.preventDefault();
+    if (schimbat() && !usernameBun(usernameNou())) return void setAtins(true);
     setLucrez(true);
     setStare(null);
     try {
@@ -168,7 +173,7 @@ function FormularProfil(props: { p: Participant }) {
         method: "PUT",
         body: JSON.stringify({
           numeAfisat: numeScena(),
-          username: username().trim().toLowerCase(),
+          username: usernameNou(),
           bio: bio(),
           // Rețelele golite se trimit ca text gol: adminul le șterge.
           socialLinks: retele(),
@@ -299,19 +304,14 @@ function FormularProfil(props: { p: Participant }) {
               inainte="/u/"
               valoare={username()}
               laSchimbare={(v) => setUsername(v.toLowerCase())}
+              laIesire={() => setAtins(true)}
               placeholder="numele.tau"
             />
-            <p
-              style={{
-                margin: "6px 0 0",
-                color: schimbat() ? C.chihlimbar : C.slab,
-                "font-size": "14px",
-              }}
-            >
-              {schimbat()
-                ? "Dacă schimbi adresa, linkurile vechi spre profilul tău nu mai merg."
-                : "Litere mici, cifre, punct și underscore. Între 3 și 30 de caractere."}
-            </p>
+            <NotaAdresa
+              username={usernameNou()}
+              schimbat={schimbat()}
+              atins={atins()}
+            />
           </div>
           {/* Rolul și genurile se aleg la înscriere și n-au încă un editor nici pe site; aici doar se văd. */}
           <Show when={rol()}>
