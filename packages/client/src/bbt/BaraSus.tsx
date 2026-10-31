@@ -3,7 +3,6 @@ import { For, Show, createSignal, onCleanup } from "solid-js";
 import { useQuery } from "@tanstack/solid-query";
 
 import { useClient, useClientLifecycle } from "@revolt/client";
-import { useModals } from "@revolt/modal";
 import { useNavigate } from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { Avatar } from "@revolt/ui";
@@ -13,7 +12,7 @@ import Wordmark from "../../public/assets/web/wordmark.svg?component-solid";
 
 import { ButonInstalare } from "./ButonInstalare";
 import { CautareSus, Clopotel } from "./CautareSiAlerte";
-import { BBT_ADMIN_URL, BBT_SITE_URL } from "./config";
+import { BBT_ADMIN_URL } from "./config";
 
 /**
  * Bara de sus a BBT Community — copia barei din Community-ul vechi
@@ -25,8 +24,7 @@ import { BBT_ADMIN_URL, BBT_SITE_URL } from "./config";
  *   sigla albă pe negru și „COMMUNITY" cu majuscule rărite).
  * - Dreapta: caseta de cont — avatar 34px, nume, sub el „Artist verificat" (verde) sau
  *   „Completează profilul" (chihlimbar), exact regula de pe site (telefon confirmat). La hover
- *   (desktop) sau atingere, meniul de cont: rândurile contului din hub (`cont/ContulMeu.tsx`),
- *   plus ce ține de Community (setările lui, ieșirea).
+ *   (desktop) sau atingere, meniul de cont: Profil, Setări și ieșirea (`LINKURI` de mai jos).
  *
  * Bara e albă, de 72px, ca în 21 și 23 (30 oct 2026). Până atunci: neagră, de 64px (compromisul din 5 oct,
  * „foarte puțin mai mari, cât să încapă logoul mai mare").
@@ -56,33 +54,20 @@ const VERDE = "#216043";
 const CHIHLIMBAR = "#715E10";
 
 /**
- * Scurtături spre Experiențe și spre paginile din Profil (`cont/ContulMeu.tsx`), deschise în hub. `pagina` = ruta
- * `/cont/<pagina>`.
- *
- * ⚠️ Până pe 30 oct se deschideau în hub DOAR în aplicația instalată, iar în browser pe site (decizia #6 din
- * `2026-10-20-hub-standalone-cont-design.md`). Userul a cerut contul în hub și pe web („hai să facem așa și pe web"),
- * deci nu mai există ramura spre site.
+ * Meniul de la avatar are doar drumurile spre Profil și Setări (varianta B, cererea userului, 31 oct 2026). Până atunci
+ * repeta bara din stânga și meniul din Profil, în altă ordine și cu alte nume („Deconectare" lângă „Ieși din cont"), iar
+ * Experiențele erau de două ori pe ecran. Setările Community au trecut în Setări; „Descoperă experiențe" există deja ca
+ * „Vezi site" la Experiențe.
  */
-const ACTIVITATE = [
-  {
-    pagina: "experiente",
-    nume: "Experiențele mele",
-    simbol: "confirmation_number",
-  },
-  { pagina: "diplome", nume: "Diplome", simbol: "workspace_premium" },
-  { pagina: "plati", nume: "Plăți", simbol: "payments" },
-];
-const CONT = [
-  { pagina: "profil", nume: "Profil public", simbol: "person" },
-  { pagina: "date", nume: "Date personale", simbol: "badge" },
-  { pagina: "notificari", nume: "Notificări", simbol: "notifications" },
+const LINKURI = [
+  { cale: "/cont", nume: "Vezi profilul", simbol: "person" },
+  { cale: "/cont/setari", nume: "Setări", simbol: "settings" },
 ];
 
 export function BaraSus(props: { compact?: boolean }) {
   const client = useClient();
   const state = useState();
   const { logout } = useClientLifecycle();
-  const { openModal } = useModals();
   const navigate = useNavigate();
 
   const [meniu, setMeniu] = createSignal(false);
@@ -104,21 +89,6 @@ export function BaraSus(props: { compact?: boolean }) {
   const eu = () => client().user;
   const nume = () =>
     eu()?.displayName ?? profil.data?.numeComplet ?? "Contul meu";
-  const site = () => profil.data?.siteUrl ?? BBT_SITE_URL;
-  const linkProfil = () =>
-    profil.data?.username
-      ? `${site()}/u/${profil.data.username}`
-      : `${site()}/dashboard/profil`;
-
-  function deschideSetari(pagina?: string) {
-    setMeniu(false);
-    openModal({
-      type: "settings",
-      config: "user",
-      context: pagina ? { page: pagina } : undefined,
-    });
-  }
-
   const randMeniu = {
     display: "flex",
     "align-items": "center",
@@ -137,25 +107,6 @@ export function BaraSus(props: { compact?: boolean }) {
     "font-family": "inherit",
     "text-align": "left" as const,
   };
-
-  const Grup = (p: { linkuri: typeof ACTIVITATE }) => (
-    <For each={p.linkuri}>
-      {(l) => (
-        <a
-          href={`/cont/${l.pagina}`}
-          onClick={(e) => {
-            e.preventDefault();
-            setMeniu(false);
-            navigate(`/cont/${l.pagina}`);
-          }}
-          style={randMeniu}
-        >
-          <Symbol size={15}>{l.simbol}</Symbol>
-          {l.nume}
-        </a>
-      )}
-    </For>
-  );
 
   return (
     <header
@@ -382,11 +333,7 @@ export function BaraSus(props: { compact?: boolean }) {
                 "box-shadow": "0 16px 48px rgba(10,10,11,0.14)",
               }}
             >
-              <a
-                href={linkProfil()}
-                target="_blank"
-                rel="noopener"
-                onClick={() => setMeniu(false)}
+              <div
                 style={{
                   display: "flex",
                   "align-items": "center",
@@ -394,7 +341,6 @@ export function BaraSus(props: { compact?: boolean }) {
                   padding: "4px 16px 12px",
                   "margin-bottom": "4px",
                   "border-bottom": `1px solid ${LINIE}`,
-                  "text-decoration": "none",
                   color: TEXT,
                 }}
               >
@@ -441,54 +387,34 @@ export function BaraSus(props: { compact?: boolean }) {
                     </span>
                   </Show>
                 </span>
-              </a>
-
-              <Grup linkuri={ACTIVITATE} />
-              <div
-                style={{ margin: "4px 0", "border-top": `1px solid ${LINIE}` }}
-              />
-              <Grup linkuri={CONT} />
-              <div
-                style={{
-                  "margin-top": "4px",
-                  "padding-top": "4px",
-                  "border-top": `1px solid ${LINIE}`,
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => deschideSetari("profile")}
-                  style={randMeniu}
-                >
-                  <Symbol size={15}>person</Symbol> Profilul în Community
-                </button>
-                <button
-                  type="button"
-                  onClick={() => deschideSetari("notifications")}
-                  style={randMeniu}
-                >
-                  <Symbol size={15}>notifications</Symbol> Setări Community
-                </button>
-                <a
-                  href={`${site()}/camps?vitrina=1`}
-                  target="_blank"
-                  rel="noopener"
-                  onClick={() => setMeniu(false)}
-                  style={randMeniu}
-                >
-                  <Symbol size={15}>explore</Symbol> Descoperă experiențe
-                </a>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMeniu(false);
-                    logout();
-                  }}
-                  style={{ ...randMeniu, color: "#CA1A38" }}
-                >
-                  <Symbol size={15}>logout</Symbol> Deconectare
-                </button>
               </div>
+
+              <For each={LINKURI}>
+                {(l) => (
+                  <a
+                    href={l.cale}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setMeniu(false);
+                      navigate(l.cale);
+                    }}
+                    style={randMeniu}
+                  >
+                    <Symbol size={15}>{l.simbol}</Symbol>
+                    {l.nume}
+                  </a>
+                )}
+              </For>
+              <button
+                type="button"
+                onClick={() => {
+                  setMeniu(false);
+                  logout();
+                }}
+                style={{ ...randMeniu, color: "#CA1A38" }}
+              >
+                <Symbol size={15}>logout</Symbol> Ieși din cont
+              </button>
             </div>
           </div>
         </Show>

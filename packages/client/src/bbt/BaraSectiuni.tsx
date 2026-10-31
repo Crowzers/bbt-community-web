@@ -24,7 +24,7 @@ import { AvatarOm } from "./telefon";
  * ⛔ Fără Challenge — userul nu l-a vrut în meniu.
  *
  * Experiențe și Profil sunt separate, ca în aplicație (cererea userului, 31 oct 2026). Până atunci, „Experiențe" deschidea tot
- * contul, deci lângă bilete stăteau setările de profil. Bara de sus (`BaraSus.tsx`) păstrează meniul contului ca scurtătură.
+ * contul, deci lângă bilete stăteau setările de profil. Bara de sus (`BaraSus.tsx`) are doar două scurtături: Profil și Setări.
  *
  * Două forme: verticală (desktop, stânga) și orizontală (telefon, jos — bara de tab-uri).
  */
@@ -102,7 +102,7 @@ export function BaraSectiuni(props: {
       activ: () =>
         location.pathname.startsWith("/cont") &&
         !eInExperiente(location.pathname),
-      laApasare: () => navigate("/cont/profil"),
+      laApasare: () => navigate("/cont"),
     },
   ];
 

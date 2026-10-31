@@ -165,7 +165,7 @@ export function Plati() {
 
   return (
     <>
-      <TitluPagina>Plăți</TitluPagina>
+      <TitluPagina>Plăți și facturi</TitluPagina>
       <Show when={cont.isError}>
         <Mesaj fel="eroare">
           Nu am putut încărca plățile tale. Încearcă din nou peste un minut.

@@ -2,6 +2,8 @@ import { For, Show, createSignal, untrack } from "solid-js";
 
 import { useQueryClient } from "@tanstack/solid-query";
 
+import { useDevice } from "@revolt/common";
+
 import { cerereCont } from "../tokenBbt";
 
 import { CHEIE_CONT, useSesiune } from "./date";
@@ -17,6 +19,7 @@ import {
   MesajSalvare,
   NotaAdresa,
   Sectiune,
+  TitluPagina,
   usernameBun,
 } from "./ui";
 
@@ -80,9 +83,10 @@ const cuAdresaIntreaga = (url: string) =>
     : `https://${url.trim()}`;
 
 /**
- * BBT: „Editează profilul" pe telefon, copia ecranului `mobil/src/app/editeaza-profil.tsx`: tot contul pe un singur ecran, cu
- * un singur „Salvează" (cererea userului, 31 oct: erau două pagini care păreau același lucru). Desktopul își păstrează cele
- * două pagini din meniu (`Setari.tsx`). Față de aplicație are și poza sus: aici nu se schimbă din Profil.
+ * BBT: „Editează profilul", copia ecranului `mobil/src/app/editeaza-profil.tsx`: tot contul pe un singur ecran, cu
+ * un singur „Salvează" (cererea userului, 31 oct: erau două pagini care păreau același lucru). Din varianta B (31 oct) e
+ * la fel și pe desktop și tabletă, unde până atunci stăteau „Profil public" și „Date personale". Față de aplicație are și
+ * poza sus: aici nu se schimbă din Profil.
  *
  * Trei lucruri făcute dinadins altfel decât pe site:
  * - Pleacă doar ce s-a schimbat. Pe site ziua din `dataNasterii` se pierde la fiecare salvare (formularul are doar lună și
@@ -90,11 +94,15 @@ const cuAdresaIntreaga = (url: string) =>
  * - Un număr nou se verifică mereu prin SMS, chiar dacă cel vechi era verificat.
  * - Numărul nu trece prin „Salvează": îl scrie în cont verificarea.
  */
-export function EditeazaProfilTelefon() {
+export function EditeazaProfil() {
+  const { layout } = useDevice();
   return (
     <CuCont>
       {(p) => (
-        <div style={COLOANA}>
+        <div style={{ ...COLOANA, "max-width": "640px" }}>
+          <Show when={layout() !== "phone"}>
+            <TitluPagina>Editează profilul</TitluPagina>
+          </Show>
           <Formular p={p} />
           {/* ⚠️ În afara formularului: parola are `<form>` propriu, iar trimiterea lui ar urca și în „Salvează". */}
           <DateCont p={p} faraTelefon />

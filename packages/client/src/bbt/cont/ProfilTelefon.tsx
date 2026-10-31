@@ -1,6 +1,5 @@
-import { JSX, Show, createSignal } from "solid-js";
+import { Show } from "solid-js";
 
-import { useClientLifecycle } from "@revolt/client";
 import { useNavigate } from "@revolt/routing";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
@@ -16,29 +15,26 @@ import {
   deFonte,
 } from "../telefon";
 
-import { comutaSunetele, sunetePornite } from "../sunete";
-
 import { useCont, useExperiente, useNotificari, useRapoarte } from "./date";
 import { useEtichete } from "./Setari";
-import { Buton, C, Fereastra } from "./ui";
+import { C } from "./ui";
 
 /**
- * BBT: tab-ul Profil pe telefon (macheta 20e), copia ecranului `mobil/src/app/(tabs)/profil.tsx`, cu măsurile de acolo.
- * Ia locul listei de la `/cont`; desktopul are Profilul cu meniu în stânga (`ContulMeu.tsx`).
+ * BBT: tab-ul Profil (macheta 20e), copia ecranului `mobil/src/app/(tabs)/profil.tsx`, cu măsurile de acolo, la `/cont`.
+ * Pe desktop și tabletă (`desktop`) e aceeași pagină, pe coloană îngustă, cu titlul în locul antetului roz. Varianta B
+ * (cererea userului, 31 oct 2026): aici stă cine ești, iar restul contului e în spatele rotiței (`/cont/setari`).
  *
  * Ce e altfel decât în aplicație, dinadins:
  * - Rândurile duc la paginile din hub, nu la site: aici contul există întreg, plus sesiunea e deja deschisă.
- * - Poza se schimbă din „Profil public": hub-ul n-are alegerea cu camera din aplicație.
+ * - Poza se schimbă din „Editează profilul": hub-ul n-are alegerea cu camera din aplicație.
  */
-export function ProfilTelefon() {
+export function ProfilTelefon(props: { desktop?: boolean }) {
   const navigate = useNavigate();
   const cont = useCont();
   const experiente = useExperiente();
   const rapoarte = useRapoarte();
   const notificari = useNotificari();
   const etichete = useEtichete();
-  const { logout } = useClientLifecycle();
-  const [iesire, setIesire] = createSignal(false);
 
   const toate = () => [
     ...(experiente.data?.active ?? []),
@@ -64,6 +60,41 @@ export function ProfilTelefon() {
     return [rol, genuri, p.oras].filter(Boolean).join(" · ");
   };
 
+  // Cifrele au plecat în Setări odată cu rândurile lor; punctul spune că ai de ce să intri acolo.
+  const deVazut = () =>
+    (notificari.data?.necitite ?? 0) + (rapoarte.data?.length ?? 0) > 0;
+
+  const Rotita = () => (
+    <button
+      type="button"
+      class="bbt-moale"
+      aria-label="Setări"
+      onClick={() => navigate("/cont/setari")}
+      style={{
+        ...CERC_40,
+        position: "relative",
+        background: props.desktop ? C.foaie : C.fundal,
+      }}
+    >
+      <IconRotita />
+      <Show when={deVazut()}>
+        <span
+          style={{
+            position: "absolute",
+            top: "2px",
+            right: "2px",
+            width: "10px",
+            height: "10px",
+            "box-sizing": "border-box",
+            "border-radius": "5px",
+            border: `2px solid ${C.fundal}`,
+            background: C.rosu,
+          }}
+        />
+      </Show>
+    </button>
+  );
+
   return (
     <div
       style={{
@@ -75,27 +106,32 @@ export function ProfilTelefon() {
         color: C.text,
       }}
     >
-      <AntetPagina>
-        <h1 style={{ ...TITLU_PAGINA, flex: 1 }}>Profil</h1>
-        <button
-          type="button"
-          class="bbt-moale"
-          aria-label="Setări"
-          onClick={() => navigate("/cont/profil")}
-          style={{ ...CERC_40, background: C.fundal }}
-        >
-          <IconRotita />
-        </button>
-      </AntetPagina>
+      <Show when={!props.desktop}>
+        <AntetPagina>
+          <h1 style={{ ...TITLU_PAGINA, flex: 1 }}>Profil</h1>
+          <Rotita />
+        </AntetPagina>
+      </Show>
       <div style={{ "flex-grow": 1, "min-height": 0, "overflow-y": "auto" }}>
         <div
           style={{
             display: "flex",
             "flex-direction": "column",
             gap: "10px",
-            padding: `${LOC_SUB_ANTET} 12px ${LOC_PASTILA}`,
+            padding: props.desktop
+              ? "32px 16px 48px"
+              : `${LOC_SUB_ANTET} 12px ${LOC_PASTILA}`,
+            "max-width": props.desktop ? "640px" : undefined,
+            margin: "0 auto",
+            "box-sizing": "border-box",
           }}
         >
+          <Show when={props.desktop}>
+            <div style={{ display: "flex", "align-items": "center" }}>
+              <h1 style={{ ...TITLU_PAGINA, flex: 1, margin: 0 }}>Profil</h1>
+              <Rotita />
+            </div>
+          </Show>
           {/* Cardul de sus: raza 32, 16 de jur împrejur, totul centrat. Tot el duce la profilul public. */}
           <a
             href={
@@ -226,6 +262,19 @@ export function ProfilTelefon() {
                 Artist verificat
               </div>
             </Show>
+            {/* Cardul ducea și până acum la profilul public, dar nimic nu spunea asta. */}
+            <Show when={cont.data?.username}>
+              <div
+                style={{
+                  "margin-top": "10px",
+                  color: C.stins,
+                  "font-size": "13px",
+                  "font-weight": 600,
+                }}
+              >
+                Vezi profilul public
+              </div>
+            </Show>
           </a>
 
           <div style={{ display: "flex", gap: "8px" }}>
@@ -243,119 +292,26 @@ export function ProfilTelefon() {
             />
           </div>
 
-          {/* Piesele omului, chiar sub cifre, ca în aplicație. */}
-          <div style={GRUP}>
-            <Rand
-              text="Piesele mele"
-              detaliu="Ascultă-le oricând"
-              laApasare={() => navigate("/cont/piese")}
-              ultim
-            />
-          </div>
-
-          <div style={GRUP}>
-            <Rand
-              text="Editează profilul"
-              detaliu="Date, adresă, facturare"
-              laApasare={() => navigate("/cont/profil")}
-            />
-            <Rand text="Plăți" laApasare={() => navigate("/cont/plati")} />
-            <Rand
-              text="Diplome și certificate"
-              detaliu={diplome() ? String(diplome()) : undefined}
-              laApasare={() => navigate("/cont/diplome")}
-            />
-            <Rand
-              text="Notificări"
-              detaliu={
-                notificari.data?.necitite
-                  ? String(notificari.data.necitite)
-                  : undefined
-              }
-              laApasare={() => navigate("/cont/notificari")}
-            />
-            <Rand
-              text="Sunete"
-              detaliu={sunetePornite() ? "Pornite" : "Oprite"}
-              laApasare={comutaSunetele}
-              ultim
-            />
-          </div>
-
-          {/* Doar pentru cine are voie la rapoarte, ca „Administrare Community" din aplicație. */}
-          <Show when={rapoarte.data}>
-            {(lista) => (
-              <div style={GRUP}>
-                <Rand
-                  text="Rapoarte"
-                  detaliu={lista().length ? String(lista().length) : undefined}
-                  laApasare={() => navigate("/cont/rapoarte")}
-                  ultim
-                />
-              </div>
-            )}
-          </Show>
-
-          <div style={GRUP}>
-            <Rand
-              text="Ajutor și contact BBT"
-              laApasare={() =>
-                (window.location.href = "mailto:contact@beanbagtheory.ro")
-              }
-            />
-            <Rand
-              text="Termeni și confidențialitate"
-              laApasare={() => window.open(`${BBT_SITE_URL}/termeni`, "_blank")}
-              ultim
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setIesire(true)}
-            style={{
-              "align-self": "center",
-              padding: "14px",
-              border: 0,
-              background: "transparent",
-              color: C.rosu,
-              "font-family": "inherit",
-              "font-size": "15px",
-              "font-weight": 800,
-              cursor: "pointer",
-            }}
-          >
-            Ieși din cont
-          </button>
+          <CardDrum
+            simbol="music_note"
+            titlu="Piesele mele"
+            text="Ascultă-le oricând"
+            laApasare={() => navigate("/cont/piese")}
+          />
+          <CardDrum
+            simbol="workspace_premium"
+            titlu="Diplome și certificate"
+            text={
+              diplome() === 0
+                ? "Apar aici după ce termini un curs"
+                : diplome() === 1
+                  ? "O diplomă"
+                  : `${diplome()} diplome`
+            }
+            laApasare={() => navigate("/cont/diplome")}
+          />
         </div>
       </div>
-
-      <Show when={iesire()}>
-        <Fereastra
-          titlu="Ieși din cont?"
-          laInchidere={() => setIesire(false)}
-          latime={400}
-        >
-          <p
-            style={{
-              margin: "0 0 18px",
-              color: C.stins,
-              "font-size": "16px",
-              "line-height": "1.45",
-            }}
-          >
-            Te poți întoarce oricând cu emailul și parola de pe site.
-          </p>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <Buton piele="alb" lat onClick={() => setIesire(false)}>
-              Rămân
-            </Buton>
-            <Buton lat onClick={() => logout()}>
-              Ieși
-            </Buton>
-          </div>
-        </Fereastra>
-      </Show>
     </div>
   );
 }
@@ -367,12 +323,6 @@ function initiale(nume: string) {
   if (cuvinte.length === 1) return cuvinte[0].slice(0, 2).toUpperCase();
   return (cuvinte[0][0] + cuvinte[1][0]).toUpperCase();
 }
-
-const GRUP: JSX.CSSProperties = {
-  overflow: "hidden",
-  "border-radius": "28px",
-  background: C.foaie,
-};
 
 function Cifra(props: { valoare: number | string; eticheta: string }) {
   return (
@@ -402,11 +352,11 @@ function Cifra(props: { valoare: number | string; eticheta: string }) {
   );
 }
 
-function Rand(props: {
+function CardDrum(props: {
+  simbol: string;
+  titlu: string;
   text: string;
-  detaliu?: string;
   laApasare: () => void;
-  ultim?: boolean;
 }) {
   return (
     <button
@@ -415,13 +365,13 @@ function Rand(props: {
       style={{
         display: "flex",
         "align-items": "center",
-        gap: "10px",
+        gap: "12px",
         width: "100%",
-        padding: "15px 16px",
+        padding: "14px",
         "box-sizing": "border-box",
         border: 0,
-        "border-bottom": props.ultim ? 0 : `0.5px solid ${C.linie}`,
-        background: "transparent",
+        "border-radius": "28px",
+        background: C.foaie,
         color: C.text,
         "font-family": "inherit",
         "text-align": "left",
@@ -430,27 +380,37 @@ function Rand(props: {
     >
       <span
         style={{
-          flex: 1,
-          "font-size": "15px",
-          "font-weight": 600,
+          width: "44px",
+          height: "44px",
+          "flex-shrink": 0,
+          display: "flex",
+          "align-items": "center",
+          "justify-content": "center",
+          "border-radius": "14px",
+          background: C.roz,
         }}
       >
-        {props.text}
+        <Symbol size={22}>{props.simbol}</Symbol>
       </span>
-      <Show when={props.detaliu}>
+      <span style={{ flex: 1, "min-width": 0 }}>
+        <span
+          style={{ display: "block", "font-size": "15px", "font-weight": 800 }}
+        >
+          {props.titlu}
+        </span>
         <span
           style={{
-            ...UN_RAND,
-            "max-width": "50%",
-            color: C.slab,
+            display: "block",
+            "margin-top": "2px",
+            color: C.stins,
             "font-size": "13px",
           }}
         >
-          {props.detaliu}
+          {props.text}
         </span>
-      </Show>
+      </span>
       <span style={{ display: "flex", color: C.slab }}>
-        <Symbol size={16}>chevron_right</Symbol>
+        <Symbol size={18}>chevron_right</Symbol>
       </span>
     </button>
   );
