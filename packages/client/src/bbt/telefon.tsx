@@ -3,6 +3,7 @@ import { JSX, Show } from "solid-js";
 import type { Message, User } from "stoat.js";
 
 import { C, DE_FONTE } from "./cont/ui";
+import { mesajSistem } from "./mesajSistem";
 import { durataVocal, formateazaDurata } from "./vocal/nume";
 
 /**
@@ -261,6 +262,8 @@ export function rezumatMesaj(
   cuAutor: boolean,
 ): string {
   if (!m) return "";
+  const sistem = mesajSistem(m, euId);
+  if (sistem) return sistem.text;
   const f = m.attachments?.[0];
   let text = (m.content ?? "").trim();
   if (!text && f) {
