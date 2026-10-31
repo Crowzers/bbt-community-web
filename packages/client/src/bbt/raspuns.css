@@ -253,8 +253,11 @@
   border: 0;
   background: transparent;
 }
+/* Griul bețelor abia se vedea pe roz: negrul la 50% dă 3,3:1 și lasă loc bețelor ascultate. */
 .bbt-bula-mea .bbt-vocal {
+  --bbt-bat: rgba(10, 10, 11, 0.5);
   --bbt-bat-ascultat: #0a0a0b;
+  --bbt-durata: #0a0a0b;
 }
 .bbt-bula .bbt-vocal > button:first-child {
   width: 36px;
@@ -275,4 +278,71 @@
 .bbt-bula-mea .bbt-vocal > button:first-child {
   background: #0a0a0b;
   color: #fff;
+}
+
+/* Mișcarea aplicației (`mobil/src/ui/miscare.ts`), aceleași cifre. Tempo 100 BPM: bătaia 600 ms, optimea 300 ms. */
+.bbt-moale {
+  transition: transform 160ms ease-out;
+}
+.bbt-moale:active {
+  transform: scale(0.88);
+}
+/* Mâna din salut: un legănat egal, cinci mișcări de câte o bătaie. Se rotește din încheietură, nu din centru. */
+.bbt-mana {
+  display: inline-block;
+  transform-origin: 70% 70%;
+  animation: bbt-mana 3s ease-in-out infinite;
+}
+@keyframes bbt-mana {
+  20%,
+  60% {
+    transform: rotate(12deg);
+  }
+  40%,
+  80% {
+    transform: rotate(-6deg);
+  }
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bbt-mana {
+    animation: none;
+  }
+  .bbt-moale,
+  .bbt-moale:active {
+    transition: none;
+    transform: none;
+  }
+}
+/* Mesajul venit cât te uiți urcă din bara de scris și se așază (arcul `aparitie` din aplicație). */
+.bbt-intrare {
+  animation: bbt-intrare 300ms cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+@keyframes bbt-intrare {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.94);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bbt-intrare {
+    animation: none;
+  }
+}
+/* Foaia de jos pe telefon: urcă în 200 ms, ca foile din aplicație (`mobil/src/ui/Foaie.tsx`). */
+.bbt-foaie {
+  animation: bbt-foaie 200ms ease-out;
+}
+@keyframes bbt-foaie {
+  from {
+    transform: translateY(100%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bbt-foaie {
+    animation: none;
+  }
 }

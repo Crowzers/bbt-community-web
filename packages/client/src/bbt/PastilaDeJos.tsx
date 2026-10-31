@@ -25,7 +25,7 @@ import { AvatarOm, IconBalon, IconBilet, IconDiez } from "./telefon";
 type Tab = "comunitate" | "mesaje" | "experiente" | "profil";
 
 const NEGRU = "#0A0A0B";
-const ROZ = "#FFB3D9";
+const ROZ = "#FFA8CD";
 const ALB = "#FFFFFF";
 
 const TABURI: { id: Tab; eticheta: string; Icon: typeof IconDiez }[] = [
@@ -124,6 +124,7 @@ export function PastilaDeJos() {
               return (
                 <button
                   type="button"
+                  class="bbt-moale"
                   aria-label={t.eticheta}
                   aria-current={eActiv() ? "page" : undefined}
                   onClick={() => mergi(t.id)}
@@ -140,9 +141,9 @@ export function PastilaDeJos() {
                     border: 0,
                     background: eActiv() ? ROZ : "transparent",
                     color: eActiv() ? NEGRU : ALB,
-                    // Pastila roz „curge" spre tab-ul nou, ca `LayoutAnimation` din aplicație (220 ms).
+                    // Pastila roz „curge" spre tab-ul nou și se așază elastic, ca în aplicație. 300 ms = o optime la 100 BPM.
                     transition:
-                      "padding 220ms ease-in-out, background-color 220ms ease-in-out",
+                      "padding 300ms cubic-bezier(.34,1.56,.64,1), background-color 220ms ease-in-out, transform 160ms ease-out",
                     "font-family": "Inter, sans-serif",
                     cursor: "pointer",
                     "-webkit-tap-highlight-color": "transparent",
@@ -176,6 +177,7 @@ export function PastilaDeJos() {
           {/* Avatarul stă într-un buton de 46, ca tab-urile; 34 + 2 × 3 de inel = 40, ca în 19a. */}
           <button
             type="button"
+            class="bbt-moale"
             aria-label="Profil"
             aria-current={activ() === "profil" ? "page" : undefined}
             onClick={() => mergi("profil")}

@@ -18,9 +18,11 @@ import { useNavigate } from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
+import { AntetPagina, LOC_SUB_ANTET } from "./AntetPagina";
 import { C } from "./cont/ui";
 import { mesajSistem } from "./mesajSistem";
 import { LOC_PASTILA } from "./PastilaDeJos";
+import { trimiteCererea } from "./relatii";
 import {
   AvatarOm,
   CERC_40,
@@ -94,29 +96,20 @@ export function MesajeTelefon(props: { conversations: () => Channel[] }) {
         "flex-grow": 1,
         "min-height": 0,
         width: "100%",
-        "padding-top": "env(safe-area-inset-top)",
         "box-sizing": "border-box",
         background: C.fundal,
         color: C.text,
         "font-family": "Inter, sans-serif",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          "align-items": "center",
-          gap: "8px",
-          padding: "8px 20px 12px",
-          "min-height": "56px",
-          "box-sizing": "border-box",
-        }}
-      >
+      <AntetPagina>
         <h1 style={{ ...TITLU_PAGINA, flex: 1 }}>Mesaje</h1>
         <button
           type="button"
+          class="bbt-moale"
           aria-label="Caută o persoană"
           onClick={() => setCauta(cauta() === null ? "" : null)}
-          style={CERC_40}
+          style={{ ...CERC_40, background: C.fundal }}
         >
           <Show when={cauta() === null} fallback={<Symbol size={18}>close</Symbol>}>
             <IconCautare />
@@ -124,14 +117,25 @@ export function MesajeTelefon(props: { conversations: () => Channel[] }) {
         </button>
         <button
           type="button"
+          class="bbt-moale"
           aria-label="Mesaj nou"
           onClick={() => setNou(true)}
           style={{ ...CERC_40, background: C.negru, color: C.peNegru }}
         >
           <IconPlus />
         </button>
-      </div>
+      </AntetPagina>
 
+      {/* Căutarea și cipurile merg cu lista, ca la Comunitate: pagina albă trece pe sub antet și sub colțurile lui. */}
+      <div
+        style={{
+          "flex-grow": 1,
+          "min-height": 0,
+          "overflow-y": "auto",
+          "padding-top": LOC_SUB_ANTET,
+          "padding-bottom": LOC_PASTILA,
+        }}
+      >
       <Show when={cauta() !== null}>
         <label
           style={{
@@ -194,14 +198,6 @@ export function MesajeTelefon(props: { conversations: () => Channel[] }) {
         </Show>
       </div>
 
-      <div
-        style={{
-          "flex-grow": 1,
-          "min-height": 0,
-          "overflow-y": "auto",
-          "padding-bottom": LOC_PASTILA,
-        }}
-      >
         <Show
           when={filtru() !== "cereri"}
           fallback={<For each={cereri()}>{(om) => <RandCerere om={om} />}</For>}
@@ -353,6 +349,7 @@ function RandConversatie(props: { canal: Channel; euId: string | undefined }) {
 }
 
 function RandCerere(props: { om: User }) {
+  const client = useClient();
   const [lucreaza, setLucreaza] = createSignal(false);
   const actiune = (f: () => Promise<unknown>) => async () => {
     setLucreaza(true);
@@ -392,7 +389,7 @@ function RandCerere(props: { om: User }) {
       >
         {props.om.displayName}
       </span>
-      {buton("Acceptă", true, () => props.om.addFriend())}
+      {buton("Acceptă", true, () => trimiteCererea(client(), props.om))}
       {buton("Refuză", false, () => props.om.removeFriend())}
     </div>
   );

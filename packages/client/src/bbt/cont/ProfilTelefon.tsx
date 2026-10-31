@@ -4,9 +4,12 @@ import { useClientLifecycle } from "@revolt/client";
 import { useNavigate } from "@revolt/routing";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
+import { AntetPagina, LOC_SUB_ANTET } from "../AntetPagina";
 import { BBT_SITE_URL } from "../config";
 import { LOC_PASTILA } from "../PastilaDeJos";
 import { CERC_40, IconCamera, IconRotita, TITLU_PAGINA, deFonte, UN_RAND } from "../telefon";
+
+import { comutaSunetele, sunetePornite } from "../sunete";
 
 import { useCont, useExperiente } from "./date";
 import { useEtichete } from "./Setari";
@@ -56,40 +59,35 @@ export function ProfilTelefon() {
   return (
     <div
       style={{
+        display: "flex",
+        "flex-direction": "column",
         width: "100%",
         height: "100%",
-        "overflow-y": "auto",
         background: C.fundal,
         color: C.text,
       }}
     >
+      <AntetPagina>
+        <h1 style={{ ...TITLU_PAGINA, flex: 1 }}>Profil</h1>
+        <button
+          type="button"
+          class="bbt-moale"
+          aria-label="Setări"
+          onClick={() => navigate("/cont/profil")}
+          style={{ ...CERC_40, background: C.fundal }}
+        >
+          <IconRotita />
+        </button>
+      </AntetPagina>
+      <div style={{ "flex-grow": 1, "min-height": 0, "overflow-y": "auto" }}>
       <div
         style={{
           display: "flex",
           "flex-direction": "column",
           gap: "10px",
-          padding:
-            "calc(env(safe-area-inset-top) + 8px) 12px " + LOC_PASTILA,
+          padding: `${LOC_SUB_ANTET} 12px ${LOC_PASTILA}`,
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            "align-items": "center",
-            padding: "0 8px",
-            "margin-bottom": "4px",
-          }}
-        >
-          <h1 style={{ ...TITLU_PAGINA, flex: 1 }}>Profil</h1>
-          <button
-            type="button"
-            aria-label="Setări"
-            onClick={() => navigate("/cont/profil")}
-            style={CERC_40}
-          >
-            <IconRotita />
-          </button>
-        </div>
 
         {/* Cardul de sus: raza 32, 16 de jur împrejur, totul centrat. Tot el duce la profilul public. */}
         <a
@@ -263,6 +261,11 @@ export function ProfilTelefon() {
           <Rand
             text="Notificări"
             laApasare={() => navigate("/cont/notificari")}
+          />
+          <Rand
+            text="Sunete"
+            detaliu={sunetePornite() ? "Pornite" : "Oprite"}
+            laApasare={comutaSunetele}
             ultim
           />
         </div>
@@ -298,6 +301,7 @@ export function ProfilTelefon() {
         >
           Ieși din cont
         </button>
+      </div>
       </div>
 
       <Show when={iesire()}>

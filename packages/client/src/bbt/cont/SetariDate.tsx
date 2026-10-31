@@ -27,7 +27,7 @@ import {
  */
 
 /** Copia lui `website/src/lib/judete.ts`. */
-const JUDETE = [
+export const JUDETE = [
   "Alba",
   "Arad",
   "Argeș",
@@ -72,7 +72,7 @@ const JUDETE = [
   "București",
 ] as const;
 
-const LUNI = [
+export const LUNI = [
   "ianuarie",
   "februarie",
   "martie",
@@ -86,7 +86,7 @@ const LUNI = [
   "noiembrie",
   "decembrie",
 ];
-const TARI = [
+export const TARI = [
   "România",
   "Moldova",
   "Ungaria",
@@ -119,7 +119,7 @@ export function DatePersonale(props: { p: Participant }) {
   const [stare, setStare] = createSignal<Stare>(null);
 
   const data = p0.dataNasterii?.slice(0, 10).split("-") ?? [];
-  const [f, setF] = createSignal({
+  const f0 = {
     telefon: p0.telefon ?? "",
     luna: data[1] ? String(Number(data[1])) : "",
     an: data[0] ?? "",
@@ -128,7 +128,8 @@ export function DatePersonale(props: { p: Participant }) {
     judet: p0.judet ?? "",
     adresa: p0.adresa ?? "",
     gen: p0.gen ?? "",
-  });
+  };
+  const [f, setF] = createSignal(f0);
   const pune = (camp: keyof ReturnType<typeof f>, v: string) =>
     setF((x) => ({ ...x, [camp]: v }));
 
@@ -163,8 +164,11 @@ export function DatePersonale(props: { p: Participant }) {
         method: "PUT",
         body: JSON.stringify({
           telefon: x.telefon,
-          dataNasterii:
-            x.luna && x.an ? `${x.an}-${x.luna.padStart(2, "0")}-01` : null,
+          // Doar dacă s-a schimbat: formularul are lună și an, deci o salvare oarecare ar pierde ziua nașterii.
+          ...((x.luna !== f0.luna || x.an !== f0.an) && {
+            dataNasterii:
+              x.luna && x.an ? `${x.an}-${x.luna.padStart(2, "0")}-01` : null,
+          }),
           tara: x.tara,
           oras: x.oras,
           judet: x.judet,
@@ -346,7 +350,7 @@ export function DatePersonale(props: { p: Participant }) {
 }
 
 /** Codul prin SMS. Aceleași rute ca pe site: `auth/phone/send-otp` și `verify-otp`. */
-function VerificareTelefon(props: {
+export function VerificareTelefon(props: {
   telefon: string;
   laVerificat: () => void;
 }) {

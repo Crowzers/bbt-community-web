@@ -11,6 +11,9 @@ import { BBT_ADMIN_URL, BBT_SITE_URL } from "../config";
 import { cerereCont, uitaTokenBbt } from "../tokenBbt";
 
 import { CHEIE_CONT, useCont, useSesiune } from "./date";
+import { comutaSunetele, sunetePornite } from "../sunete";
+
+import { ListaNotificari } from "./Notificari";
 import { DateFacturare, DatePersonale } from "./SetariDate";
 import type { Participant } from "./tipuri";
 import {
@@ -43,7 +46,7 @@ import {
 type Stare = { tip: "ok" | "err"; text: string } | null;
 
 /** Pagina cu datele contului încărcate; formularele se remontează doar la ALT cont (vezi `keyed`). */
-function CuCont(props: {
+export function CuCont(props: {
   children: (p: Participant) => import("solid-js").JSX.Element;
 }) {
   const cont = useCont();
@@ -390,7 +393,7 @@ function ValoareFixa(props: { eticheta: string; valoare: string }) {
  * ⚠️ Ruta primește cel mult 400 000 de caractere (~300 KB): poza se taie pătrat și se micșorează la 300 × 300
  * înainte, ca pe site.
  */
-function SchimbaPoza(props: { p: Participant }) {
+export function SchimbaPoza(props: { p: Participant }) {
   const sesiune = useSesiune();
   const qc = useQueryClient();
   const [lucrez, setLucrez] = createSignal(false);
@@ -550,23 +553,6 @@ export function DatePersonaleCont() {
   );
 }
 
-/**
- * Pe telefon, „Editează profilul" ține tot: profilul public și datele de mai sus, pe un singur ecran, ca în aplicație
- * (cererea userului, 31 oct: cele două pagini păreau același lucru). Desktopul își păstrează cele două pagini din meniu.
- */
-export function EditeazaProfilTelefon() {
-  return (
-    <CuCont>
-      {(p) => (
-        <div style={coloana}>
-          <FormularProfil p={p} />
-          <SectiuniDate p={p} />
-        </div>
-      )}
-    </CuCont>
-  );
-}
-
 /** Numele real (apare pe factură). Numele de scenă și adresa profilului stau în Profil public. */
 function NumeReal(props: { p: Participant }) {
   const p0 = untrack(() => props.p);
@@ -648,6 +634,31 @@ export function NotificariCont() {
     <>
       <TitluPagina>Notificări</TitluPagina>
       <div style={coloana}>
+        <ListaNotificari />
+        <Sectiune titlu="Sunete">
+          <div
+            style={{
+              display: "flex",
+              "align-items": "center",
+              "justify-content": "space-between",
+              gap: "12px",
+              "flex-wrap": "wrap",
+            }}
+          >
+            <span
+              style={{
+                color: C.stins,
+                "font-size": "16px",
+                "line-height": "1.45",
+              }}
+            >
+              Note de marimba la reacții și la mesajele trimise.
+            </span>
+            <Buton piele="alb" mic onClick={comutaSunetele}>
+              {sunetePornite() ? "Oprește" : "Pornește"}
+            </Buton>
+          </div>
+        </Sectiune>
         <Sectiune titlu="Community">
           <div
             style={{
@@ -690,7 +701,7 @@ export function NotificariCont() {
 
 /* ── Date cont, parolă, zona de risc ─────────────────────────────────────────────────────── */
 
-function DateCont(props: { p: Participant }) {
+export function DateCont(props: { p: Participant; faraTelefon?: boolean }) {
   const [parola, setParola] = createSignal(false);
   return (
     <Sectiune titlu="Date cont">
@@ -703,7 +714,7 @@ function DateCont(props: { p: Participant }) {
             </span>
           </Show>
         </RandValoare>
-        <Show when={props.p.telefon}>
+        <Show when={props.p.telefon && !props.faraTelefon}>
           <RandValoare eticheta="Telefon">
             {props.p.telefon}
             <span
@@ -839,7 +850,7 @@ function SchimbaParola(props: { laGata: () => void }) {
   );
 }
 
-function ZonaDeRisc() {
+export function ZonaDeRisc() {
   const sesiune = useSesiune();
   const { logout } = useClientLifecycle();
   const [confirm, setConfirm] = createSignal<

@@ -67,7 +67,7 @@ export function PastilaRaspunsuri(props: { mesajId: string }) {
             "margin-top": "6px",
             "align-self": "flex-start",
             padding: lat() ? "5px 10px 5px 5px" : "6px 12px 6px 6px",
-            border: "1.5px solid #FFB3D9",
+            border: "1.5px solid #FFA8CD",
             "border-radius": "999px",
             background: lat() ? "#FFFFFF" : "#FFEEF5",
             color: "#0A0A0B",

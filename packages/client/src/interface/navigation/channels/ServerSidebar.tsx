@@ -363,7 +363,7 @@ function ServerInfo(
               "font-size": "12px",
               "font-weight": 700,
               "line-height": "1.3",
-              color: "#1E9E62",
+              color: "#216043",
             }}
           >
             ●{" "}
@@ -613,7 +613,7 @@ function Entry(
           class="cerc"
           style={{
             background: props.active
-              ? "#FFB3D9"
+              ? "#FFA8CD"
               : CULORI_CANAL[culoareCanal(props.channel.id)],
           }}
         >
@@ -668,7 +668,7 @@ const CULORI_CANAL = [
   "#99E9C4",
   "#E9CCFF",
   "#F2F2F3",
-  "#FFE4F1",
+  "#FEDCEC",
 ];
 function culoareCanal(id: string) {
   let h = 0;
@@ -725,7 +725,7 @@ const RandCanal = styled("a", {
       boxSizing: "border-box",
       borderRadius: "999px",
       // Cifra roz cu text negru, ca în 21a și în lista de mesaje.
-      background: "#FFB3D9",
+      background: "#FFA8CD",
       color: "#0A0A0B",
       fontSize: "12px",
       fontWeight: 700,

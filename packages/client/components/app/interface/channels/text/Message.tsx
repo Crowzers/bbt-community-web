@@ -11,6 +11,7 @@ import {
   Switch,
   useContext,
 } from "solid-js";
+import { sunetReactie } from "../../../../../src/bbt/sunete";
 
 import { useLingui } from "@lingui/solid/macro";
 import { Message as MessageInterface } from "stoat.js";
@@ -157,7 +158,10 @@ export function Message(props: Props) {
    * React with an emoji
    * @param emoji Emoji
    */
-  const react = (emoji: string) => props.message.react(emoji);
+  const react = (emoji: string) => {
+    sunetReactie();
+    return props.message.react(emoji);
+  };
 
   /**
    * Remove emoji reaction
@@ -529,7 +533,7 @@ export function Message(props: Props) {
                 "font-size": "15px",
                 background:
                   props.message.authorId === client().user?.id
-                    ? "#FFB3D9"
+                    ? "#FFA8CD"
                     : "#FFFFFF",
                 color: "#0A0A0B",
               }}

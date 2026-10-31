@@ -97,7 +97,7 @@ function AntetLat(props: Props) {
                 "align-items": "center",
                 "justify-content": "center",
                 "border-radius": "50%",
-                background: "#FFB3D9",
+                background: "#FFA8CD",
                 color: "#0A0A0B",
               }}
             >
@@ -184,7 +184,7 @@ function AntetLat(props: Props) {
                 display: "block",
                 "font-size": "12px",
                 "font-weight": 700,
-                color: props.channel.recipient?.online ? "#1E9E62" : "#8D8D9A",
+                color: props.channel.recipient?.online ? "#216043" : "#8D8D9A",
               }}
             >
               {props.channel.recipient?.online ? "online" : "offline"}

@@ -18,6 +18,8 @@ import {
   Text,
 } from "@revolt/ui";
 
+import { AlegeBeanbag } from "../../../../../src/bbt/AlegeBeanbag";
+import { fisierBeanbag } from "../../../../../src/bbt/beanbagCanale";
 import { cropProcess } from "@revolt/modal/modals/CropProcess";
 import { ChannelSettingsProps } from "../ChannelSettings";
 
@@ -122,6 +124,12 @@ export default function ChannelOverview(props: ChannelSettingsProps) {
               allowModeToggle: false,
               dialogTitle: t`Crop Channel Icon`,
             })}
+          />
+          <AlegeBeanbag
+            laSchimbare={async (alegere, catalog) => {
+              editGroup.controls.icon.setValue([await fisierBeanbag(catalog, alegere)]);
+              editGroup.controls.icon.markDirty(true);
+            }}
           />
           <Form2.TextField
             minlength={1}

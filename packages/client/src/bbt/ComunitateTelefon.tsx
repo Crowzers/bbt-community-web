@@ -7,6 +7,7 @@ import {
   createMemo,
   createSignal,
   on,
+  onMount,
 } from "solid-js";
 
 import type { Channel } from "stoat.js";
@@ -19,13 +20,17 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { orderedCategories } from "../interface/navigation/channels/ordering";
 
-import { ora, useCont, useExperiente } from "./cont/date";
+import { AntetPagina, LOC_SUB_ANTET } from "./AntetPagina";
+import { AvatarCanal } from "./AvatarCanal";
+import { ora, useCont, useExperiente, useNotificari } from "./cont/date";
 import { QrMare } from "./cont/Experiente";
 import type { Experienta } from "./cont/tipuri";
 import { C } from "./cont/ui";
 import { LOC_PASTILA } from "./PastilaDeJos";
 import {
+  CERC_40,
   Cip,
+  IconClopotel,
   IconQR,
   TITLU_PAGINA,
   UN_RAND,
@@ -49,6 +54,7 @@ export function ComunitateTelefon() {
   const client = useClient();
   const cont = useCont();
   const experiente = useExperiente();
+  const notificari = useNotificari();
   const navigate = useNavigate();
   const [categorie, setCategorie] = createSignal<string | null>(null);
 
@@ -84,9 +90,32 @@ export function ComunitateTelefon() {
       .users.toList()
       .filter((u) => u.online).length;
 
-  // Salutul: prenumele din contul BBT; fără el, primul cuvânt din numele de pe Community.
+  // Salutul: numele de scenă, dacă omul are unul, apoi prenumele din contul BBT; fără ele, primul cuvânt de pe Community.
   const salut = () =>
-    cont.data?.prenume ?? client().user?.displayName.split(/\s+/)[0] ?? "";
+    cont.data?.numeAfisat?.trim() ||
+    cont.data?.prenume ||
+    client().user?.displayName.split(/\s+/)[0] ||
+    "";
+
+  const necitite = () => notificari.data?.necitite ?? 0;
+
+  // Întâi pe un rând; dacă textul iese pe mai multe, numele trece întreg dedesubt. Se reface când se schimbă numele.
+  const [peDouaRanduri, setPeDouaRanduri] = createSignal(false);
+  let titlu!: HTMLHeadingElement;
+  createEffect(
+    on(salut, () => {
+      setPeDouaRanduri(false);
+      queueMicrotask(() => {
+        if (titlu.offsetHeight > 46) setPeDouaRanduri(true);
+      });
+    }),
+  );
+  // De Fonte vine după primul desen, iar cu el se schimbă lățimea textului.
+  onMount(() => {
+    void document.fonts.ready.then(() => {
+      if (titlu.offsetHeight > 46) setPeDouaRanduri(true);
+    });
+  });
 
   const azi = () => {
     const active = experiente.data?.active ?? [];
@@ -120,59 +149,112 @@ export function ComunitateTelefon() {
       }}
     >
       {/* Salutul și „online" stau fix deasupra listei; cardul de azi și cipurile se derulează cu ea, ca în aplicație. */}
-      <div style={{ padding: "calc(env(safe-area-inset-top) + 8px) 20px 12px" }}>
-        <Show when={online() > 0}>
-          {/* ⚠️ `float`, nu o coloană alături: ocupă doar primul rând, ca „Emeric-Adrian" să aibă tot rândul al doilea
-              și să nu se rupă la cratimă. 38 (rândul titlului) - 16 (rândul textului) = 22, jumătate 11. */}
-          <div
+      <AntetPagina stil={{ "align-items": "flex-start" }}>
+        <div style={{ flex: 1, "min-width": 0 }}>
+          {/* Un nume lung trece ÎNTREG pe al doilea rând. Clopoțelul stă peste rând, în dreapta: pe un singur rând îi
+              păstrăm locul, iar pe două stă lângă „Hei," și lasă numelui toată lățimea. Spațiul care nu se rupe ține mâna
+              lipită de ultimul cuvânt. */}
+          <h1
+            ref={titlu}
             style={{
-              float: "right",
-              display: "flex",
-              "align-items": "center",
-              gap: "5px",
-              "margin-top": "11px",
-              "margin-left": "12px",
+              ...TITLU_PAGINA,
+              "padding-right": peDouaRanduri() ? 0 : "52px",
+              "overflow-wrap": "anywhere",
             }}
           >
-            <span
+            Hei
+            <Show when={salut()}>
+              {","}
+              {peDouaRanduri() ? <br /> : " "}
+              {salut()}
+            </Show>
+            {" "}
+            <span class="bbt-mana">👋</span>
+          </h1>
+          <Show when={online() > 0}>
+            <div
               style={{
-                width: "7px",
-                height: "7px",
-                "border-radius": "4px",
-                background: C.verde,
-              }}
-            />
-            <span
-              style={{
-                color: C.verde,
-                "font-size": "13px",
-                "line-height": "16px",
-                "font-weight": 700,
+                display: "flex",
+                "align-items": "center",
+                gap: "5px",
+                "margin-top": "2px",
               }}
             >
-              {online()} online
-            </span>
-          </div>
-        </Show>
-        {/* Un nume lung trece ÎNTREG pe al doilea rând: e `inline-block`, deci se mută tot, nu se rupe la mijloc. */}
-        <h1 style={TITLU_PAGINA}>
-          Hei
-          <Show when={salut()}>
-            {", "}
-            <span style={{ display: "inline-block", "max-width": "100%" }}>
-              {salut()}
-              {" "}👋
+              <span
+                style={{
+                  width: "7px",
+                  height: "7px",
+                  "border-radius": "4px",
+                  background: C.verde,
+                }}
+              />
+              {/* Negru, nu verde: pe antetul roz verdele scris nu se citește. Spune „online" punctul de lângă el. */}
+              <span
+                style={{
+                  color: C.text,
+                  "font-size": "13px",
+                  "line-height": "16px",
+                  "font-weight": 700,
+                }}
+              >
+                {online()} online
+              </span>
+            </div>
+          </Show>
+        </div>
+        <button
+          type="button"
+          class="bbt-moale"
+          aria-label={
+            necitite() > 0 ? `Notificări, ${necitite()} necitite` : "Notificări"
+          }
+          onClick={() => navigate("/cont/notificari")}
+          style={{
+            ...CERC_40,
+            position: "absolute",
+            top: 0,
+            right: 0,
+            // Sticla din aplicație, cât se poate în browser.
+            background: "rgba(255,255,255,0.45)",
+            "-webkit-backdrop-filter": "blur(14px) saturate(1.6)",
+            "backdrop-filter": "blur(14px) saturate(1.6)",
+            "box-shadow":
+              "inset 0 0 0 0.5px rgba(255,255,255,0.8), 0 2px 8px rgba(10,10,11,0.08)",
+          }}
+        >
+          <IconClopotel />
+          <Show when={necitite() > 0}>
+            <span
+              style={{
+                position: "absolute",
+                top: "-4px",
+                right: "-6px",
+                "min-width": "18px",
+                height: "18px",
+                padding: "0 4px",
+                "box-sizing": "border-box",
+                display: "flex",
+                "align-items": "center",
+                "justify-content": "center",
+                "border-radius": "9px",
+                background: C.negru,
+                color: C.peNegru,
+                "font-size": "11px",
+                "font-weight": 800,
+              }}
+            >
+              {necitite() > 99 ? "99+" : necitite()}
             </span>
           </Show>
-          <Show when={!salut()}>{" "}👋</Show>
-        </h1>
-      </div>
+        </button>
+      </AntetPagina>
 
       <div
         style={{
           "flex-grow": 1,
           "min-height": 0,
           "overflow-y": "auto",
+          "padding-top": LOC_SUB_ANTET,
           "padding-bottom": LOC_PASTILA,
         }}
       >
@@ -259,7 +341,7 @@ function CardAzi(props: { e: Experienta; laTabara: () => void }) {
           "border-radius": "24px",
           background: C.roz,
           // Umbra colorată din 19: cardul plutește în rozul lui.
-          "box-shadow": "0 8px 18px rgba(255,179,217,0.7)",
+          "box-shadow": "0 8px 18px rgba(255,168,205,0.7)",
           color: C.text,
           "font-family": "inherit",
           "text-align": "left",
@@ -331,21 +413,6 @@ function CardAzi(props: { e: Experienta; laTabara: () => void }) {
   );
 }
 
-/** Culoarea cercului din stânga, ca în 19a: aleasă după id, ca un canal să-și păstreze culoarea. Nu spune nimic. */
-const PLACI = [
-  C.roz,
-  C.galben,
-  C.verdeDeschis,
-  "#DCEEFF",
-  "#F8F0FF",
-  C.foaie,
-];
-function culoarePlaca(id: string) {
-  let h = 0;
-  for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return PLACI[h % PLACI.length];
-}
-
 function RandCanal(props: { canal: Channel; euId: string | undefined }) {
   const state = useState();
   const navigate = useNavigate();
@@ -387,24 +454,7 @@ function RandCanal(props: { canal: Channel; euId: string | undefined }) {
         "text-decoration": "none",
       }}
     >
-      <span
-        style={{
-          width: "36px",
-          height: "36px",
-          "flex-shrink": 0,
-          display: "flex",
-          "align-items": "center",
-          "justify-content": "center",
-          "border-radius": "18px",
-          background: culoarePlaca(props.canal.id),
-          "font-size": "14px",
-          "font-weight": 800,
-        }}
-      >
-        <Show when={props.canal.isVoice} fallback="#">
-          <Symbol size={18}>headphones</Symbol>
-        </Show>
-      </span>
+      <AvatarCanal canal={props.canal} marime={44} />
       <span style={{ flex: 1, "min-width": 0 }}>
         <span
           style={{

@@ -14,6 +14,8 @@ import {
   ContextMenuButton,
   ContextMenuDivider,
 } from "./ContextMenu";
+import { trimiteCererea } from "../../../src/bbt/relatii";
+
 import { NotificationContextMenu } from "./shared/NotificationContextMenu";
 
 /**
@@ -180,7 +182,7 @@ export function UserContextMenu(props: {
    * Add friend
    */
   function addFriend() {
-    props.user.addFriend();
+    void trimiteCererea(client(), props.user);
   }
 
   /**

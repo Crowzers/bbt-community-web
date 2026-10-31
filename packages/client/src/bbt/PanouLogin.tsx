@@ -36,7 +36,7 @@ type Ecran = "formular" | "fara-acces" | "inchis" | "indisponibil";
 
 const LINIE = "#E5E5E5";
 const FOAIE = "#FFFFFF";
-const ROZ = "#FFB3D9";
+const ROZ = "#FFA8CD";
 const STINS = "#6C6C6D";
 
 /** Drumurile spre acces, în ordinea de pe site. Se deschid în browser, nu în locul hub-ului. */

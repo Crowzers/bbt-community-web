@@ -4,10 +4,13 @@
  * ⚠️ Fișierul „-RO", nu cel de pe site: varianta site-ului n-are ș/ț cu virgulă și le desenează cu fontul de rezervă
  * („Experiențele" ieșea cu un ț străin). E același fișier ca în aplicația de telefon (`mobil/assets/fonte/`).
  * O singură grosime (DemiGras); fără `font-synthesis`, ca browserul să n-o îngroașe fals.
+ * ⚠️ „FaraLegaturi": fontul lipește „er", „ft", „tt", „st", „un" într-o singură glifă (cererea userului, 31 oct). Fișierul
+ * se face cu `website/docs/fonts/scoate-legaturi.mjs` din repo-ul platformei. Numele nou, nu același: un PWA instalat ar
+ * fi rămas pe fontul vechi din cache.
  */
 @font-face {
   font-family: "De Fonte BBT";
-  src: url("/assets/fonts/DeFontePlus-DemiGras-RO.ttf") format("truetype");
+  src: url("/assets/fonts/DeFontePlus-DemiGras-RO-FaraLegaturi.ttf") format("truetype");
   font-weight: 400 900;
   font-display: swap;
 }

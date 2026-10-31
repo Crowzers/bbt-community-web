@@ -20,8 +20,8 @@
  * `components/ui/themes/materialTheme.ts`.
  */
 
-const ROZ = "#FFB3D9";
-const ROZ_DESCHIS = "#FFE4F1";
+const ROZ = "#FFA8CD";
+const ROZ_DESCHIS = "#FEDCEC";
 const ROZ_INTENS = "#B85C86"; // hover și stare apăsată pe acțiuni
 /** Linkuri și mențiuni. Albastrul Slush (#4DA2FF) dă 2,65:1 pe alb; ca text se folosește varianta închisă a site-ului. */
 const ALBASTRU_TEXT = "#2C639E";

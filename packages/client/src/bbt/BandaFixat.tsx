@@ -42,8 +42,8 @@ export function BandaFixat(props: { channel: Channel; onVezi: () => void }) {
           margin: "10px 16px 0",
           padding: "8px 12px",
           "border-radius": "8px",
-          background: "#FFE4F1",
-          border: "1px solid #FFB3D9",
+          background: "#FEDCEC",
+          border: "1px solid #FFA8CD",
           display: "flex",
           "align-items": "center",
           gap: "10px",
@@ -51,7 +51,7 @@ export function BandaFixat(props: { channel: Channel; onVezi: () => void }) {
           "flex-shrink": 0,
         }}
       >
-        <span style={{ color: "#FFB3D9", display: "flex" }}>
+        <span style={{ color: "#FFA8CD", display: "flex" }}>
           <Symbol size={15}>keep</Symbol>
         </span>
         <span

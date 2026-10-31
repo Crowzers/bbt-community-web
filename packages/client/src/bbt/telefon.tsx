@@ -85,6 +85,12 @@ function Icon(props: {
 
 type PropsIcon = { size?: number; color?: string };
 
+export const IconClopotel = (p: PropsIcon) => (
+  <Icon size={p.size ?? 18} linie={2.2} color={p.color}>
+    <path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9zM10.3 20.5a2 2 0 0 0 3.4 0" />
+  </Icon>
+);
+
 export const IconDiez = (p: PropsIcon) => (
   <Icon size={p.size ?? 22} linie={2.4} color={p.color}>
     <path d="M9 4 7 20M17 4l-2 16M4 9h17M3 15h17" />
@@ -140,18 +146,22 @@ export const IconRotita = (p: PropsIcon) => (
   </Icon>
 );
 
-/** Fundalurile cercului fără poză. Alese după id, ca un om să-și păstreze culoarea peste tot. */
+/**
+ * Fundalurile cercului fără poză. Alese după id, ca un om să-și păstreze culoarea peste tot. ⚠️ Tot șase, în aceeași ordine:
+ * alt număr de culori i-ar schimba culoarea fiecărui om. Griul și lila deschisă se topeau în fundalul firului, cu tot cu cerc
+ * (userul, 31 oct), așa că au două tonuri mai pline, aceleași ca în aplicație.
+ */
 const FUNDALURI = [
   "#DCEEFF",
   C.galbenDeschis,
   C.verdeDeschis,
-  "#F8F0FF",
+  "#E9CCFF",
   C.rozDeschis,
-  C.foaie,
+  "#FEDBCD",
 ];
 
 function fundal(id: string | undefined) {
-  if (!id) return C.foaie;
+  if (!id) return C.rozDeschis;
   let h = 0;
   for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   return FUNDALURI[h % FUNDALURI.length];

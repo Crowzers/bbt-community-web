@@ -15,6 +15,7 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 import { Message } from "../../components/app/interface/channels/text/Message";
 
 import { firDeschis, grupare, inchideFir, numarRaspunsuri } from "./fir";
+import { sunetTrimis } from "./sunete";
 import { CERC_40, IconInapoi, UN_RAND, deFonte } from "./telefon";
 
 /** Cât trece între două mesaje ale aceluiași om ca al doilea să stea lipit de primul, ca în canal (`Messages.tsx`). */
@@ -78,7 +79,6 @@ export function FirRaspunsuri(props: { channel: Channel }) {
           <div
             style={{
               ...deFonte(20),
-              "letter-spacing": "-.04em",
               color: "#0A0A0B",
             }}
           >
@@ -128,7 +128,7 @@ export function FirRaspunsuri(props: { channel: Channel }) {
           "overflow-y": "auto",
           "margin-left": "30px",
           padding: "10px 6px 100px 0",
-          "border-left": "3px solid #FFB3D9",
+          "border-left": "3px solid #FFA8CD",
         }}
       >
         <For each={raspunsuri()}>
@@ -204,7 +204,6 @@ export function FirPanou(props: { channel: Channel }) {
           <div
             style={{
               ...deFonte(18),
-              "letter-spacing": "-.03em",
               color: "#0A0A0B",
             }}
           >
@@ -252,7 +251,7 @@ export function FirPanou(props: { channel: Channel }) {
           "overflow-y": "auto",
           "margin-left": "36px",
           padding: "10px 0",
-          "border-left": "3px solid #FFB3D9",
+          "border-left": "3px solid #FFA8CD",
         }}
       >
         <For each={raspunsuri()}>
@@ -282,6 +281,7 @@ function BaraFir(props: { channel: Channel }) {
         content: continut,
         replies: [{ id, mention: true }],
       });
+      sunetTrimis();
       setText("");
     } finally {
       setTrimit(false);
@@ -342,7 +342,7 @@ function BaraFir(props: { channel: Channel }) {
             padding: 0,
             border: 0,
             "border-radius": "50%",
-            background: "#FFB3D9",
+            background: "#FFA8CD",
             color: "#0A0A0B",
             opacity: text().trim() ? 1 : 0.35,
             cursor: "pointer",

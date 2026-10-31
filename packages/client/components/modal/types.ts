@@ -221,7 +221,7 @@ export type Modals =
   | {
       type: "report_content";
       client: Client;
-      target: Server | User | Message;
+      target: User | Message;
       contextMessage?: Message;
     }
   | {

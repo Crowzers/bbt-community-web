@@ -145,7 +145,7 @@ export function ApelPrimit() {
                     position: "absolute",
                     inset: 0,
                     "border-radius": "50%",
-                    background: "#FFB3D9",
+                    background: "#FFA8CD",
                     animation: "bbt-apel-unda 1.4s ease-out infinite",
                   }}
                 />

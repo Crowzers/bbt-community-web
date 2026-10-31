@@ -31,13 +31,15 @@ export const C = {
   stins: "#6C6C6D",
   /** Placeholder și metadate. */
   slab: "#8D8D9A",
-  roz: "#FFB3D9",
-  rozDeschis: "#FFE4F1",
+  roz: "#FFA8CD",
+  rozDeschis: "#FEDCEC",
+  /** Beanbag-ul mare de pe antetul `rozDeschis`: o treaptă peste fundal. */
+  rozBeanbag: "#FFCBE1",
   rozIntens: "#B85C86",
   negru: "#0A0A0B",
   peNegru: "#FFFFFF",
   /** Plătit, pe alb (verdele deschis al pastilelor nu se citește ca text). */
-  verde: "#1E9E62",
+  verde: "#216043",
   verdeDeschis: "#99E9C4",
   /** Ratele plătite din bara de progres. */
   verdeBara: "#55DB9C",

@@ -21,7 +21,7 @@ import { Telefon, esteSamsung } from "./instalare";
 
 const FOAIE = "#FFFFFF";
 const LINIE = "#E5E5E5";
-const ROZ = "#FFB3D9";
+const ROZ = "#FFA8CD";
 
 type Pas = { iconita: () => JSX.Element; text: JSX.Element };
 

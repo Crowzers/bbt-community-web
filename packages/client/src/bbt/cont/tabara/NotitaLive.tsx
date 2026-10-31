@@ -141,7 +141,7 @@ export function NotitaLive() {
             width: "8px",
             height: "8px",
             "border-radius": "50%",
-            background: stare() === "live" ? "#1E9E62" : C.slab,
+            background: stare() === "live" ? "#216043" : C.slab,
           }}
         />
         <span style={{ flex: 1 }}>{mesaj()}</span>

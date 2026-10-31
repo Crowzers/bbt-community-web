@@ -35,6 +35,8 @@ import {
 } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
+import { trimiteCererea } from "../bbt/relatii";
+
 import { HeaderIcon } from "./common/CommonHeader";
 
 /**
@@ -330,6 +332,7 @@ function Entry(
  * acceptare ar deschide și profilul peste.
  */
 function ActiuniRand(props: { user: User }) {
+  const client = useClient();
   const navigate = useNavigate();
   const [lucrez, setLucrez] = createSignal(false);
 
@@ -351,7 +354,7 @@ function ActiuniRand(props: { user: User }) {
         <ButonRand
           eticheta="Acceptă"
           plin
-          onClick={(e) => apasa(e, () => props.user.addFriend())}
+          onClick={(e) => apasa(e, () => trimiteCererea(client(), props.user))}
         >
           <Symbol>check</Symbol>
           Acceptă

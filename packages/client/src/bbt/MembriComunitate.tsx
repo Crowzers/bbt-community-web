@@ -10,7 +10,7 @@ import {
 } from "../interface/channels/text/MemberSidebar";
 
 import { C } from "./cont/ui";
-import { CERC_40, IconCautare, IconInapoi, UN_RAND, deFonte } from "./telefon";
+import { CERC_40, IconCautare, IconInapoi, UN_RAND } from "./telefon";
 
 const [membriDeschisi, setMembriDeschisi] = createSignal(false);
 
@@ -117,6 +117,7 @@ export function MembriComunitate(props: { channel: Channel }) {
         background: "#FFFFFF",
       }}
     >
+      {/* Antet simplu, ca ecranele din interior ale aplicației: săgeata la stânga, titlul pe centru, online și total dedesubt. */}
       <div
         style={{
           display: "flex",
@@ -127,32 +128,33 @@ export function MembriComunitate(props: { channel: Channel }) {
       >
         <button
           type="button"
+          class="bbt-moale"
           aria-label="Înapoi la canal"
           onClick={() => setMembriDeschisi(false)}
           style={{ ...CERC_40, width: "44px", height: "44px" }}
         >
           <IconInapoi />
         </button>
-        <div style={{ flex: 1, "min-width": 0 }}>
+        <div style={{ flex: 1, "min-width": 0, "text-align": "center" }}>
           <div
             style={{
-              ...deFonte(20),
-              "letter-spacing": "-.04em",
+              "font-size": "17px",
+              "line-height": "22px",
+              "font-weight": 600,
               color: "#0A0A0B",
             }}
           >
             Membri
           </div>
-          <div
-            style={{
-              ...UN_RAND,
-              "font-size": "12px",
-              color: "rgba(10,10,11,.6)",
-            }}
-          >
-            {membri().length} în comunitate · {online()} online
+          <div style={{ ...UN_RAND, "font-size": "12px", color: C.stins }}>
+            <span style={{ color: C.verde, "font-weight": 600 }}>
+              {online()} online
+            </span>
+            {` · ${membri().length} total`}
           </div>
         </div>
+        {/* Cât săgeata: fără el, titlul n-ar sta pe centrul ecranului. */}
+        <div style={{ width: "44px", "flex-shrink": 0 }} />
       </div>
       <CautareMembri valoare={cautare()} laSchimbare={setCautare} />
       <div

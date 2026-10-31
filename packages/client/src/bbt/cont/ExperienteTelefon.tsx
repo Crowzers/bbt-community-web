@@ -6,10 +6,11 @@ import { useClient } from "@revolt/client";
 import { useNavigate } from "@revolt/routing";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
+import { AnimatieLottie } from "../AnimatieLottie";
+import { AntetPagina, LOC_SUB_ANTET } from "../AntetPagina";
 import { BBT_SITE_URL } from "../config";
 import { LOC_PASTILA } from "../PastilaDeJos";
 import {
-  IconBilet,
   TITLU_PAGINA,
   UN_RAND,
   deFonte,
@@ -32,7 +33,7 @@ import { C, Incarcare } from "./ui";
  *
  * Ce e altfel decât în aplicație, dinadins:
  * - Fără „merge și offline": nu e adevărat în browser (ca în `Experiente.tsx`).
- * - Tap pe card: tabăra își deschide pagina, cursul duce la Plăți; workshopul are totul pe card (QR-ul).
+ * - Tap pe card = detaliul experienței (`Experienta.tsx`).
  */
 export function ExperienteTelefon() {
   const experiente = useExperiente();
@@ -43,12 +44,17 @@ export function ExperienteTelefon() {
   return (
     <div
       style={{
+        display: "flex",
+        "flex-direction": "column",
         width: "100%",
         height: "100%",
-        "overflow-y": "auto",
         background: C.fundal,
       }}
     >
+      <AntetPagina>
+        <h1 style={{ ...TITLU_PAGINA, flex: 1 }}>Experiențe</h1>
+      </AntetPagina>
+      <div style={{ "flex-grow": 1, "min-height": 0, "overflow-y": "auto" }}>
       <Show
         when={!experiente.isError || date()}
         fallback={
@@ -82,16 +88,9 @@ export function ExperienteTelefon() {
                   display: "flex",
                   "flex-direction": "column",
                   height: "100%",
-                  "padding-top": "calc(env(safe-area-inset-top) + 8px)",
                   "box-sizing": "border-box",
                 }}
               >
-                {/* 20h: titlul mare rămâne sus și pe ecranul gol. */}
-                <h1 style={{ ...TITLU, margin: "0 14px 4px" }}>
-                  Experiențele
-                  <br />
-                  tale
-                </h1>
                 <Gol />
               </div>
             }
@@ -101,16 +100,9 @@ export function ExperienteTelefon() {
                 display: "flex",
                 "flex-direction": "column",
                 gap: "12px",
-                padding:
-                  "calc(env(safe-area-inset-top) + 8px) 14px " + LOC_PASTILA,
+                padding: `${LOC_SUB_ANTET} 14px ${LOC_PASTILA}`,
               }}
             >
-              <h1 style={TITLU}>
-                Experiențele
-                <br />
-                tale
-              </h1>
-
               <For each={date()!.active}>
                 {(e, i) =>
                   i() === 0 ? <CardPrincipal e={e} /> : <CardGri e={e} />
@@ -217,15 +209,10 @@ export function ExperienteTelefon() {
           </Show>
         </Show>
       </Show>
+      </div>
     </div>
   );
 }
-
-const TITLU: JSX.CSSProperties = {
-  ...TITLU_PAGINA,
-  padding: "0 6px",
-  "margin-bottom": "4px",
-};
 
 const CENTRU: JSX.CSSProperties = {
   flex: 1,
@@ -304,7 +291,7 @@ function Stare(props: { e: Experienta }) {
 }
 
 /** Bara ratelor: câte o bucată pe rată, verde când e plătită. Se socotește din bani, ca în `mobil/src/cont/BaraRate.tsx`. */
-function BaraRate(props: { progres: NonNullable<Experienta["progres"]> }) {
+export function BaraRate(props: { progres: NonNullable<Experienta["progres"]> }) {
   const platite = () => {
     const peRata = props.progres.total / Math.max(1, props.progres.nrTranse);
     return Math.min(
@@ -381,13 +368,10 @@ function RandPlata(props: { e: Experienta; plata: PlataExperienta }) {
   );
 }
 
-/** Tap pe card = pagina taberei; un curs n-are pagină pe hub, deci duce la plățile lui. */
+/** Tap pe card = detaliul experienței (20d): plata pe rate, programul, documentele. */
 function useDeschide(e: () => Experienta) {
   const navigate = useNavigate();
-  return () => {
-    if (e().fel === "camp") navigate(`/cont/tabara/${e().id}`);
-    else if (e().fel === "curs") navigate("/cont/plati");
-  };
+  return () => navigate(`/cont/experienta/${e().id}`);
 }
 
 function CardPrincipal(props: { e: Experienta }) {
@@ -402,7 +386,7 @@ function CardPrincipal(props: { e: Experienta }) {
         "border-radius": "32px",
         background: C.roz,
         // Umbra colorată din 19: cardul de azi plutește în rozul lui.
-        "box-shadow": "0 8px 18px rgba(255,179,217,0.7)",
+        "box-shadow": "0 8px 18px rgba(255,168,205,0.7)",
         color: C.text,
       }}
     >
@@ -573,22 +557,8 @@ function CardGri(props: { e: Experienta }) {
 function Gol() {
   return (
     <div style={CENTRU}>
-      {/* 20h: plăcuța de 120 cu raza 40, umbra roz, textul 14. */}
-      <div
-        style={{
-          width: "120px",
-          height: "120px",
-          display: "flex",
-          "align-items": "center",
-          "justify-content": "center",
-          "border-radius": "40px",
-          background: C.roz,
-          "box-shadow": "0 8px 18px rgba(255,179,217,0.7)",
-          color: C.text,
-        }}
-      >
-        <IconBilet size={44} />
-      </div>
+      {/* Beanbag-ul din logo, cu căști, dă din cap pe tempo, ca în aplicație. */}
+      <AnimatieLottie fisier={() => import("../beanbag.json")} marime={220} />
       <h2
         style={{
           ...deFonte(28),
@@ -596,7 +566,7 @@ function Gol() {
           color: C.text,
         }}
       >
-        Încă nimic aici
+        Nicio experiență activă
       </h2>
       <p
         style={{

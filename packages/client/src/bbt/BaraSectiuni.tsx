@@ -36,7 +36,7 @@ type Sectiune = {
 
 const NEGRU = "#0A0A0B";
 const STINS = "#6C6C6D";
-const ROZ = "#FFB3D9";
+const ROZ = "#FFA8CD";
 const LINIE = "#E5E5E5";
 
 export function BaraSectiuni(props: {

@@ -8,6 +8,7 @@ import { useVoice } from "@revolt/rtc";
 import { useState } from "@revolt/state";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
+import { AvatarCanal } from "./AvatarCanal";
 import { C } from "./cont/ui";
 import { setMembriDeschisi } from "./MembriComunitate";
 import { AvatarOm, CERC_40, IconInapoi, UN_RAND } from "./telefon";
@@ -99,24 +100,7 @@ export function AntetFirTelefon(props: { channel: Channel }) {
       >
         <Show
           when={om()}
-          fallback={
-            <span
-              style={{
-                width: "36px",
-                height: "36px",
-                "flex-shrink": 0,
-                display: "flex",
-                "align-items": "center",
-                "justify-content": "center",
-                "border-radius": "18px",
-                background: C.roz,
-                "font-size": "17px",
-                "font-weight": 800,
-              }}
-            >
-              #
-            </span>
-          }
+          fallback={<AvatarCanal canal={props.channel} marime={36} />}
         >
           <AvatarOm om={om()} marime={36} />
         </Show>

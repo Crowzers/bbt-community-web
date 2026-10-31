@@ -6,6 +6,8 @@ import { useClient } from "@revolt/client";
 import { useNavigate, useParams } from "@revolt/routing";
 import { useState } from "@revolt/state";
 
+import { trimiteCererea } from "./relatii";
+
 /**
  * `/bbt/dm/:userId` — deschide conversația directă cu un om și intră în ea.
  *
@@ -79,16 +81,14 @@ export function DeschideDM() {
     })();
   });
 
-  async function trimiteCererea(om: User) {
+  async function trimite(om: User) {
     setLucrez(true);
-    try {
-      await om.addFriend();
-      setStare({ tip: "trimisa", om });
-    } catch {
-      setStare({ tip: "eroare" });
-    } finally {
-      setLucrez(false);
-    }
+    setStare(
+      (await trimiteCererea(client(), om))
+        ? { tip: "trimisa", om }
+        : { tip: "eroare" },
+    );
+    setLucrez(false);
   }
 
   async function accepta(om: User) {
@@ -134,7 +134,7 @@ export function DeschideDM() {
               </span>
               <Buton
                 principal
-                onClick={() => trimiteCererea(om())}
+                onClick={() => trimite(om())}
                 lucrez={lucrez()}
               >
                 Trimite cerere de prietenie
@@ -195,7 +195,7 @@ function Buton(props: {
         border: 0,
         "border-radius": "8px",
         padding: "10px 16px",
-        background: props.principal ? "#FFB3D9" : "#F2F2F3",
+        background: props.principal ? "#FFA8CD" : "#F2F2F3",
         color: props.principal ? "#000" : "#0A0A0B",
         font: "inherit",
         "font-weight": 600,

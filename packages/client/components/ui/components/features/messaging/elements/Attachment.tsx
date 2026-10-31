@@ -8,7 +8,12 @@ import { MessageContextMenu, useMessage } from "@revolt/app";
 import { useModals } from "@revolt/modal";
 import { Column } from "@revolt/ui/components/layout";
 import { SizedContent, Spoiler } from "@revolt/ui/components/utils";
+import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
+import {
+  verificaVideoSters,
+  videoExpirat,
+} from "../../../../../../src/bbt/videoExpirat";
 import { BulaVocal } from "../../../../../../src/bbt/vocal/BulaVocal";
 import { durataVocal } from "../../../../../../src/bbt/vocal/nume";
 
@@ -45,6 +50,12 @@ export function Attachment(props: { file: File; message?: Message }) {
   const [redare, setRedare] = createSignal(false);
   let video: HTMLVideoElement | undefined;
 
+  // BBT: video-ul mai vechi de un an e șters de pe hub, deci nici nu se cere (`src/bbt/videoExpirat.ts`).
+  const [sters, setSters] = createSignal(false);
+  const expirat = () =>
+    sters() ||
+    (!!props.message?.createdAt && videoExpirat(props.message.createdAt));
+
   const meniuFisier = {
     contextMenu: () => (
       <MessageContextMenu
@@ -73,6 +84,7 @@ export function Attachment(props: { file: File; message?: Message }) {
           <BulaVocal
             file={props.file}
             durataMs={durataVocal(props.file.filename)!}
+            mesaj={props.message}
           />
         </div>
       </Match>
@@ -106,6 +118,26 @@ export function Attachment(props: { file: File; message?: Message }) {
           />
         </SizedContent>
       </Match>
+      <Match when={props.file.metadata.type === "Video" && expirat()}>
+        <div
+          aria-label="Video expirat. Video-urile se păstrează un an."
+          class={css({
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+            margin: "2px 0",
+            padding: "8px 10px",
+            borderRadius: "8px",
+            background: "rgba(0,0,0,0.18)",
+            color: "#0A0A0B",
+            fontSize: "14px",
+          })}
+          use:floating={meniuFisier}
+        >
+          <Symbol size={14}>videocam_off</Symbol>
+          Video expirat
+        </div>
+      </Match>
       <Match when={props.file.metadata.type === "Video"}>
         <SizedContent
           width={
@@ -132,6 +164,9 @@ export function Attachment(props: { file: File; message?: Message }) {
             }}
             onPause={() => setRedare(false)}
             onEnded={() => setPornit(false)}
+            onError={() =>
+              void verificaVideoSters(props.file.previewUrl).then(setSters)
+            }
             // BBT: autumn citește lățimea și înălțimea din fișier fără rotație, deci un video filmat pe iPhone în picioare
             // venea culcat: caseta ieșea lată, iar pe lângă imagine se vedea bula. Browserul știe mărimea reală.
             onLoadedMetadata={(e) =>

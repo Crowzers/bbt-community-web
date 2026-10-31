@@ -1,10 +1,12 @@
 import { createMemo, createSignal, For, onCleanup, onMount } from "solid-js";
 
-import { File } from "stoat.js";
+import { File, Message } from "stoat.js";
 import { styled } from "styled-system/jsx";
 
+import { useClient } from "@revolt/client";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
+import { urmatorulVocal } from "./coada";
 import { formateazaDurata } from "./nume";
 import { BETE, undaVocal } from "./unda";
 
@@ -26,7 +28,15 @@ const [viteza, setViteza] = createSignal<number>(1);
 // Un singur vocal cântă odată. Cel care pornește îl oprește pe cel de dinainte.
 let opresteCelCareCanta: (() => void) | undefined;
 
-export function BulaVocal(props: { file: File; durataMs: number }) {
+// Bulele de pe ecran, după id-ul fișierului: de aici pornește vocalul următor.
+const bule = new Map<string, () => void>();
+
+export function BulaVocal(props: {
+  file: File;
+  durataMs: number;
+  mesaj?: Message;
+}) {
+  const client = useClient();
   const [canta, setCanta] = createSignal(false);
   const [pozitie, setPozitie] = createSignal(0); // secunde
   const [unda, setUnda] = createSignal<number[] | null>(null);
@@ -59,6 +69,15 @@ export function BulaVocal(props: { file: File; durataMs: number }) {
     audio.addEventListener("ended", () => {
       setCanta(false);
       setPozitie(0);
+      // La rând, doar vocalele aceluiași om, până la mesajul altcuiva (`coada.ts`).
+      const m = props.mesaj;
+      if (!m) return;
+      const mesaje = client()
+        .messages.toList()
+        .filter((x) => x.channelId === m.channelId)
+        .sort((a, b) => a.id.localeCompare(b.id));
+      const urmator = urmatorulVocal(mesaje, props.file.id);
+      if (urmator) bule.get(urmator)?.();
     });
     return audio;
   }
@@ -92,6 +111,11 @@ export function BulaVocal(props: { file: File; durataMs: number }) {
   }
 
   onMount(() => {
+    bule.set(props.file.id, () => {
+      setPozitie(0);
+      apasaPlay();
+    });
+    onCleanup(() => bule.delete(props.file.id));
     // Unda doar când bula se vede (canalele lungi au multe vocale mai sus, nederulate).
     const observator = new IntersectionObserver((intrari) => {
       if (!intrari.some((i) => i.isIntersecting)) return;
@@ -140,7 +164,7 @@ export function BulaVocal(props: { file: File; durataMs: number }) {
                   // Culorile se schimbă în bulă, din `raspuns.css`: pe bula ta roz, partea ascultată ar dispărea.
                   background:
                     (i() + 0.5) / BETE <= progres()
-                      ? "var(--bbt-bat-ascultat, #FFB3D9)"
+                      ? "var(--bbt-bat-ascultat, #FFA8CD)"
                       : "var(--bbt-bat, #C9C9CE)",
                 }}
               />
@@ -190,7 +214,7 @@ const ButonPlay = styled("button", {
     height: "36px",
     border: 0,
     borderRadius: "50%",
-    background: "#FFB3D9",
+    background: "#FFA8CD",
     color: "#000",
     display: "flex",
     alignItems: "center",
@@ -238,7 +262,7 @@ const Jos = styled("div", {
     minHeight: "18px",
     fontSize: "11px",
     lineHeight: "1",
-    color: "#6C6C6D",
+    color: "var(--bbt-durata, #6C6C6D)",
     fontVariantNumeric: "tabular-nums",
   },
 });

@@ -433,6 +433,10 @@ function ContainerBula(props: Props) {
   const { message } = useMessage();
   const mea = () => props.bula === "mea";
   const ceas = () => ceasMesaj(props);
+  // BBT: mesajul venit cât te uiți urcă și se așază (`raspuns.css`); cele încărcate la deschidere stau pe loc.
+  const proaspat =
+    props.timestamp instanceof Date &&
+    Date.now() - props.timestamp.getTime() < 2000;
 
   return (
     <div
@@ -480,7 +484,7 @@ function ContainerBula(props: Props) {
           </div>
         </Show>
         <div
-          class={`bbt-bula${mea() ? " bbt-bula-mea" : ""}${props.doarMedia ? " bbt-bula-media" : ""}`}
+          class={`bbt-bula${mea() ? " bbt-bula-mea" : ""}${props.doarMedia ? " bbt-bula-media" : ""}${proaspat ? " bbt-intrare" : ""}`}
           style={{
             position: "relative",
             "max-width": "100%",
@@ -490,7 +494,7 @@ function ContainerBula(props: Props) {
             "border-radius": mea()
               ? "26px 26px 8px 26px"
               : "26px 26px 26px 8px",
-            background: mea() ? "#FFB3D9" : "#FFFFFF",
+            background: mea() ? "#FFA8CD" : "#FFFFFF",
             color: "#0A0A0B",
             "--bbt-ora": `"  ${ceas()}"`,
           }}

@@ -50,9 +50,9 @@ type ProfilEu = {
 const LINIE = "#E5E5E5";
 const FOAIE = "#FFFFFF";
 const GRI = "#F2F2F3";
-const ROZ = "#FFB3D9";
+const ROZ = "#FFA8CD";
 const TEXT = "#0A0A0B";
-const VERDE = "#1E9E62";
+const VERDE = "#216043";
 const CHIHLIMBAR = "#A66A00";
 
 /**

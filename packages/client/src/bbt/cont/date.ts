@@ -4,7 +4,7 @@ import { useState } from "@revolt/state";
 
 import { cerereCont } from "../tokenBbt";
 
-import type { Experiente, Participant } from "./tipuri";
+import type { Experiente, Notificare, Participant } from "./tipuri";
 
 /**
  * BBT: datele contului din hub, dintr-o singură cerere `/me`, împărțită de toate paginile.
@@ -30,6 +30,25 @@ export function useCont() {
     retry: 1,
     queryFn: () =>
       cerereCont<Participant>(sesiune(), "/api/public/participant/me"),
+  }));
+}
+
+/**
+ * Notificările contului, aceleași ca pe site și în aplicație: plăți, anulări, aprecieri. Cifra de pe clopoțel și pagina
+ * din cont citesc același răspuns.
+ */
+export function useNotificari() {
+  const sesiune = useSesiune();
+  return useQuery(() => ({
+    queryKey: [...CHEIE_CONT, "notificari"],
+    enabled: Boolean(sesiune()),
+    staleTime: 30_000,
+    retry: 1,
+    queryFn: () =>
+      cerereCont<{ notificari: Notificare[]; necitite?: number }>(
+        sesiune(),
+        "/api/public/participant/notificari",
+      ),
   }));
 }
 

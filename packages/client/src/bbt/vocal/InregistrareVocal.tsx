@@ -364,7 +364,7 @@ const ButonRoz = styled("button", {
     height: "44px",
     border: 0,
     borderRadius: "50%",
-    background: "#FFB3D9",
+    background: "#FFA8CD",
     color: "#0A0A0B",
     display: "flex",
     alignItems: "center",

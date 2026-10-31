@@ -9,6 +9,8 @@ import { UserContextMenu } from "@revolt/app";
 import { useClient } from "@revolt/client";
 import { useModals } from "@revolt/modal";
 
+import { trimiteCererea } from "../../../../../src/bbt/relatii";
+
 import MdCancel from "@material-design-icons/svg/filled/cancel.svg?component-solid";
 import MdEdit from "@material-design-icons/svg/filled/edit.svg?component-solid";
 import MdMoreVert from "@material-design-icons/svg/filled/more_vert.svg?component-solid";
@@ -76,12 +78,12 @@ export function ProfileActions(props: {
       <Show when={props.user.relationship === "None" && !props.user.bot}>
         {/* BBT: în română — interfața e forțată pe română (Locale.ts), iar textele astea nu trec
             prin cataloage. */}
-        <Button onPress={() => props.user.addFriend()}>
+        <Button onPress={() => void trimiteCererea(client(), props.user)}>
           Adaugă la prieteni
         </Button>
       </Show>
       <Show when={props.user.relationship === "Incoming"}>
-        <Button onPress={() => props.user.addFriend()}>
+        <Button onPress={() => void trimiteCererea(client(), props.user)}>
           Acceptă prietenia
         </Button>
         <IconButton onPress={() => props.user.removeFriend()}>

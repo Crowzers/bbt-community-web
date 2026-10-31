@@ -169,7 +169,7 @@ export function Clopotel() {
               "box-sizing": "border-box",
               "border-radius": "999px",
               // Roz cu cifră neagră, ca cifrele de necitite din 23 (până pe 30 oct, roșu).
-              background: "#FFB3D9",
+              background: "#FFA8CD",
               border: "2px solid #FFFFFF",
               color: "#0A0A0B",
               "font-size": "11px",

@@ -2,7 +2,7 @@ import { createFormControl, createFormGroup } from "solid-forms";
 import { For, Match, Switch } from "solid-js";
 
 import { Trans, useLingui } from "@lingui/solid/macro";
-import { API, Message as MessageI, Server, User } from "stoat.js";
+import { Message as MessageI, User } from "stoat.js";
 import { cva } from "styled-system/css";
 
 import { Message } from "@revolt/app";
@@ -12,36 +12,29 @@ import {
   Dialog,
   DialogProps,
   Form2,
-  Initials,
   MenuItem,
 } from "@revolt/ui";
 
+import { MotivRaport, trimiteRaportul } from "../../../src/bbt/raport";
 import { useModals } from "..";
 import { Modals } from "../types";
 
-const CONTENT_REPORT_REASONS: API.ContentReportReason[] = [
+// BBT: doar motivele pe care le primește adminul (src/bbt/raport.ts).
+const CONTENT_REPORT_REASONS: MotivRaport[] = [
   "Illegal",
-  "IllegalGoods",
-  "IllegalExtortion",
-  "IllegalPornography",
-  "IllegalHacking",
-  "ExtremeViolence",
   "PromotesHarm",
   "UnsolicitedSpam",
-  "Raid",
   "SpamAbuse",
   "ScamsFraud",
-  "Malware",
   "Harassment",
   "NoneSpecified",
 ];
 
-const USER_REPORT_REASONS: API.UserReportReason[] = [
+const USER_REPORT_REASONS: MotivRaport[] = [
   "UnsolicitedSpam",
   "SpamAbuse",
   "InappropriateProfile",
   "Impersonation",
-  "BanEvasion",
   "Underage",
   "NoneSpecified",
 ];
@@ -55,28 +48,17 @@ export function ReportContentModal(
   const { t } = useLingui();
   const { showError } = useModals();
 
-  const strings: Record<
-    API.ContentReportReason | API.UserReportReason,
-    string
-  > = {
+  const strings: Record<MotivRaport, string> = {
     Illegal: t`Content breaks one or more laws`,
-    IllegalGoods: t`Drugs or illegal goods`,
-    IllegalExtortion: t`Extortion or blackmail`,
-    IllegalPornography: t`Revenge or underage pornography`,
-    IllegalHacking: t`Illegal hacking or cracking`,
-    ExtremeViolence: t`Extreme violence, gore or animal cruelty`,
     PromotesHarm: t`Promotes harm`,
     UnsolicitedSpam: t`Unsolicited advertising or spam`,
-    Raid: t`Raid or spam attack`,
     SpamAbuse: t`Spam or similar platform abuse`,
     ScamsFraud: t`Scams or fraud`,
-    Malware: t`Malware or phishing`,
     Harassment: t`Harassment or cyberbullying`,
     NoneSpecified: t`Other`,
 
     InappropriateProfile: t`User's profile has inappropriate content`,
     Impersonation: t`Impersonation`,
-    BanEvasion: t`Ban evasion`,
     Underage: t`Not of minimum age to use the platform`,
   };
 
@@ -98,28 +80,19 @@ export function ReportContentModal(
         throw new Error("NoReasonProvided");
       }
 
-      await props.client.api.post("/safety/report", {
-        content:
-          props.target instanceof User
-            ? {
-                type: "User",
-                id: props.target.id,
-                report_reason: category as API.UserReportReason,
-                message_id: props.contextMessage?.id,
-              }
-            : props.target instanceof Server
-              ? {
-                  type: "Server",
-                  id: props.target.id,
-                  report_reason: category as API.ContentReportReason,
-                }
-              : {
-                  type: "Message",
-                  id: props.target.id,
-                  report_reason: category as API.ContentReportReason,
-                },
-        additional_context: detail,
-      });
+      const [, sesiune] = props.client.authenticationHeader;
+      const raport = { motiv: category as MotivRaport, detalii: detail };
+      await trimiteRaportul(
+        sesiune,
+        props.target instanceof User
+          ? { ...raport, tip: "User", id: props.target.id }
+          : {
+              ...raport,
+              tip: "Message",
+              id: props.target.id,
+              canalId: props.target.channelId,
+            },
+      );
       props.onClose();
     } catch (error) {
       showError(error);
@@ -136,9 +109,6 @@ export function ReportContentModal(
         <Switch>
           <Match when={props.target instanceof User}>
             <Trans>Tell us what's wrong with this user</Trans>
-          </Match>
-          <Match when={props.target instanceof Server}>
-            <Trans>Tell us what's wrong with this server</Trans>
           </Match>
           <Match when={props.target instanceof MessageI}>
             <Trans>Tell us what's wrong with this message</Trans>
@@ -165,15 +135,6 @@ export function ReportContentModal(
               <Column align>
                 <Avatar src={props.target.animatedAvatarURL} size={64} />
                 {props.target.displayName}
-              </Column>
-            ) : props.target instanceof Server ? (
-              <Column align>
-                <Avatar
-                  src={props.target.animatedIconURL}
-                  fallback={<Initials input={props.target.name} />}
-                  size={64}
-                />
-                {props.target.name}
               </Column>
             ) : (
               <Message message={props.target as never} />

@@ -1,10 +1,11 @@
-import { For, Show, createMemo } from "solid-js";
+import { For, Show, createMemo, createSignal } from "solid-js";
 
 import { useLingui } from "@lingui/solid/macro";
 import { API } from "stoat.js";
 import { styled } from "styled-system/jsx";
 
 import { useMessage } from "@revolt/app";
+import { useDevice } from "@revolt/common";
 import { Emoji } from "@revolt/markdown";
 import { useUsers } from "@revolt/markdown/users";
 import { Ripple, Text } from "@revolt/ui/components/design";
@@ -12,6 +13,8 @@ import { Tooltip } from "@revolt/ui/components/floating";
 import { Row } from "@revolt/ui/components/layout";
 
 import MdAdd from "@material-design-icons/svg/outlined/add.svg?component-solid";
+
+import { FoaieReactii } from "../../../../../../src/bbt/FoaieReactii";
 
 interface Props {
   /**
@@ -89,6 +92,9 @@ export function Reactions(props: Props) {
 
   let reactRef;
 
+  // BBT: cine a reacționat (`src/bbt/FoaieReactii.tsx`).
+  const [foaie, setFoaie] = createSignal<string>();
+
   return (
     <Show when={hasReactions()}>
       <List>
@@ -100,6 +106,7 @@ export function Reactions(props: Props) {
               users={props.reactions?.get(entry)}
               addReaction={props.addReaction}
               removeReaction={props.removeReaction}
+              laDeschide={() => setFoaie(entry)}
             />
           )}
         </For>
@@ -114,6 +121,7 @@ export function Reactions(props: Props) {
               users={props.reactions?.get(entry)}
               addReaction={props.addReaction}
               removeReaction={props.removeReaction}
+              laDeschide={() => setFoaie(entry)}
             />
           )}
         </For>
@@ -126,6 +134,16 @@ export function Reactions(props: Props) {
             <MdAdd />
           </AddReaction>
         </div>
+        <Show when={foaie()}>
+          {(emoji) => (
+            <FoaieReactii
+              reactii={props.reactions}
+              emojiDeschis={emoji()}
+              laScoate={props.removeReaction}
+              laInchidere={() => setFoaie(undefined)}
+            />
+          )}
+        </Show>
       </List>
     </Show>
   );
@@ -140,15 +158,20 @@ function Reaction(props: {
   users?: Set<string>;
   addReaction(id: string): void;
   removeReaction(id: string): void;
+  laDeschide(): void;
 }) {
   const { t } = useLingui();
+  const { layout } = useDevice();
   const users = useUsers(() => [...(props.users?.values() ?? [])], false, true);
 
   /**
    * Handle toggling reaction
    */
   function onClick() {
-    if (props.active) {
+    // BBT: pe telefon tapul arată cine a reacționat, ca în aplicație; reacția se pune din meniul mesajului.
+    if (layout() === "phone") {
+      props.laDeschide();
+    } else if (props.active) {
       props.removeReaction(props.reaction);
     } else {
       props.addReaction(props.reaction);
@@ -197,7 +220,15 @@ function Reaction(props: {
       )}
       aria={peopleList()}
     >
-      <ReactionBase active={props.active} onClick={onClick}>
+      <ReactionBase
+        active={props.active}
+        onClick={onClick}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          props.laDeschide();
+        }}
+      >
         <Ripple />
         <Emoji emoji={props.reaction} /> {props.users?.size || 0}
       </ReactionBase>
@@ -250,7 +281,7 @@ const ReactionBase = styled("div", {
       true: {
         color: "#0A0A0B",
         background: "#FFEEF5",
-        borderColor: "#FFB3D9",
+        borderColor: "#FFA8CD",
         _phone: {
           background: "#FFFFFF",
         },

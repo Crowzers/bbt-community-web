@@ -199,3 +199,13 @@ export interface Experiente {
   active: Experienta[];
   trecute: Experienta[];
 }
+
+/** O notificare din cont (`/api/public/participant/notificari`), ca în aplicație. */
+export interface Notificare {
+  id: string;
+  titlu: string;
+  mesaj: string;
+  linkHref: string | null;
+  citita: boolean;
+  createdAt: string;
+}

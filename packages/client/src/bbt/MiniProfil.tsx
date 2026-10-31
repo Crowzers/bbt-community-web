@@ -3,6 +3,7 @@ import { For, JSX, Match, Show, Switch, createSignal } from "solid-js";
 import type { ServerMember, User } from "stoat.js";
 
 import { UserContextMenu } from "@revolt/app/menus/UserContextMenu";
+import { useClient } from "@revolt/client";
 import { useModals } from "@revolt/modal";
 import { useNavigate } from "@revolt/routing";
 import { useState } from "@revolt/state";
@@ -10,6 +11,7 @@ import { Avatar, IconButton } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { BBT_ADMIN_URL } from "./config";
+import { trimiteCererea } from "./relatii";
 
 /**
  * Cardul de profil BBT — ce apare la click pe un om (popover pe desktop, foaie pe telefon).
@@ -56,7 +58,7 @@ const luna = new Intl.DateTimeFormat("ro-RO", {
   year: "numeric",
 });
 
-const ROZ = "#FFB3D9";
+const ROZ = "#FFA8CD";
 const FUNDAL = "#FFFFFF"; // foaia din tema BBT (src/bbt/tema.ts, alb 8% pe negru)
 const LINIE = "#E5E5E5";
 
@@ -346,6 +348,7 @@ export function MiniProfilBBT(props: {
  * butonul devine „Mesaj" singur, fără reîncărcare.
  */
 function ButonRelatie(props: { user: User; onMesaj: () => void }) {
+  const client = useClient();
   const [lucrez, setLucrez] = createSignal(false);
 
   async function fa(actiune: () => Promise<unknown>) {
@@ -366,7 +369,7 @@ function ButonRelatie(props: { user: User; onMesaj: () => void }) {
         <ButonSecundar onClick={props.onMesaj}>Mesaj</ButonSecundar>
       </Match>
       <Match when={props.user.relationship === "Incoming"}>
-        <ButonSecundar plin onClick={() => fa(() => props.user.addFriend())}>
+        <ButonSecundar plin onClick={() => fa(() => trimiteCererea(client(), props.user))}>
           Acceptă prietenia
         </ButonSecundar>
       </Match>
@@ -376,7 +379,7 @@ function ButonRelatie(props: { user: User; onMesaj: () => void }) {
         </ButonSecundar>
       </Match>
       <Match when={props.user.relationship === "None"}>
-        <ButonSecundar onClick={() => fa(() => props.user.addFriend())}>
+        <ButonSecundar onClick={() => fa(() => trimiteCererea(client(), props.user))}>
           Adaugă la prieteni
         </ButonSecundar>
       </Match>

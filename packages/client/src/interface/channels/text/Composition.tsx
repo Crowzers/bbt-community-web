@@ -33,6 +33,7 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 import { useSearchSpace } from "@revolt/ui/components/utils/autoComplete";
 
 import { firDeschis } from "../../../bbt/fir";
+import { sunetTrimis } from "../../../bbt/sunete";
 import { IconCamera, IconPlus } from "../../../bbt/telefon";
 import {
   BaraVocal,
@@ -235,11 +236,14 @@ export function MessageComposition(props: Props) {
           ...currentDraft,
           content: useContent,
         });
+        sunetTrimis();
         return state.draft.sendDraft(client(), props.channel);
       }
+      sunetTrimis();
       return props.channel.sendMessage(useContent);
     }
 
+    sunetTrimis();
     state.draft.sendDraft(client(), props.channel);
   }
 
@@ -594,7 +598,7 @@ const ButonTrimite = styled("button", {
     height: "44px",
     border: 0,
     borderRadius: "50%",
-    background: "#FFB3D9",
+    background: "#FFA8CD",
     color: "#0A0A0B",
     display: "flex",
     alignItems: "center",

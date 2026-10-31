@@ -21,17 +21,14 @@ import { CERC_40, IconInapoi, UN_RAND } from "../telefon";
 
 import { useCont, useExperiente } from "./date";
 import { Diplome } from "./Diplome";
+import { EditeazaProfilTelefon } from "./EditeazaProfil";
+import { ExperientaTelefon } from "./Experienta";
 import { Experiente } from "./Experiente";
 import { ExperienteTelefon } from "./ExperienteTelefon";
 import { Piese } from "./Piese";
 import { Plati } from "./Plati";
 import { ProfilTelefon } from "./ProfilTelefon";
-import {
-  DatePersonaleCont,
-  EditeazaProfilTelefon,
-  NotificariCont,
-  ProfilPublic,
-} from "./Setari";
+import { DatePersonaleCont, NotificariCont, ProfilPublic } from "./Setari";
 import { NotitaLive } from "./tabara/NotitaLive";
 import { Tabara } from "./tabara/Tabara";
 import { Buton, C, Fereastra } from "./ui";
@@ -140,6 +137,9 @@ export function ContulMeu() {
 
   // BBT: pe telefon, Profil și Experiențe sunt tab-uri, ca în aplicație: fără „înapoi", cu pastila de meniu jos.
   const ecranTab = () => telefon() && (!pagina() || pagina() === "experiente");
+  // Detaliul experienței (20d) are „înapoi" în partea lui roz, deci nici antet, nici marginile paginilor.
+  const ecranExperienta = () =>
+    telefon() && pagina() === "experienta" && params.id;
 
   return (
     <div
@@ -158,10 +158,13 @@ export function ContulMeu() {
           <ExperienteTelefon />
         </Show>
       </Show>
+      <Show when={ecranExperienta()}>
+        <ExperientaTelefon id={params.id!} />
+      </Show>
       <Show when={!telefon()}>
         <Meniu activ={pagina() === "tabara" ? "experiente" : pagina()} />
       </Show>
-      <Show when={pagina() && !ecranTab()}>
+      <Show when={pagina() && !ecranTab() && !ecranExperienta()}>
         <div
           style={{
             display: "flex",
@@ -177,7 +180,11 @@ export function ContulMeu() {
               laInapoi={() =>
                 pagina() === "notita"
                   ? navigate(-1)
-                  : navigate(pagina() === "tabara" ? "/cont/experiente" : "/cont")
+                  : navigate(
+                      pagina() === "tabara"
+                        ? `/cont/experienta/${params.id}`
+                        : "/cont",
+                    )
               }
             />
           </Show>
