@@ -290,15 +290,27 @@ function Stare(props: { e: Experienta }) {
   );
 }
 
-/** Bara ratelor: câte o bucată pe rată, verde când e plătită. Se socotește din bani, ca în `mobil/src/cont/BaraRate.tsx`. */
+/**
+ * Câte rate sunt plătite, socotit din bani, ca în `mobil/src/cont/BaraRate.tsx`: tranșele pot fi inegale, deci ceva plătit
+ * înseamnă cel puțin o rată, iar ultima se aprinde doar la total (la 1.000 din 3.000 lei, împărțirea egală dădea 0).
+ */
+export function ratePlatite(platit: number, total: number, nrTranse: number) {
+  if (total <= 0 || platit <= 0) return 0;
+  if (platit >= total) return nrTranse;
+  return Math.min(
+    nrTranse - 1,
+    Math.max(1, Math.floor((platit / total) * nrTranse + 0.001)),
+  );
+}
+
+/** Bara ratelor: câte o bucată pe rată, verde când e plătită. */
 export function BaraRate(props: { progres: NonNullable<Experienta["progres"]> }) {
-  const platite = () => {
-    const peRata = props.progres.total / Math.max(1, props.progres.nrTranse);
-    return Math.min(
+  const platite = () =>
+    ratePlatite(
+      props.progres.platit,
+      props.progres.total,
       props.progres.nrTranse,
-      Math.floor(props.progres.platit / peRata + 0.001),
     );
-  };
   return (
     <div style={{ display: "flex", gap: "4px", "margin-top": "12px" }}>
       <For each={Array.from({ length: props.progres.nrTranse }, (_, i) => i)}>

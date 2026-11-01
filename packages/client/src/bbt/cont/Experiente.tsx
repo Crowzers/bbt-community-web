@@ -7,7 +7,7 @@ import { useNavigate } from "@revolt/routing";
 import { BBT_SITE_URL } from "../config";
 
 import { lei, ora, useCont, useExperiente, zi, zileRo } from "./date";
-import { Gol } from "./ExperienteTelefon";
+import { Gol, ratePlatite } from "./ExperienteTelefon";
 import { ButonPlateste } from "./Plata";
 import type { Experienta } from "./tipuri";
 import {
@@ -577,8 +577,8 @@ function CardExperienta(props: { e: Experienta }) {
 
 /**
  * Bara de rate (23b): câte un segment pe rată, verde cât s-a plătit. Plata integrală = un singur segment.
- * Segmentele verzi = partea plătită din total, rotunjită la rate (ratele nu sunt egale, dar nici adminul nu dă suma
- * fiecăreia aici; o rată plătită pe jumătate nu există).
+ * Segmentele verzi vin din `ratePlatite` (ratele nu sunt egale, dar nici adminul nu dă suma fiecăreia aici; o rată
+ * plătită pe jumătate nu există).
  */
 export function BaraPlata(props: {
   platit: number;
@@ -586,10 +586,7 @@ export function BaraPlata(props: {
   nrTranse?: number;
 }) {
   const n = () => Math.max(1, props.nrTranse ?? 1);
-  const verzi = () =>
-    props.total > 0
-      ? Math.min(n(), Math.round((props.platit / props.total) * n()))
-      : 0;
+  const verzi = () => ratePlatite(props.platit, props.total, n());
   return (
     <div
       role="progressbar"
