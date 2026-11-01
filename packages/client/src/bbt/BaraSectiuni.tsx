@@ -1,30 +1,28 @@
-import { For, JSX, Show } from "solid-js";
+import { For, JSX, Show, onCleanup, onMount } from "solid-js";
 
 import { useClient } from "@revolt/client";
 import { useLocation, useNavigate, useParams } from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
-import Wordmark from "../../public/assets/web/wordmark.svg?component-solid";
 import { useAlunecare } from "./Alunecare";
 import { BBT_SITE_URL } from "./config";
-import { useExperiente } from "./cont/date";
+import { useCont, useExperiente } from "./cont/date";
 import { eInExperiente } from "./cont/pagini";
 import { tintaSite } from "./instalare";
-import { AvatarOm, IconBalon, IconBilet, IconDiez } from "./telefon";
+import { latimeRail, railDeschis, tastaRail } from "./rail";
+import { AvatarOm, IconBalon, IconBilet, IconDiez, UN_RAND } from "./telefon";
 
 /**
- * BBT: meniul principal pe desktop și tabletă: pastila neagră din aplicație, ridicată pe verticală, doar cu iconițe (cererea
- * userului, 31 oct 2026, demo-ul „A cu pastila scurtă"). Ia locul listei de servere a lor (`ServerList`): BBT Community e UN
- * server (design §2 decizia 12), deci o listă de servere n-avea ce lista. Pe telefon, `PastilaDeJos.tsx`.
+ * BBT: meniul principal pe desktop și tabletă: pastila neagră din aplicație, ridicată pe verticală (cererea userului, 31 oct 2026).
+ * Ia locul listei de servere a lor (`ServerList`): BBT Community e UN server (design §2 decizia 12), deci o listă de servere
+ * n-avea ce lista. Pe telefon, `PastilaDeJos.tsx`.
  *
- * Două pastile (cererea userului, 1 nov 2026: colțul din stânga sus era încărcat): sus logoul și secțiunile, urcate în bandă cu
- * marginea negativă a coloanei; jos ce ține de tine și ce duce afară, avatarul și site-ul.
- *
- * Măsurile sunt din 25d (cererea userului, 31 oct 2026): 52 de lățime, 8 de jur împrejur, butoane de 36 la 8 unul de altul, ca
- * spațiile dintr-o pastilă să fie egale (1 nov 2026). Rozul e un singur strat care curge spre intrarea nouă (`Alunecare.tsx`), cu
- * arcul din aplicație; în Profil dispare de sus, iar sub avatar inelul se îngroașă. Numele stă doar în `title`, la hover: fără
- * etichete, ca să rămână o pastilă subțire.
+ * Copie după 25e și 25f (cererea userului, 1 nov 2026), care înlocuiesc cele două pastile de mai devreme: o singură pastilă, pe
+ * toată înălțimea foii, cu secțiunile sus, iar avatarul și site-ul jos. Închisă: 52 de lățime, 8 sus și jos, butoane de 36 la 10
+ * unul de altul. Deschisă (`rail.ts`): 200, 10 de jur împrejur, rânduri de 48 la 4 unul de altul, cu numele lângă iconiță.
+ * Rozul e un singur strat care curge spre intrarea nouă (`Alunecare.tsx`), cu arcul din aplicație; în Profil dispare, iar
+ * avatarul primește inelul.
  *
  * Până pe 31 oct: rail alb de 104 cu numele sub iconițe (21/23). Punctul roz a înlocuit cifra, ca în aplicație.
  * ⛔ Fără Challenge: userul nu l-a vrut în meniu.
@@ -43,37 +41,54 @@ type Sectiune = {
 
 const NEGRU = "#0A0A0B";
 const ROZ = "#FFA8CD";
+/** Cercul de sub iconița activă, în pastila deschisă (25f). */
+const ROZ_TARE = "#FF8EC6";
 const ALB = "#FFFFFF";
+const ALB_STINS = "rgba(255,255,255,0.8)";
 /** Arcul tab-ului din aplicație: 300 ms, o optime la 100 BPM. */
 const ARC = "300ms cubic-bezier(.34,1.56,.64,1)";
 
-const BUTON: JSX.CSSProperties = {
-  position: "relative",
-  "z-index": 1,
-  width: "36px",
-  height: "36px",
-  "flex-shrink": 0,
-  display: "flex",
-  "align-items": "center",
-  "justify-content": "center",
-  padding: 0,
-  border: 0,
-  "border-radius": "18px",
-  background: "transparent",
-  cursor: "pointer",
+const TEXT_RAND: JSX.CSSProperties = {
+  ...UN_RAND,
+  "font-size": "14px",
+  "font-weight": 700,
 };
 
-const PASTILA: JSX.CSSProperties = {
-  position: "relative",
-  display: "flex",
-  "flex-direction": "column",
-  gap: "8px",
-  padding: "8px",
-  "border-radius": "26px",
-  background: NEGRU,
-  // Pastila de sus stă în bandă, care mută fereastra: fără asta, Windows nu mai trimite clicuri.
-  "-webkit-app-region": "no-drag",
-};
+const rand = (inaltime = "48px"): JSX.CSSProperties =>
+  railDeschis()
+    ? {
+        position: "relative",
+        "z-index": 1,
+        width: "100%",
+        height: inaltime,
+        "flex-shrink": 0,
+        "box-sizing": "border-box",
+        display: "flex",
+        "align-items": "center",
+        gap: "12px",
+        padding: "0 10px",
+        border: 0,
+        "border-radius": "999px",
+        background: "transparent",
+        cursor: "pointer",
+        "font-family": "inherit",
+        "text-align": "left",
+      }
+    : {
+        position: "relative",
+        "z-index": 1,
+        width: "36px",
+        height: "36px",
+        "flex-shrink": 0,
+        display: "flex",
+        "align-items": "center",
+        "justify-content": "center",
+        padding: 0,
+        border: 0,
+        "border-radius": "18px",
+        background: "transparent",
+        cursor: "pointer",
+      };
 
 export function BaraSectiuni(props: {
   /** Câte conversații directe au mesaje necitite. */
@@ -85,6 +100,10 @@ export function BaraSectiuni(props: {
   const location = useLocation();
   const params = useParams<{ server?: string }>();
   const experiente = useExperiente();
+  const cont = useCont();
+
+  onMount(() => document.addEventListener("keydown", tastaRail));
+  onCleanup(() => document.removeEventListener("keydown", tastaRail));
 
   const serverBbt = () => client().servers.toList()[0];
   const inServer = () => !!params.server;
@@ -130,148 +149,178 @@ export function BaraSectiuni(props: {
 
   const alunecare = useAlunecare(() => sectiuni.findIndex((s) => s.activ()));
 
+  const pasi = () => (railDeschis() ? "4px" : "10px");
+
   return (
-    <div
+    <nav
+      aria-label="Secțiuni"
       style={{
-        width: "52px",
+        width: latimeRail(),
         "flex-shrink": 0,
+        "box-sizing": "border-box",
         display: "flex",
         "flex-direction": "column",
-        "justify-content": "space-between",
-        "align-items": "center",
-        // Urcă peste bandă (`z-index` 20 în `BaraSus.tsx`), până la `--bbt-sus-pastila` de marginea ferestrei.
-        position: "relative",
-        "z-index": 21,
-        "margin-top": "calc(var(--bbt-sus-pastila) - var(--bbt-banda))",
+        "align-items": railDeschis() ? "stretch" : "center",
+        gap: pasi(),
+        padding: railDeschis() ? "10px" : "8px 0",
+        overflow: "hidden",
+        "border-radius": railDeschis() ? "28px" : "26px",
+        background: NEGRU,
+        transition: "width 200ms ease-out",
       }}
     >
-      <nav aria-label="Secțiuni" style={PASTILA}>
-        {/* BBT: sigla duce mereu în chat, ca secțiunea Comunitate (cererea userului, 20 oct 2026: „e mai natural așa"). Fără
-            cerc și fără hover, iar linia de sub ea o desparte de meniu: stând între iconițe, părea o intrare în plus (1 nov 2026). */}
-        <button
-          type="button"
-          title="BBT"
-          aria-label="BBT, înapoi în chat"
-          onClick={() => {
-            const s = serverBbt();
-            if (s) navigate(`/server/${s.id}`);
-          }}
-          style={{
-            display: "flex",
-            "align-items": "center",
-            height: "30px",
-            padding: 0,
-            border: 0,
-            background: "transparent",
-            color: ALB,
-            cursor: "pointer",
-          }}
-        >
-          <Wordmark
-            aria-label="BBT"
-            style={{ width: "36px", height: "auto" }}
-          />
-        </button>
-        <div
-          aria-hidden="true"
-          style={{
-            width: "20px",
-            height: "1px",
-            "align-self": "center",
-            background: "rgba(255, 255, 255, 0.28)",
-          }}
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          "flex-direction": "column",
+          gap: pasi(),
+        }}
+      >
+        <alunecare.Strat
+          culoare={ROZ}
+          raza="24px"
+          tranzitie={`transform ${ARC}, height ${ARC}`}
         />
-        <div
-          style={{
-            position: "relative",
-            display: "flex",
-            "flex-direction": "column",
-            gap: "8px",
-          }}
-        >
-          <alunecare.Strat
-            culoare={ROZ}
-            raza="18px"
-            tranzitie={`transform ${ARC}, height ${ARC}`}
-          />
-          <For each={sectiuni}>
-            {(s, i) => (
-              <button
-                ref={alunecare.rand(i())}
-                type="button"
-                class={s.activ() ? "bbt-moale" : "bbt-moale bbt-tab-pastila"}
-                title={s.nume}
-                aria-label={s.nume}
-                aria-current={s.activ() ? "page" : undefined}
-                onClick={() => s.laApasare()}
+        <For each={sectiuni}>
+          {(s, i) => (
+            <button
+              ref={alunecare.rand(i())}
+              type="button"
+              class={s.activ() ? "bbt-moale" : "bbt-moale bbt-tab-pastila"}
+              title={railDeschis() ? undefined : s.nume}
+              aria-label={s.nume}
+              aria-current={s.activ() ? "page" : undefined}
+              onClick={() => s.laApasare()}
+              style={{
+                ...rand(),
+                color: s.activ() ? NEGRU : railDeschis() ? ALB_STINS : ALB,
+                transition:
+                  "color 220ms ease-in-out, background-color 160ms ease-out, transform 160ms ease-out",
+              }}
+            >
+              <span
                 style={{
-                  ...BUTON,
-                  color: s.activ() ? NEGRU : ALB,
-                  transition:
-                    "color 220ms ease-in-out, background-color 160ms ease-out, transform 160ms ease-out",
+                  position: "relative",
+                  display: "flex",
+                  "align-items": "center",
+                  "justify-content": "center",
+                  "flex-shrink": 0,
+                  ...(railDeschis()
+                    ? {
+                        width: "32px",
+                        height: "32px",
+                        "border-radius": "50%",
+                        background: s.activ() ? ROZ_TARE : "transparent",
+                      }
+                    : {}),
                 }}
               >
-                <span style={{ position: "relative", display: "flex" }}>
-                  <s.Icon size={20} />
-                  <Show when={s.punct() && !s.activ()}>
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: "-2px",
-                        right: "-4px",
-                        width: "9px",
-                        height: "9px",
-                        "border-radius": "50%",
-                        background: ROZ,
-                      }}
-                    />
-                  </Show>
-                </span>
-              </button>
-            )}
-          </For>
-        </div>
-      </nav>
-      <div style={PASTILA}>
-        {/* Avatarul stă într-un buton de 36, ca tab-urile: 28 + 2 × 2 de inel, iar cei 2 rămași se fac roz în Profil. */}
-        <button
-          type="button"
-          class="bbt-moale"
-          title="Profil"
-          aria-label="Profil"
-          aria-current={profilActiv() ? "page" : undefined}
-          onClick={() => navigate("/cont")}
+                <s.Icon size={20} />
+                <Show when={s.punct() && !s.activ()}>
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: railDeschis() ? "4px" : "-2px",
+                      right: railDeschis() ? "2px" : "-4px",
+                      width: "9px",
+                      height: "9px",
+                      "border-radius": "50%",
+                      background: ROZ,
+                    }}
+                  />
+                </Show>
+              </span>
+              <Show when={railDeschis()}>
+                <span style={TEXT_RAND}>{s.nume}</span>
+              </Show>
+            </button>
+          )}
+        </For>
+      </div>
+
+      <div style={{ flex: 1 }} />
+
+      <button
+        type="button"
+        class="bbt-moale"
+        title={railDeschis() ? undefined : "Profil"}
+        aria-label="Profil"
+        aria-current={profilActiv() ? "page" : undefined}
+        onClick={() => navigate("/cont")}
+        style={{ ...rand("56px"), color: ALB }}
+      >
+        {/* Inelul doar în Profil: cu rozul plecat de sus, altfel n-ai vedea unde ești. */}
+        <span
           style={{
-            ...BUTON,
-            background: profilActiv() ? ROZ : "transparent",
-            transition:
-              "background-color 220ms ease-in-out, transform 160ms ease-out",
+            display: "flex",
+            "flex-shrink": 0,
+            "border-radius": "50%",
+            outline: profilActiv() ? `2px solid ${ROZ}` : "none",
+            "outline-offset": "1px",
           }}
         >
-          <span
-            style={{
-              display: "flex",
-              "border-radius": "16px",
-              border: `2px solid ${ROZ}`,
-            }}
-          >
-            <AvatarOm om={client().user} marime={28} />
+          <AvatarOm om={client().user} marime={railDeschis() ? 32 : 36} />
+        </span>
+        <Show when={railDeschis()}>
+          <span style={{ "min-width": 0, "line-height": 1.1 }}>
+            <span
+              style={{
+                ...UN_RAND,
+                display: "block",
+                "font-size": "13px",
+                "font-weight": 800,
+              }}
+            >
+              {cont.data?.numeAfisat ?? client().user?.displayName}
+            </span>
+            {/* Aceeași regulă ca în `ProfilDesktop.tsx`: telefonul confirmat face „Artist verificat". */}
+            <Show when={cont.data?.phoneVerified}>
+              <span
+                style={{
+                  display: "block",
+                  "margin-top": "2px",
+                  "font-size": "12px",
+                  "font-weight": 700,
+                  color: ROZ,
+                }}
+              >
+                Artist verificat
+              </span>
+            </Show>
           </span>
-        </button>
-        {/* „Site" (cererea userului, 31 oct 2026): nu e o secțiune, duce afară. În browser același tab, în aplicația instalată
-            se deschide în browser (`tintaSite`). */}
-        <a
-          href={BBT_SITE_URL}
-          target={tintaSite()}
-          rel="noopener"
-          class="bbt-moale bbt-tab-pastila"
-          title="Site"
-          aria-label="Site"
-          style={{ ...BUTON, color: ALB, "text-decoration": "none" }}
+        </Show>
+      </button>
+      {/* „Site" (cererea userului, 31 oct 2026): nu e o secțiune, duce afară. În browser același tab, în aplicația instalată
+          se deschide în browser (`tintaSite`). */}
+      <a
+        href={BBT_SITE_URL}
+        target={tintaSite()}
+        rel="noopener"
+        class="bbt-moale bbt-tab-pastila"
+        title={railDeschis() ? undefined : "Site"}
+        aria-label="Mergi pe site"
+        style={{
+          ...rand(),
+          color: railDeschis() ? ALB_STINS : "rgba(255,255,255,0.7)",
+          "text-decoration": "none",
+        }}
+      >
+        <span
+          style={{
+            display: "flex",
+            "flex-shrink": 0,
+            "align-items": "center",
+            "justify-content": "center",
+            ...(railDeschis() ? { width: "32px", height: "32px" } : {}),
+          }}
         >
-          <Symbol size={20}>open_in_new</Symbol>
-        </a>
-      </div>
-    </div>
+          <Symbol size={16}>open_in_new</Symbol>
+        </span>
+        <Show when={railDeschis()}>
+          <span style={TEXT_RAND}>Mergi pe site</span>
+        </Show>
+      </a>
+    </nav>
   );
 }

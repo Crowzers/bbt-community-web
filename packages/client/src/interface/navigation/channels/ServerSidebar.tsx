@@ -499,7 +499,7 @@ const CategorySection = styled("div", {
     display: "flex",
     gap: "6px",
     flexDirection: "column",
-    padding: "0 8px",
+    padding: "0 10px",
     background: "transparent",
   },
 });

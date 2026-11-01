@@ -34,6 +34,7 @@ import {
   cautareTelefon,
   setCautareTelefon,
 } from "../../../bbt/cautare";
+import { CardUrmatoareaTabara } from "../../../bbt/CardUrmatoareaTabara";
 import { CautareTelefon } from "../../../bbt/CautareTelefon";
 import { firDeschis, inchideFir } from "../../../bbt/fir";
 import { FirPanou, FirRaspunsuri } from "../../../bbt/FirRaspunsuri";
@@ -82,6 +83,17 @@ export function TextChannel(props: ChannelPageProps) {
   const state = useState();
   const client = useClient();
   const { layout } = useDevice();
+  const canalAlb = () =>
+    layout() !== "phone" && props.channel.type === "TextChannel";
+  const antet = () => (
+    <Header placement="primary">
+      <ChannelHeader
+        channel={props.channel}
+        sidebarState={sidebarState}
+        setSidebarState={setSidebarState}
+      />
+    </Header>
+  );
 
   // Last unread message id
   const [lastId, setLastId] = createSignal<string>();
@@ -246,17 +258,17 @@ export function TextChannel(props: ChannelPageProps) {
       <Show when={cautareTelefon()}>
         <CautareTelefon channel={props.channel} />
       </Show>
-      <Header placement="primary">
-        <ChannelHeader
-          channel={props.channel}
-          sidebarState={sidebarState}
-          setSidebarState={setSidebarState}
-        />
-      </Header>
+      <Show when={layout() === "phone"}>{antet()}</Show>
       <Content>
-        {/* BBT: locul unde se vorbește e gri peste tot, în canale ca în conversațiile directe (cererea userului, 31 oct
-            2026; până atunci canalele erau albe pe desktop). */}
-        <main class={main()} style={{ background: "#F2F2F3" }}>
+        {/* BBT: locul unde se vorbește e gri, cu bule albe. Excepție: canalele de pe desktop, albe cu bule gri, ca în 25e
+            (cererea userului, 1 nov 2026, peste cea din 31 oct, când erau gri și ele). */}
+        <main
+          class={main()}
+          classList={{ "bbt-canal-alb": canalAlb() }}
+          style={{ background: canalAlb() ? "#FFFFFF" : "#F2F2F3" }}
+        >
+          {/* BBT: pe desktop antetul stă doar deasupra chat-ului, iar panoul din dreapta ține toată înălțimea foii (25e). */}
+          <Show when={layout() !== "phone"}>{antet()}</Show>
           {/* BBT: ultimul mesaj fixat, ca bandă sub antet (pânza TRW). */}
           <BandaFixat
             channel={props.channel}
@@ -391,6 +403,9 @@ export function TextChannel(props: ChannelPageProps) {
                           channel={props.channel}
                           cautare={cautareMembri()}
                         />
+                        <Show when={layout() !== "phone"}>
+                          <CardUrmatoareaTabara />
+                        </Show>
                       </Show>
                     </>
                   }
@@ -465,7 +480,9 @@ const Content = styled("div", {
 const sidebar = cva({
   base: {
     flexShrink: 0,
-    width: "var(--layout-width-channel-sidebar)",
+    // BBT: 240, cu un fir în stânga, ca în 25e. Până acum lua lățimea listei de canale.
+    width: "240px",
+    borderLeft: "1px solid #E5E5E5",
     // margin: "var(--gap-md)",
     borderRadius: "var(--borderRadius-lg)",
     // color: "var(--colours-sidebar-channels-foreground)",
@@ -480,6 +497,7 @@ const sidebar = cva({
       inset: 0,
       zIndex: 5,
       width: "100% !important",
+      borderLeft: 0,
       borderRadius: 0,
       background: "#FFFFFF",
     },

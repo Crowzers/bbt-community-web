@@ -528,15 +528,15 @@ export function Message(props: Props) {
                 width: "fit-content",
                 "align-self": "flex-start",
                 // 23a: colțul de jos-stânga ascuțit (6), cel mult 420 lățime, text de 15.
-                "max-width": "min(420px, 100%)",
+                "max-width": "min(var(--bbt-lat-bula, 420px), 100%)",
                 "box-sizing": "border-box",
                 padding: "10px 14px",
-                "border-radius": "22px 22px 22px 6px",
+                "border-radius": "var(--bbt-raza-bula, 22px 22px 22px 6px)",
                 "font-size": "15px",
                 background:
                   props.message.authorId === client().user?.id
                     ? "#FFA8CD"
-                    : "#FFFFFF",
+                    : "var(--bbt-fond-bula, #FFFFFF)",
                 color: "#0A0A0B",
               }}
             >

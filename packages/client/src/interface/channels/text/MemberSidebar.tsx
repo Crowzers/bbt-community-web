@@ -7,6 +7,7 @@ import { styled } from "styled-system/jsx";
 
 import { floatingUserMenus } from "@revolt/app/menus/UserContextMenu";
 import { useClient } from "@revolt/client";
+import { useDevice } from "@revolt/common";
 import { createIsTimedOut } from "@revolt/common/lib/createIsTimedOut";
 import { TextWithEmoji } from "@revolt/markdown";
 import { userInformation } from "@revolt/markdown/users";
@@ -85,6 +86,7 @@ export function MemberSidebar(props: Props) {
  */
 export function ServerMemberSidebar(props: Props) {
   const client = useClient();
+  const { layout } = useDevice();
 
   type MemberRoleElement =
     | { t: 0; name: string; count: number; icon?: string | null }
@@ -98,6 +100,7 @@ export function ServerMemberSidebar(props: Props) {
     // BBT (ca la TRW, 6 oct 2026): TOATĂ lumea pe grupe de rol — Echipa BBT, Moderatori, rolurile
     // din onboarding (admin, lib/stoat/roluri.ts) — online ȘI offline în aceeași grupă (offline
     // estompați, mai jos în grupă). Fără grupa separată „Offline", care ascundea rolul omului.
+    // Pe desktop, din 25e (cererea userului, 1 nov 2026), doar două grupe: Online și Offline.
     const restricted =
       !props.totaComunitatea && props.channel.potentiallyRestrictedChannel;
     const byRole: Map<
@@ -209,6 +212,17 @@ export function ServerMemberSidebar(props: Props) {
       }
     }
 
+    if (layout() !== "phone") {
+      const oameni = elements.filter((e) => e.t === 1);
+      const grupa = (nume: string, online: boolean): MemberRoleElement[] => {
+        const din = oameni.filter((e) => e.isOnline === online);
+        return din.length
+          ? [{ t: 0, name: nume, count: din.length }, ...din]
+          : [];
+      };
+      return [...grupa("Online", true), ...grupa("Offline", false)];
+    }
+
     return elements;
   });
 
@@ -240,7 +254,7 @@ export function ServerMemberSidebar(props: Props) {
                       </Show>
                       <span>
                         {(item.item as { name: string })?.name}
-                        {" — "}
+                        {layout() === "phone" ? " — " : " · "}
                         {(item.item as { count: number })?.count}
                       </span>
                     </CategoryTitle>
@@ -309,8 +323,8 @@ const Container = styled("div", {
   base: {
     padding: "0 8px 8px",
     boxSizing: "border-box",
-    // 260, ca în 21a (lista de canale are 280, dar panoul membrilor nu o mai urmează).
-    width: "260px",
+    // 240, ca în 25e.
+    width: "240px",
     // Pe telefon panoul acoperă tot canalul (TextChannel.tsx, `sidebar`).
     _phone: { width: "100%" },
   },

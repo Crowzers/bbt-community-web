@@ -20,8 +20,8 @@ export const Header = styled("div", {
     fontWeight: 600,
     userSelect: "none",
     overflow: "hidden",
-    // BBT: antet plat, cu un fir dedesubt. 60 de înălțime și 20 pe laterale, ca în 25d (31 oct 2026); în 21a, 64 / 24.
-    height: "60px",
+    // BBT: antet plat, cu un fir dedesubt. 72 de înălțime și 20 pe laterale, ca în 25e (1 nov 2026); în 21a, 64 / 24.
+    height: "72px",
     borderRadius: 0,
     padding: "0 20px",
     borderBottom: "1px solid var(--md-sys-color-outline-variant)",

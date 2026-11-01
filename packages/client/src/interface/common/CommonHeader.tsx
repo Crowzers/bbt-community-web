@@ -1,4 +1,4 @@
-import { BiRegularChevronLeft, BiRegularChevronRight } from "solid-icons/bi";
+import { BiRegularChevronRight } from "solid-icons/bi";
 
 import { JSX, Match, Switch } from "solid-js";
 
@@ -14,6 +14,8 @@ import { LAYOUT_SECTIONS } from "@revolt/state/stores/Layout";
  * Wrapper for header icons which adds the chevron on the
  * correct side for toggling sidebar (if on desktop) and
  * the hamburger icon to open sidebar (if on mobile).
+ *
+ * BBT: cu lista deschisă, fără săgeată (25e): nu mai închide nimic de aici. Rămâne doar ca să redeschidă o listă închisă.
  */
 export function HeaderIcon(props: { children: JSX.Element }) {
   const state = useState();
@@ -25,7 +27,9 @@ export function HeaderIcon(props: { children: JSX.Element }) {
       onClick={() => {
         const ad = state.appDrawer();
         if (ad) ad.setShown(false);
-        else
+        else if (
+          !state.layout.getSectionState(LAYOUT_SECTIONS.PRIMARY_SIDEBAR, true)
+        )
           state.layout.toggleSectionState(
             LAYOUT_SECTIONS.PRIMARY_SIDEBAR,
             true,
@@ -55,7 +59,6 @@ export function HeaderIcon(props: { children: JSX.Element }) {
             true,
           )}
         >
-          <BiRegularChevronLeft size={20} />
           {props.children}
         </Match>
       </Switch>

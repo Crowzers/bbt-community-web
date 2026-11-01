@@ -200,7 +200,7 @@ export function FirPanou(props: { channel: Channel }) {
           display: "flex",
           "align-items": "center",
           gap: "10px",
-          height: "60px",
+          height: "72px",
           "flex-shrink": 0,
           padding: "0 20px",
           "box-sizing": "border-box",

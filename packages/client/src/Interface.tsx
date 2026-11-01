@@ -139,12 +139,12 @@ const Interface = (props: { children: JSX.Element }) => {
               style={{
                 "flex-grow": 1,
                 "min-height": 0,
-                // 14 între foaie și marginile ferestrei (25d). Sus, marginea e banda; în stânga e pastila, cu spațiul ei.
+                // Marginea comună din 25e. Sus, marginea e banda.
                 ...(telefon()
                   ? {}
                   : {
                       background: "transparent",
-                      padding: "0 14px 14px var(--bbt-langa-pastila)",
+                      padding: "0 var(--bbt-margine) var(--bbt-margine)",
                     }),
               }}
               onDragOver={(e) => {

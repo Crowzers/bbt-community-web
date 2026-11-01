@@ -28,12 +28,14 @@ import { browser, instalare, sistemDesktop, sistemTelefon } from "./instalare";
  * (Chrome pe Android), altfel panoul cu pașii de jos în sus, `TutorialInstalare.tsx`. Pe telefon
  * butonul stă în bara de sus a listei de canale (`compact`), mai mic.
  *
- * 🔥 **Negru din 30 oct 2026** (21 și 23: „pill negru, nu roz, ca să nu concureze cu conținutul"). Până atunci roz,
- * ca acțiune („roz înseamnă click"), cu text negru. Înălțimea 52, cât căutarea și clopoțelul de lângă (25d).
+ * 🔥 **Alb din 1 nov 2026** (25e): negrul de sus concura cu pastila, iar butonul era mai lung decât ea. Doar „Instalează", de 48,
+ * cât căutarea și clopoțelul de lângă. Până atunci negru (21, 23), iar înainte de 30 oct, roz.
  */
 
 const NEGRU = "#0A0A0B";
 const NEGRU_APASAT = "#2A2A2C";
+const ALB = "#FFFFFF";
+const ALB_APASAT = "#F2F2F3";
 const LINIE = "#E5E5E5";
 const FOAIE = "#FFFFFF";
 
@@ -42,17 +44,10 @@ export function ButonInstalare(props: { compact?: boolean }) {
   const telefon = sistemTelefon();
   const [pasi, setPasi] = createSignal(false);
   const [tutorial, setTutorial] = createSignal(false);
-  const [lat, setLat] = createSignal(true);
   const [incape, setIncape] = createSignal(true);
   let cutie: HTMLDivElement | undefined;
 
   onMount(() => {
-    // Sub ~1180px bara de sus nu mai are loc de sigla, căutare, clopoțel, butonul lung și cont.
-    // Butonul rămâne mare, doar textul se scurtează la „Instalează".
-    const mq = window.matchMedia("(min-width: 1180px)");
-    const aplica = () => setLat(mq.matches);
-    aplica();
-    mq.addEventListener("change", aplica);
     // Sub 370px (Android-urile de 360) „Instalează" nu mai încape lângă siglă și cont:
     // rămâne doar iconița.
     const mqTelefon = window.matchMedia("(min-width: 370px)");
@@ -67,7 +62,6 @@ export function ButonInstalare(props: { compact?: boolean }) {
     document.addEventListener("pointerdown", afara);
     document.addEventListener("keydown", esc);
     onCleanup(() => {
-      mq.removeEventListener("change", aplica);
       mqTelefon.removeEventListener("change", aplicaTelefon);
       document.removeEventListener("pointerdown", afara);
       document.removeEventListener("keydown", esc);
@@ -80,8 +74,17 @@ export function ButonInstalare(props: { compact?: boolean }) {
       if (props.compact) return incape() ? "Instalează" : "";
       return "Instalează aplicația";
     }
-    return lat() ? `Instalează pe ${numeSistem}` : "Instalează";
+    return "Instalează";
   };
+
+  const fond = (apasat: boolean) =>
+    props.compact
+      ? apasat
+        ? NEGRU_APASAT
+        : NEGRU
+      : apasat
+        ? ALB_APASAT
+        : ALB;
 
   async function apasa() {
     if (instalare.directa() && (await instalare.porneste())) return;
@@ -109,32 +112,30 @@ export function ButonInstalare(props: { compact?: boolean }) {
             "align-items": "center",
             "justify-content": "center",
             gap: props.compact ? "6px" : "8px",
-            height: props.compact ? "34px" : "52px",
+            height: props.compact ? "34px" : "48px",
             "min-width": props.compact ? "34px" : undefined,
             "box-sizing": "border-box",
             padding: props.compact
               ? text()
                 ? "0 14px 0 10px"
                 : "0"
-              : "0 20px",
+              : "0 18px",
             "border-radius": "999px",
             border: "0",
-            background: pasi() ? NEGRU_APASAT : NEGRU,
-            color: "#FFFFFF",
+            background: fond(pasi()),
+            color: props.compact ? ALB : NEGRU,
             cursor: "pointer",
             "font-family": "inherit",
             "font-size": "14px",
             "font-weight": 700,
             "white-space": "nowrap",
           }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.background = NEGRU_APASAT)
-          }
+          onMouseEnter={(e) => (e.currentTarget.style.background = fond(true))}
           onMouseLeave={(e) =>
-            (e.currentTarget.style.background = pasi() ? NEGRU_APASAT : NEGRU)
+            (e.currentTarget.style.background = fond(pasi()))
           }
         >
-          <Symbol size={props.compact ? 18 : 20}>download</Symbol>
+          <Symbol size={props.compact ? 18 : 16}>download</Symbol>
           {/* Pe îngust (`raspuns.css`) rămâne doar iconița. */}
           <span class={props.compact ? undefined : "bbt-instalare-text"}>
             {text()}

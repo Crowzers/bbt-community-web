@@ -9,7 +9,7 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 import { cereCautare } from "./cautare";
 
 /**
- * Căutarea și clopoțelul din bara de sus (pânza TRW aprobată, 5 oct 2026). Albe, de 52, ca în 25d.
+ * Căutarea și clopoțelul din bara de sus (pânza TRW aprobată, 5 oct 2026). Albe, de 48, ca în 25e.
  *
  * Căutarea: în canalul DESCHIS — singura căutare pe care o are Stoat (vezi `cautare.ts`). Enter
  * deschide rezultatele în panoul din dreapta al canalului. Fără canal deschis, câmpul nu apare.
@@ -43,8 +43,9 @@ export function CautareSus() {
           display: "flex",
           "align-items": "center",
           gap: "10px",
-          width: "300px",
-          height: "52px",
+          width: "420px",
+          "max-width": "100%",
+          height: "48px",
           padding: "0 18px",
           "box-sizing": "border-box",
           "border-radius": "999px",
@@ -54,7 +55,7 @@ export function CautareSus() {
           "font-size": "14px",
         }}
       >
-        <Symbol size={20}>search</Symbol>
+        <Symbol size={16}>search</Symbol>
         <input
           value={text()}
           onInput={(e) => setText(e.currentTarget.value)}
@@ -142,8 +143,8 @@ export function Clopotel() {
         onClick={() => setDeschis((d) => !d)}
         style={{
           position: "relative",
-          width: "52px",
-          height: "52px",
+          width: "48px",
+          height: "48px",
           border: "0",
           "border-radius": "999px",
           background: deschis() ? "#F2F2F3" : "#FFFFFF",
@@ -154,7 +155,7 @@ export function Clopotel() {
           cursor: "pointer",
         }}
       >
-        <Symbol size={20}>notifications</Symbol>
+        <Symbol size={18}>notifications</Symbol>
         <Show when={alerte().length > 0}>
           <span
             style={{
