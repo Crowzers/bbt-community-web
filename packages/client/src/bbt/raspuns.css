@@ -43,13 +43,24 @@
   }
 }
 
-/* Banda roz (`BaraSus.tsx`): pe tabletă sau pe o fereastră scundă are 72, ca să rămână loc de lucru, iar salutul se strânge. */
+/* Banda roz (`BaraSus.tsx`): pe tabletă sau pe o fereastră scundă are 72, ca să rămână loc de lucru, iar salutul se strânge.
+   `--bbt-langa-pastila`: spațiul din jurul pastilei, cât are butonul de instalare (52) deasupra și dedesubt în bandă (cererea
+   userului, 1 nov 2026). `--bbt-sus-pastila`: distanța ei de marginea de sus, mai mare doar în aplicația instalată pe Mac,
+   unde semafoarele stau în stânga: pe Windows, `titlebar-area-x` e 0, deci `min` dă 0. */
+:root {
+  --bbt-banda: 96px;
+  --bbt-langa-pastila: calc((var(--bbt-banda) - 52px) / 2);
+  --bbt-sus-pastila: max(
+    var(--bbt-langa-pastila),
+    min(env(titlebar-area-x, 0px), env(titlebar-area-height, 0px))
+  );
+}
 .bbt-cautare-sus input::placeholder {
   color: #8d8d9a;
 }
 @media (max-width: 840px), (max-height: 600px) {
-  .bbt-bara-sus {
-    height: 72px !important;
+  :root {
+    --bbt-banda: 72px;
   }
   .bbt-titlu-sus-text {
     font-size: 24px !important;

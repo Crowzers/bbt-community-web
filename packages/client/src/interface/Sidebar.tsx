@@ -104,8 +104,8 @@ export const Sidebar = (_props: {
           ...(telefon()
             ? { width: "100%" }
             : {
-                // 14 între pastilă și foaie, ca între foaie și marginile ferestrei.
-                "margin-left": "14px",
+                // Spațiul dintre pastilă și foaie, egal cu cel din stânga pastilei (`raspuns.css`).
+                "margin-left": "var(--bbt-langa-pastila)",
                 ...(cuLista()
                   ? {
                       overflow: "hidden",

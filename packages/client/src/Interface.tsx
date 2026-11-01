@@ -138,10 +138,13 @@ const Interface = (props: { children: JSX.Element }) => {
               style={{
                 "flex-grow": 1,
                 "min-height": 0,
-                // 14 între foaie și marginile ferestrei (25d). Sus, marginea e banda.
+                // 14 între foaie și marginile ferestrei (25d). Sus, marginea e banda; în stânga e pastila, cu spațiul ei.
                 ...(telefon()
                   ? {}
-                  : { background: "transparent", padding: "0 14px 14px" }),
+                  : {
+                      background: "transparent",
+                      padding: "0 14px 14px var(--bbt-langa-pastila)",
+                    }),
               }}
               onDragOver={(e) => {
                 if (e.dataTransfer) e.dataTransfer.dropEffect = "none";
