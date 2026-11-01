@@ -5,6 +5,7 @@ import { useNavigate } from "@revolt/routing";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { BBT_SITE_URL } from "../config";
+import { deschideRegulile } from "../RegulileComunitatii";
 import { comutaSunetele, sunetePornite } from "../sunete";
 import { UN_RAND } from "../telefon";
 
@@ -93,6 +94,7 @@ export function SetariTelefon() {
       </Show>
 
       <div style={GRUP}>
+        <Rand text="Regulile comunității" laApasare={deschideRegulile} />
         <Rand
           text="Ajutor și contact BBT"
           laApasare={() =>

@@ -11,6 +11,7 @@ import { BBT_ADMIN_URL } from "./config";
  * un motiv nou intră întâi acolo.
  */
 export type MotivRaport =
+  | "Urgent"
   | "Harassment"
   | "UnsolicitedSpam"
   | "ScamsFraud"
@@ -104,6 +105,7 @@ export async function rezolvaRaportul(sesiune: string, id: string) {
 
 /** Textele din `mobil/src/fir/Raportare.tsx`, ca moderatorul să citească același motiv în aplicație și în hub. */
 const TEXTE_MOTIV: Record<MotivRaport, string> = {
+  Urgent: "Urgent: cineva e în pericol",
   Harassment: "Hărțuire sau jigniri",
   UnsolicitedSpam: "Spam sau reclame",
   ScamsFraud: "Înșelătorie",
@@ -115,6 +117,10 @@ const TEXTE_MOTIV: Record<MotivRaport, string> = {
   Underage: "Pare să aibă sub vârsta minimă",
   NoneSpecified: "Alt motiv",
 };
+
+/** La motivele astea, confirmarea arată și cui poți suna (ca în `mobil/src/fir/Raportare.tsx`). */
+export const eSensibil = (motiv: string) =>
+  ["Urgent", "Harassment", "PromotesHarm", "Illegal"].includes(motiv);
 
 export const textMotiv = (cheie: string) =>
   TEXTE_MOTIV[cheie as MotivRaport] ?? cheie;

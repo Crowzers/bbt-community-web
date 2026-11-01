@@ -1,4 +1,4 @@
-import { createEffect, onCleanup, onMount } from "solid-js";
+import { createEffect, createSignal, onCleanup, onMount } from "solid-js";
 
 import { useLingui } from "@lingui/solid/macro";
 import {
@@ -15,6 +15,7 @@ import {
 import { useNavigate, useSmartParams } from "@revolt/routing";
 import { useState } from "@revolt/state";
 
+import { CerereNotificari } from "../../src/bbt/CerereNotificari";
 import { useClient, useNotifications, useSound } from ".";
 
 /**
@@ -30,12 +31,17 @@ export function NotificationsWorker() {
 
   const { initNotifications } = useNotifications();
 
+  // BBT: momentul în care cererea de notificări are sens (`CerereNotificari.tsx`).
+  const [momentUtil, setMomentUtil] = createSignal(false);
+
   /**
    * Handle incoming messages
    * @param message Message
    */
   function onMessage(message: Message) {
     const us = client().user!;
+
+    if (message.author?.self || message.mentioned) setMomentUtil(true);
 
     // Ignore if we are currently looking at the channel
     if (params().channelId === message.channelId && document.hasFocus()) return;
@@ -233,10 +239,16 @@ export function NotificationsWorker() {
   }
 
   onMount(() => {
+    // BBT: cât browserul mai poate întreba, întreabă `CerereNotificari`. Cu permisiunea deja dată sau refuzată, clicul doar
+    // reface abonamentul: nu apare nicio fereastră.
+    if ("Notification" in window && Notification.permission === "default")
+      return;
     document.addEventListener("click", tryRequest);
   });
 
   onCleanup(() => document.removeEventListener("click", tryRequest));
 
-  return null;
+  return (
+    <CerereNotificari moment={momentUtil()} laPornire={initNotifications} />
+  );
 }

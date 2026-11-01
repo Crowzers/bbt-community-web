@@ -35,6 +35,7 @@ import { firDeschis } from "./bbt/fir";
 import { FundalRama } from "./bbt/FundalRama";
 import { membriDeschisi } from "./bbt/MembriComunitate";
 import { PastilaDeJos } from "./bbt/PastilaDeJos";
+import { RegulileComunitatii } from "./bbt/RegulileComunitatii";
 import { RAZA_FOAIE, Sidebar, useListaLaVedere } from "./interface/Sidebar";
 
 /**
@@ -199,6 +200,7 @@ const Interface = (props: { children: JSX.Element }) => {
         {/* BBT: „X te sună" — src/bbt/ApelPrimit.tsx */}
         <Show when={lifecycle.loadedOnce()}>
           <ApelPrimit />
+          <RegulileComunitatii />
         </Show>
       </AppRoot>
     </MessageCache>

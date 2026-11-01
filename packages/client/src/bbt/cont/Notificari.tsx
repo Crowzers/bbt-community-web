@@ -178,7 +178,8 @@ export function ListaNotificari() {
                       height: "10px",
                       "flex-shrink": 0,
                       "border-radius": "50%",
-                      background: C.roz,
+                      // Negru: rozul pe rândul necitit are 1,6:1 și nu se vede.
+                      background: C.text,
                     }}
                   />
                 </Show>

@@ -17,6 +17,7 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { useAlunecare } from "../Alunecare";
 import { BBT_SITE_URL } from "../config";
+import { deschideRegulile } from "../RegulileComunitatii";
 import { CERC_40, IconInapoi, UN_RAND } from "../telefon";
 
 import { Administrare, poateAdministra } from "./Administrare";
@@ -550,6 +551,17 @@ function Meniu(props: { activ?: string }) {
       </div>
       <div style={{ "flex-grow": 1, "min-height": "8px" }} />
       {/* Ca în Setările de pe telefon. Linkuri, nu rânduri din listă: nu sunt pagini din cont, deci nu primesc fundalul care alunecă. */}
+      <button
+        type="button"
+        onClick={deschideRegulile}
+        style={{
+          ...LINK_MENIU,
+          cursor: "pointer",
+          "font-family": "inherit",
+        }}
+      >
+        Regulile comunității
+      </button>
       <a href="mailto:contact@beanbagtheory.ro" style={LINK_MENIU}>
         Ajutor și contact BBT
       </a>

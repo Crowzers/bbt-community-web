@@ -386,3 +386,31 @@
   flex-direction: column;
   flex-grow: 1;
 }
+
+/* Conturul de focus: alb și negru, ca să se vadă și pe foaia albă, și pe roz, și pe pastila neagră (WCAG 2.4.13). */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 0;
+  box-shadow: 0 0 0 4px #0a0a0b;
+}
+
+/* iOS mărește pagina la un câmp sub 16 px. */
+@media (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Cererea de notificări (`CerereNotificari.tsx`), pe telefon, deasupra pastilei. */
+@media (max-width: 600px) {
+  .bbt-cerere-notificari {
+    left: 16px !important;
+    right: 16px !important;
+    bottom: calc(96px + env(safe-area-inset-bottom)) !important;
+    width: auto !important;
+  }
+}
