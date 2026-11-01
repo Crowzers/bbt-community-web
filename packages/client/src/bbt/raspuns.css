@@ -256,6 +256,17 @@
   margin: 8px 0 0;
 }
 
+/* Panoul Membri e coloană, ca `CardUrmatoareaTabara` să stea la baza lui. */
+@media (min-width: 601px) {
+  .bbt-panou-dreapta {
+    display: flex;
+    flex-direction: column;
+  }
+  .bbt-panou-dreapta > * {
+    flex-shrink: 0;
+  }
+}
+
 /* Canalele de pe desktop, ca în 25e: alb, cu bule gri de 18, până la 560. */
 .bbt-canal-alb {
   --bbt-fond-sub-cursor: #f2f2f3;

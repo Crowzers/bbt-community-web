@@ -4,7 +4,12 @@ import { useExperiente } from "./cont/date";
 import { perioada } from "./cont/Experiente";
 import { C, DE_FONTE } from "./cont/ui";
 
-/** BBT: următoarea tabără a omului, jos în panoul Membri (25e). Fără tabără activă, cardul nu apare. */
+/**
+ * BBT: următoarea tabără a omului, jos în panoul Membri (25e). Fără tabără activă, cardul nu apare.
+ *
+ * Stă mereu la baza panoului: `margin-top: auto` îl împinge jos când lista e scurtă (panoul e coloană flex, `raspuns.css`), iar
+ * `sticky` îl ține la vedere când lista e mai lungă decât panoul.
+ */
 export function CardUrmatoareaTabara() {
   const experiente = useExperiente();
   const tabara = () => experiente.data?.active.find((e) => e.fel === "camp");
@@ -16,7 +21,8 @@ export function CardUrmatoareaTabara() {
           style={{
             position: "sticky",
             bottom: "16px",
-            margin: "14px",
+            "z-index": 1,
+            margin: "auto 14px 16px",
             display: "flex",
             "flex-direction": "column",
             gap: "4px",
