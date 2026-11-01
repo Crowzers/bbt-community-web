@@ -35,7 +35,7 @@ import { NotificariCont } from "./Setari";
 import { SetariTelefon } from "./SetariTelefon";
 import { NotitaLive } from "./tabara/NotitaLive";
 import { Tabara } from "./tabara/Tabara";
-import { Buton, C, Fereastra, TITLU_COLT } from "./ui";
+import { Buton, C, Eticheta, Fereastra, TITLU_COLT } from "./ui";
 import { VoceVideo } from "./VoceVideo";
 import { Wishlist } from "./Wishlist";
 
@@ -58,35 +58,50 @@ import { Wishlist } from "./Wishlist";
 
 type Rand = { pagina: string; nume: string };
 
-/** Numele din `website/src/lib/dashboardNavItems.ts`. Piesele există doar aici. */
-const ACTIVITATE: Rand[] = [
+/**
+ * Meniul Profilului, pe secțiuni (cererea userului, 1 nov 2026): cine ești, unde mergi, apoi contul. Numele sunt cele
+ * din `website/src/lib/dashboardNavItems.ts`; piesele există doar aici.
+ */
+const PROFIL: Rand[] = [
   { pagina: "", nume: "Profilul meu" },
-  { pagina: "mycamps", nume: "My Camps" },
-  { pagina: "workshops", nume: "My Workshops" },
-  { pagina: "cursuri", nume: "My Courses" },
-  { pagina: "diplome", nume: "Diplomele mele" },
   { pagina: "piese", nume: "Piesele mele" },
 ];
 
+const EXPERIENTE: Rand[] = [
+  { pagina: "mycamps", nume: "My Camps" },
+  { pagina: "workshops", nume: "My Workshops" },
+  { pagina: "cursuri", nume: "My Courses" },
+];
+
 const SETARI: Rand[] = [
-  { pagina: "plati", nume: "Plăți și facturi" },
   { pagina: "profil", nume: "Editează profilul" },
+  { pagina: "plati", nume: "Plăți și facturi" },
+  { pagina: "diplome", nume: "Diplomele mele" },
+  { pagina: "wishlist", nume: "Wishlist" },
   { pagina: "notificari", nume: "Notificări" },
   { pagina: "voce", nume: "Voce și video" },
-  { pagina: "wishlist", nume: "Wishlist" },
+];
+
+const SECTIUNI = [
+  { randuri: PROFIL },
+  { titlu: "Experiențe", randuri: EXPERIENTE },
+  { titlu: "Cont", randuri: SETARI },
 ];
 
 /** Doar pentru cine are voie (`poateAdministra`, `useRapoarte`). */
 const ADMINISTRARE: Rand = { pagina: "administrare", nume: "Administrare" };
 const RAPOARTE: Rand = { pagina: "rapoarte", nume: "Rapoarte" };
 
-const PAGINI_MENIU = [...ACTIVITATE, ...SETARI, ADMINISTRARE, RAPOARTE].map(
-  (r) => r.pagina,
-);
+const PAGINI_MENIU = [
+  ...SECTIUNI.flatMap((s) => s.randuri),
+  ADMINISTRARE,
+  RAPOARTE,
+].map((r) => r.pagina);
 
 /** Ce deschide Setările de pe telefon, deci unde duce „înapoi" din antet. */
 const PAGINI_SETARI = [
-  ...SETARI.map((r) => r.pagina),
+  // Diplomele se deschid și din Profil, pe telefon, deci „înapoi" duce acolo.
+  ...SETARI.map((r) => r.pagina).filter((p) => p !== "diplome"),
   ADMINISTRARE.pagina,
   RAPOARTE.pagina,
 ];
@@ -366,7 +381,7 @@ const LINK_MENIU: JSX.CSSProperties = {
   "align-items": "center",
   width: "100%",
   "flex-shrink": 0,
-  "min-height": "38px",
+  "min-height": "32px",
   padding: "0 12px",
   "box-sizing": "border-box",
   border: 0,
@@ -402,9 +417,22 @@ function Meniu(props: { activ?: string }) {
 
   // Fundalul gri al rândului activ alunecă spre rândul nou, peste toate grupurile (`Alunecare.tsx`, 30 oct 2026).
   const alunecare = useAlunecare(() =>
-    [...ACTIVITATE, ...SETARI, ...administrare()].findIndex(
+    [...SECTIUNI.flatMap((s) => s.randuri), ...administrare()].findIndex(
       (r) => r.pagina === (props.activ ?? ""),
     ),
+  );
+
+  /** Capul unei secțiuni: linia o desparte de cea de sus, iar numele spune ce e în ea. */
+  const CapSectiune = (p: { titlu: string }) => (
+    <div
+      style={{
+        margin: "6px 10px 0",
+        padding: "8px 2px 2px",
+        "border-top": `1px solid ${C.linie}`,
+      }}
+    >
+      <Eticheta>{p.titlu}</Eticheta>
+    </div>
   );
 
   const Grup = (p: { randuri: Rand[]; dela: number }) => (
@@ -422,7 +450,7 @@ function Meniu(props: { activ?: string }) {
               "align-items": "center",
               gap: "10px",
               width: "100%",
-              height: "38px",
+              height: "34px",
               padding: "0 12px",
               "box-sizing": "border-box",
               "border-radius": "14px",
@@ -475,7 +503,9 @@ function Meniu(props: { activ?: string }) {
         height: "100%",
         "flex-shrink": 0,
         "overflow-y": "auto",
-        padding: "16px 12px",
+        // Încape pe un ecran de 900; pe unul mai scund, meniul se derulează fără o bară lângă rânduri.
+        "scrollbar-width": "none",
+        padding: "14px 12px 10px",
         "box-sizing": "border-box",
         "border-right": `1px solid ${C.linie}`,
         display: "flex",
@@ -484,7 +514,7 @@ function Meniu(props: { activ?: string }) {
       }}
     >
       {/* Titlul ca „Mesaje" deasupra conversațiilor. Fără avatar și nume: omul apărea de patru ori pe ecran. */}
-      <h1 style={{ ...TITLU_COLT, padding: "4px 10px 16px" }}>Profil</h1>
+      <h1 style={{ ...TITLU_COLT, padding: "4px 10px 10px" }}>Profil</h1>
       <div
         style={{
           position: "relative",
@@ -494,22 +524,31 @@ function Meniu(props: { activ?: string }) {
         }}
       >
         <alunecare.Strat culoare={C.foaie} raza="14px" />
-        <Grup randuri={ACTIVITATE} dela={0} />
-        <div
-          style={{ margin: "8px 10px", "border-top": `1px solid ${C.linie}` }}
-        />
-        <Grup randuri={SETARI} dela={ACTIVITATE.length} />
+        <For each={SECTIUNI}>
+          {(s, i) => (
+            <>
+              <Show when={s.titlu}>
+                <CapSectiune titlu={s.titlu!} />
+              </Show>
+              <Grup
+                randuri={s.randuri}
+                dela={SECTIUNI.slice(0, i()).reduce(
+                  (n, x) => n + x.randuri.length,
+                  0,
+                )}
+              />
+            </>
+          )}
+        </For>
         <Show when={administrare().length}>
-          <div
-            style={{ margin: "8px 10px", "border-top": `1px solid ${C.linie}` }}
-          />
+          <CapSectiune titlu="Comunitate" />
           <Grup
             randuri={administrare()}
-            dela={ACTIVITATE.length + SETARI.length}
+            dela={SECTIUNI.reduce((n, x) => n + x.randuri.length, 0)}
           />
         </Show>
       </div>
-      <div style={{ "flex-grow": 1, "min-height": "24px" }} />
+      <div style={{ "flex-grow": 1, "min-height": "8px" }} />
       {/* Ca în Setările de pe telefon. Linkuri, nu rânduri din listă: nu sunt pagini din cont, deci nu primesc fundalul care alunecă. */}
       <a href="mailto:contact@beanbagtheory.ro" style={LINK_MENIU}>
         Ajutor și contact BBT
@@ -526,7 +565,8 @@ function Meniu(props: { activ?: string }) {
         type="button"
         onClick={() => setIesire(true)}
         style={{
-          height: "38px",
+          "flex-shrink": 0,
+          height: "32px",
           padding: "0 12px",
           border: "0",
           background: "transparent",
