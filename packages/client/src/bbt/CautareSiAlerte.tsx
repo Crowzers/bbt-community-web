@@ -54,7 +54,7 @@ export function CautareSus() {
           "font-size": "14px",
         }}
       >
-        <Symbol size={16}>search</Symbol>
+        <Symbol size={20}>search</Symbol>
         <input
           value={text()}
           onInput={(e) => setText(e.currentTarget.value)}
@@ -154,7 +154,7 @@ export function Clopotel() {
           cursor: "pointer",
         }}
       >
-        <Symbol size={18}>notifications</Symbol>
+        <Symbol size={20}>notifications</Symbol>
         <Show when={alerte().length > 0}>
           <span
             style={{

@@ -134,7 +134,7 @@ export function ButonInstalare(props: { compact?: boolean }) {
             (e.currentTarget.style.background = pasi() ? NEGRU_APASAT : NEGRU)
           }
         >
-          <Symbol size={props.compact ? 18 : 16}>download</Symbol>
+          <Symbol size={props.compact ? 18 : 20}>download</Symbol>
           {/* Pe îngust (`raspuns.css`) rămâne doar iconița. */}
           <span class={props.compact ? undefined : "bbt-instalare-text"}>
             {text()}

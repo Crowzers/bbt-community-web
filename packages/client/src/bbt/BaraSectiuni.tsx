@@ -17,8 +17,8 @@ import { AvatarOm, IconBalon, IconBilet, IconDiez } from "./telefon";
  * userului, 31 oct 2026, demo-ul „A cu pastila scurtă"). Ia locul listei de servere a lor (`ServerList`): BBT Community e UN
  * server (design §2 decizia 12), deci o listă de servere n-avea ce lista. Pe telefon, `PastilaDeJos.tsx`.
  *
- * Măsurile sunt din 25d (cererea userului, 31 oct 2026): 52 de lățime, 8 de jur împrejur, butoane de 36 la 10 unul de altul,
- * iar la capăt avatarul cu inel roz. Rozul e un singur strat care curge spre intrarea nouă (`Alunecare.tsx`), cu arcul din
+ * Măsurile sunt din 25d (cererea userului, 31 oct 2026): 52 de lățime, 8 de jur împrejur, butoane de 36 la 8 unul de altul, ca
+ * spațiile dintr-o pastilă să fie egale (1 nov 2026), iar la capăt avatarul cu inel roz. Cercul de site are tot 52, cât pastila. Rozul e un singur strat care curge spre intrarea nouă (`Alunecare.tsx`), cu arcul din
  * aplicație. Numele stă doar în `title`, la hover: fără etichete, ca să rămână o pastilă subțire.
  *
  * Până pe 31 oct: rail alb de 104 cu numele sub iconițe (21/23). Punctul roz a înlocuit cifra, ca în aplicație.
@@ -143,7 +143,7 @@ export function BaraSectiuni(props: {
             position: "relative",
             display: "flex",
             "flex-direction": "column",
-            gap: "10px",
+            gap: "8px",
           }}
         >
           <alunecare.Strat
@@ -221,15 +221,15 @@ export function BaraSectiuni(props: {
         aria-label="Site"
         style={{
           ...BUTON,
-          width: "40px",
-          height: "40px",
-          "border-radius": "20px",
+          width: "52px",
+          height: "52px",
+          "border-radius": "26px",
           color: ALB,
           "text-decoration": "none",
           background: NEGRU,
         }}
       >
-        <Symbol size={18}>open_in_new</Symbol>
+        <Symbol size={20}>open_in_new</Symbol>
       </a>
     </div>
   );

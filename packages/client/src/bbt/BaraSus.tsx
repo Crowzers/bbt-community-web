@@ -17,9 +17,9 @@ import { TITLU_PAGINA, UN_RAND } from "./telefon";
  * din aplicație în De Fonte, online și totalul membrilor. E aceeași pe toate paginile: titlul paginii stă în colțul foii, ca
  * „Mesaje" (`TitluPagina`), ca să curgă de la o pagină la alta.
  *
- * Proporțiile sunt din 25d (cererea userului, 31 oct 2026): 96 de înălțime, 14 pe laterale, logoul de 52 deasupra pastilei,
- * salutul de 30 la 18 după el, iar în dreapta căutarea, clopoțelul și instalarea, toate de 52, la 10 una de alta. Pastila cu
- * contul din dreapta a ieșit: profilul stă în pastila neagră, iar Setările și ieșirea, în meniul din Profil.
+ * Proporțiile sunt din 25d (cererea userului, 31 oct 2026): 96 de înălțime, logoul de 52 deasupra pastilei, salutul de 30, iar în
+ * dreapta căutarea, clopoțelul și instalarea, toate de 52. Spațiul dintre piesele ramei e 14 peste tot (1 nov 2026), deci salutul
+ * începe exact deasupra foii. Pastila cu contul din dreapta a ieșit: profilul stă în pastila neagră, iar Setările și ieșirea, în meniul din Profil.
  *
  * Căutarea (în canalul deschis) și clopoțelul (mențiuni + mesaje directe necitite): `CautareSiAlerte.tsx`. Butonul de instalare
  * pe calculator: `ButonInstalare.tsx`.
@@ -46,7 +46,7 @@ export function BaraSus() {
         display: "flex",
         "align-items": "center",
         "justify-content": "space-between",
-        gap: "18px",
+        gap: "14px",
         // BBT: în aplicația instalată, cu bara de titlu a Windows-ului ascunsă (săgeata din ea,
         // `display_override: window-controls-overlay` din `vite.config.ts`), bara asta ține loc de
         // bară de titlu, iar butoanele native (minimizare, mărire, închidere) stau PESTE colțul ei din
@@ -137,7 +137,7 @@ export function BaraSus() {
         style={{
           display: "flex",
           "align-items": "center",
-          gap: "10px",
+          gap: "14px",
           "margin-left": "auto",
           "-webkit-app-region": "no-drag",
         }}
