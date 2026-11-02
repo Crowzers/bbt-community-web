@@ -10,7 +10,6 @@ import solidPlugin from "vite-plugin-solid";
 import solidSvg from "vite-plugin-solid-svg";
 
 import codegenPlugin from "./codegen.plugin";
-import { addFontPreload } from "./fontpreload.plugin";
 
 /**
  * BBT: importurile de iconițe Material (`@material-design-icons/svg/<stil>/<nume>.svg?component-solid`)
@@ -71,7 +70,6 @@ export default defineConfig({
     solidSvg({
       defaultAsComponent: false,
     }),
-    addFontPreload(),
     VitePWA({
       srcDir: "src",
       registerType: "autoUpdate",
@@ -79,7 +77,10 @@ export default defineConfig({
       strategies: "injectManifest",
       injectManifest: {
         maximumFileSizeToCacheInBytes: 8000000,
-        globPatterns: ["**/*.{js,css,html}", "**/material-symbols-*.woff2"],
+        // ⚠️ BBT: fără `material-symbols-*.woff2`. Sunt 8,2 MB, iar 95 din cele 100 de iconițe sunt desenate cu Lucide
+        // (src/bbt/IconitaLucide.tsx). Preîncărcate și puse aici, se descărcau la prima deschidere deși nu le cerea nimeni.
+        // Browserul le ia singur în clipa în care chiar apare o iconiță rămasă pe font.
+        globPatterns: ["**/*.{js,css,html}"],
       },
       devOptions: {
         enabled: true,
