@@ -15,6 +15,28 @@
   <title>BBT Community</title>
   <!-- BBT: albul temei din prima clipă, înainte de CSS-ul aplicației (până pe 30 oct, negru). -->
   <style>html,body{background:#FFFFFF}</style>
+  <!--
+    BBT: schimbul codului de intrare pornește aici, în paralel cu descărcarea interfeței, nu după ea.
+    Altfel omul fără sesiune salvată așteaptă întâi bundle-ul (~0,4 s), apoi schimbul (~0,45 s). Îl
+    preia src/bbt/Sso.tsx; fără el (build fără inject.js, HTML vechi din service worker), Sso.tsx
+    face singur cererea. Adresa o pune docker/inject.js, care procesează și .html.
+  -->
+  <script>
+    (function () {
+      var admin = "__VITE_BBT_ADMIN_URL__";
+      var fragment = location.hash.slice(1);
+      var cod = new URLSearchParams(fragment).get("cod");
+      if (location.pathname !== "/sso" || !cod || !admin || admin.indexOf("__VITE_") === 0) return;
+      history.replaceState(null, "", "/sso");
+      var raspuns = fetch(admin.replace(/[/]+$/, "") + "/api/public/stoat/schimb", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ cod: cod }),
+      });
+      raspuns.catch(function () {});
+      window.__bbtSso = { fragment: fragment, raspuns: raspuns };
+    })();
+  </script>
 </head>
 
 <body>

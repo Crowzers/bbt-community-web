@@ -70,6 +70,13 @@ function Ecran(props: { eroare: string | null; text: string }) {
   );
 }
 
+declare global {
+  interface Window {
+    /** Schimbul pornit din `index.html`, în paralel cu descărcarea interfeței. */
+    __bbtSso?: { fragment: string; raspuns: Promise<Response> };
+  }
+}
+
 /**
  * `/sso#cod=…` — intrarea în BBT Community cu contul BBT, fără parolă.
  *
@@ -78,11 +85,18 @@ function Ecran(props: { eroare: string | null; text: string }) {
  * la adminul BBT pe o sesiune Stoat și o folosește exact ca după login-ul lor
  * (`setSession` + `LoginUncached`, ca în `Controller.login`).
  *
- * ⚠️ Codul se scoate din bara de adrese ÎNAINTE de orice altceva.
+ * ⚠️ Codul se scoate din bara de adrese ÎNAINTE de orice altceva. De obicei o face deja
+ * `index.html`, care pornește și schimbul.
  *
  * ⚠️ Clientul poate fi în orice stare când ajungem aici: conectat ca ALTCINEVA (calculator folosit
  * de doi oameni) → deconectare; blocat în `Error` sau `Onboarding` dintr-o încercare veche →
  * închis. Login-ul pornește DOAR din `Ready` (mașina de stări din `Controller.ts`).
+ *
+ * 🔴 **Același om: decizia se ia abia la `Connected`, nu la `isLoggedIn`.** Sesiunea salvată pornește
+ * în `Connecting`, unde `isLoggedIn` e deja adevărat, chiar dacă sesiunea a expirat. Cât schimbul
+ * venea după interfață, ajungea de obicei să pice întâi. Pornit din `index.html`, răspunsul e gata
+ * din prima clipă: am fi aruncat sesiunea proaspătă pentru una moartă, iar omul ajungea la panoul de
+ * login cu un cod bun în mână. Așa, dacă cea salvată pică, trece prin `Error` și intră cu cea nouă.
  */
 export default function Sso() {
   const state = useState();
@@ -102,6 +116,16 @@ export default function Sso() {
     const sesiune = deIntrat();
     if (!sesiune) return;
     const s = lifecycle.state();
+    if (isLoggedIn()) {
+      if (state.auth.getSession()?.userId !== sesiune.userId) {
+        logout();
+      } else if (s === State.Connected) {
+        // Același om, deja conectat: sesiunea nouă e în plus, dar inofensivă. Intră direct.
+        setDeIntrat(null);
+        navigate(destinatie, { replace: true });
+      }
+      return;
+    }
     if (s === State.Error) {
       lifecycle.transition({ type: TransitionType.Dismiss });
       return;
@@ -134,7 +158,11 @@ export default function Sso() {
   });
 
   onMount(async () => {
-    const fragment = new URLSearchParams(window.location.hash.slice(1));
+    const pornit = window.__bbtSso;
+    delete window.__bbtSso;
+    const fragment = new URLSearchParams(
+      pornit?.fragment ?? window.location.hash.slice(1),
+    );
     const cod = fragment.get("cod");
     citesteDestinatia(fragment);
     window.history.replaceState(null, "", "/sso");
@@ -146,11 +174,12 @@ export default function Sso() {
     }
 
     try {
-      const raspuns = await fetch(`${BBT_ADMIN_URL}/api/public/stoat/schimb`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ cod }),
-      });
+      const raspuns = await (pornit?.raspuns ??
+        fetch(`${BBT_ADMIN_URL}/api/public/stoat/schimb`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ cod }),
+        }));
 
       if (raspuns.status === 401) {
         // Cod expirat sau deja folosit (ex. pagină reîncărcată): din panou, omul intră din nou.
@@ -185,23 +214,12 @@ export default function Sso() {
         userId: string;
         sessionId: string;
       };
-      const sesiune = {
+      setDeIntrat({
         _id: s.sessionId,
         token: s.token,
         userId: s.userId,
         valid: false,
-      };
-      const curenta = state.auth.getSession();
-
-      if (curenta && isLoggedIn()) {
-        if (curenta.userId === s.userId) {
-          // Același om, deja conectat: sesiunea nouă e în plus, dar inofensivă. Intră direct.
-          navigate(destinatie, { replace: true });
-          return;
-        }
-        logout();
-      }
-      setDeIntrat(sesiune);
+      });
     } catch {
       setEroare(
         "Nu ne-am putut conecta. Verifică internetul și încearcă din nou.",
