@@ -1,7 +1,6 @@
 import { createEffect, createMemo } from "solid-js";
 
-import { useClientLifecycle } from "@revolt/client";
-import { State } from "@revolt/client/Controller";
+import { useBaraConexiune } from "@revolt/client/baraConexiune";
 import { useState } from "@revolt/state";
 
 import {
@@ -19,16 +18,7 @@ import { legacyThemeUnsetShim } from "./legacyThemeGeneratorCode";
  */
 export function LoadTheme() {
   const state = useState();
-  const { lifecycle } = useClientLifecycle();
-
-  const bannerShown = createMemo(() =>
-    [
-      State.Connecting,
-      State.Disconnected,
-      State.Reconnecting,
-      State.Offline,
-    ].includes(lifecycle.state()),
-  );
+  const bannerShown = useBaraConexiune();
 
   const getCssProps = createMemo(() => {
     const activeTheme = state.theme.activeTheme;

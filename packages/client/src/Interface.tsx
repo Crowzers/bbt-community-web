@@ -15,7 +15,7 @@ import { ChannelContextMenu, ServerContextMenu } from "@revolt/app";
 import { MessageCache } from "@revolt/app/interface/channels/text/MessageCache";
 import { Titlebar } from "@revolt/app/interface/desktop/Titlebar";
 import { useClient, useClientLifecycle } from "@revolt/client";
-import { State } from "@revolt/client/Controller";
+import { useBaraConexiune } from "@revolt/client/baraConexiune";
 import { NotificationsWorker } from "@revolt/client/NotificationsWorker";
 import { useDevice } from "@revolt/common";
 import {
@@ -71,14 +71,7 @@ const Interface = (props: { children: JSX.Element }) => {
     }
   });
 
-  function isDisconnected() {
-    return [
-      State.Connecting,
-      State.Disconnected,
-      State.Reconnecting,
-      State.Offline,
-    ].includes(lifecycle.state());
-  }
+  const baraVizibila = useBaraConexiune();
 
   //Drawer slider for mobile
   let rootRef, sDrawer: SlideDrawer | undefined;
@@ -135,7 +128,7 @@ const Interface = (props: { children: JSX.Element }) => {
               <BaraSus />
             </Show>
             <Layout
-              disconnected={isDisconnected()}
+              disconnected={baraVizibila()}
               style={{
                 "flex-grow": 1,
                 "min-height": 0,

@@ -1,11 +1,12 @@
 import { Match, Show, Switch, createSignal } from "solid-js";
-import { Motion, Presence } from "solid-motionone";
+import { Motion } from "solid-motionone";
 
 import { css } from "styled-system/css";
 import { styled } from "styled-system/jsx";
 
 import { useClientLifecycle } from "@revolt/client";
 import { State, TransitionType } from "@revolt/client/Controller";
+import { useBaraConexiune } from "@revolt/client/baraConexiune";
 import { Button, Ripple, symbolSize, typography } from "@revolt/ui";
 
 import MdBuild from "@material-symbols/svg-400/outlined/build.svg?component-solid";
@@ -25,138 +26,130 @@ export function Titlebar() {
     isNative ? window.desktopConfig.get().windowState.isMaximised : false,
   );
   const { lifecycle } = useClientLifecycle();
-
-  function isDisconnected() {
-    return [
-      State.Connecting,
-      State.Disconnected,
-      State.Reconnecting,
-      State.Offline,
-    ].includes(lifecycle.state());
-  }
+  const baraVizibila = useBaraConexiune();
 
   function maximise() {
     window.native.maximise();
     setIsMaximised((t) => !t);
   }
 
+  /*
+    BBT: ⚠️ fără `Presence` și `exit`. Bara poate apărea și dispărea singură cât tabul e ascuns, iar
+    `Presence` așteaptă `motioncomplete` ca s-o scoată. Pe tab ascuns rAF stă, deci animația de intrare
+    n-a rulat, ținta de ieșire e egală cu `initial` și evenimentul nu mai vine: bara rămânea până la
+    refresh, cu înălțimea 0 și conținutul de 29 px lipit peste pagină (2 nov).
+  */
   return (
-    <Presence>
-      <Show
-        when={
-          (isNative && window.desktopConfig?.get().customFrame) ||
-          isDisconnected()
-        }
-      >
-        <Motion.div
-          initial={{ height: 0 }}
-          animate={{ height: "29px" }}
-          exit={{ height: 0 }}
-        >
-          <Base disconnected={isDisconnected()}>
-            <Title
-              macos={isMacOS}
-              style={{
-                "-webkit-user-select": "none",
-                "-webkit-app-region": "drag",
-              }}
-            >
-              <Wordmark
-                class={css({
-                  height: "18px",
-                  marginBlockStart: "1px",
-                })}
-              />{" "}
-              <Show when={import.meta.env.DEV}>
-                <MdBuild {...symbolSize(16)} />
-              </Show>
-            </Title>
-            <DragHandle
-              macos={isMacOS && isNative}
-              style={{
-                "-webkit-user-select": "none",
-                "-webkit-app-region": "drag",
-              }}
-            >
-              <Switch>
-                <Match when={lifecycle.state() === State.Connecting}>
-                  Se conectează
-                </Match>
-                {/* <Match when={lifecycle.state() === State.Connected}>Connected</Match> */}
-                {/* BBT: același text pe ambele stări, altfel bara sare între ele la fiecare reîncercare.
-                    Tot textul e apăsabil: pe telefon nu mai încape un „(reîncearcă)" pe rând. */}
-                <Match
-                  when={[State.Disconnected, State.Reconnecting].includes(
-                    lifecycle.state(),
-                  )}
+    <Show
+      when={
+        (isNative && window.desktopConfig?.get().customFrame) || baraVizibila()
+      }
+    >
+      <Motion.div initial={{ height: 0 }} animate={{ height: "29px" }}>
+        <Base disconnected={baraVizibila()}>
+          <Title
+            macos={isMacOS}
+            style={{
+              "-webkit-user-select": "none",
+              "-webkit-app-region": "drag",
+            }}
+          >
+            <Wordmark
+              class={css({
+                height: "18px",
+                marginBlockStart: "1px",
+              })}
+            />{" "}
+            <Show when={import.meta.env.DEV}>
+              <MdBuild {...symbolSize(16)} />
+            </Show>
+          </Title>
+          <DragHandle
+            macos={isMacOS && isNative}
+            style={{
+              "-webkit-user-select": "none",
+              "-webkit-app-region": "drag",
+            }}
+          >
+            <Switch>
+              <Match when={lifecycle.state() === State.Connecting}>
+                Se conectează
+              </Match>
+              {/* <Match when={lifecycle.state() === State.Connected}>Connected</Match> */}
+              {/* BBT: același text pe ambele stări, altfel bara sare între ele la fiecare reîncercare.
+                  Tot textul e apăsabil: pe telefon nu mai încape un „(reîncearcă)" pe rând.
+                  ⚠️ Nu scrie „mentenanță": aici ajunge orice cădere, iar hub-ul nu știe cauza. */}
+              <Match
+                when={[State.Disconnected, State.Reconnecting].includes(
+                  lifecycle.state(),
+                )}
+              >
+                <a
+                  onClick={() =>
+                    lifecycle.transition({
+                      type: TransitionType.Retry,
+                    })
+                  }
+                  style={{
+                    cursor: "pointer",
+                    "white-space": "nowrap",
+                    "-webkit-app-region": "no-drag",
+                  }}
                 >
-                  <a
-                    onClick={() =>
-                      lifecycle.transition({
-                        type: TransitionType.Retry,
-                      })
-                    }
-                    style={{
-                      cursor: "pointer",
-                      "white-space": "nowrap",
-                      "-webkit-app-region": "no-drag",
-                    }}
-                  >
-                    Facem mentenanță, revenim imediat
-                  </a>
-                </Match>
-                <Match when={lifecycle.state() === State.Offline}>
-                  Nu ai internet
-                  <a
-                    onClick={() =>
-                      lifecycle.transition({
-                        type: TransitionType.Retry,
-                      })
-                    }
-                    style={{
-                      "-webkit-app-region": "no-drag",
-                    }}
-                  >
-                    <strong> (reîncearcă)</strong>
-                  </a>
-                </Match>
-              </Switch>
-              <Show when={pendingUpdate()}>
-                {" "}
-                <div
+                  Ne reconectăm
+                </a>
+              </Match>
+              <Match when={lifecycle.state() === State.Offline}>
+                Nu ai internet
+                <a
+                  onClick={() =>
+                    lifecycle.transition({
+                      type: TransitionType.Retry,
+                    })
+                  }
                   style={{
                     "-webkit-app-region": "no-drag",
                   }}
                 >
-                  <Button size="sm" onPress={pendingUpdate()}>
-                    Update
-                  </Button>
-                </div>
-              </Show>
-            </DragHandle>
-            <Show when={isNative && !isMacOS}>
-              <Action onClick={window.native.minimise}>
-                <Ripple />
-                <MdMinimize {...symbolSize(20)} />
-              </Action>
-              <Action onClick={maximise}>
-                <Ripple />
-                <Show
-                  when={isMaximised()}
-                  fallback={<MdExpandContent {...symbolSize(20)} />}
-                >
-                  <MdCollapseContent {...symbolSize(20)} />
-                </Show>
-              </Action>
-              <Action onClick={window.native.close}>
-                <Ripple />
-                <MdClose {...symbolSize(20)} />
-              </Action>
+                  <strong> (reîncearcă)</strong>
+                </a>
+              </Match>
+            </Switch>
+            <Show when={pendingUpdate()}>
+              {" "}
+              <div
+                style={{
+                  "-webkit-app-region": "no-drag",
+                }}
+              >
+                <Button size="sm" onPress={pendingUpdate()}>
+                  Update
+                </Button>
+              </div>
             </Show>
-          </Base>
-        </Motion.div>
-      </Show>
-    </Presence>
+          </DragHandle>
+          <Show when={isNative && !isMacOS}>
+            <Action onClick={window.native.minimise}>
+              <Ripple />
+              <MdMinimize {...symbolSize(20)} />
+            </Action>
+            <Action onClick={maximise}>
+              <Ripple />
+              <Show
+                when={isMaximised()}
+                fallback={<MdExpandContent {...symbolSize(20)} />}
+              >
+                <MdCollapseContent {...symbolSize(20)} />
+              </Show>
+            </Action>
+            <Action onClick={window.native.close}>
+              <Ripple />
+              <MdClose {...symbolSize(20)} />
+            </Action>
+          </Show>
+        </Base>
+      </Motion.div>
+    </Show>
   );
 }
 
