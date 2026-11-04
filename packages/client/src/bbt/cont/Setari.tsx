@@ -839,7 +839,7 @@ export function ZonaDeRisc() {
   const sesiune = useSesiune();
   const { logout } = useClientLifecycle();
   const [confirm, setConfirm] = createSignal<
-    "peste-tot" | "dezactivare" | null
+    "peste-tot" | "dezactivare" | "stergere" | null
   >(null);
   const [lucrez, setLucrez] = createSignal(false);
 
@@ -877,6 +877,10 @@ export function ZonaDeRisc() {
   return (
     <Sectiune titlu="Zonă de risc" pericol>
       <Show
+        when={confirm() !== "stergere"}
+        fallback={<StergeContul laRenunta={() => setConfirm(null)} />}
+      >
+      <Show
         when={confirm()}
         fallback={
           <div style={{ display: "flex", gap: "10px", "flex-wrap": "wrap" }}>
@@ -898,12 +902,24 @@ export function ZonaDeRisc() {
               onClick={() => setConfirm("dezactivare")}
               style={{
                 ...stilRosu,
+                border: `1px solid ${C.linie}`,
+                background: "transparent",
+                color: C.text,
+              }}
+            >
+              <Symbol size={15}>block</Symbol> Dezactivează contul
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirm("stergere")}
+              style={{
+                ...stilRosu,
                 border: "0",
                 background: C.rosu,
                 color: C.peNegru,
               }}
             >
-              <Symbol size={15}>block</Symbol> Dezactivează contul
+              <Symbol size={15}>delete_forever</Symbol> Șterge contul
             </button>
           </div>
         }
@@ -966,6 +982,153 @@ export function ZonaDeRisc() {
           </div>
         </div>
       </Show>
+      </Show>
     </Sectiune>
+  );
+}
+
+type StareStergere = {
+  poate: boolean;
+  motiv: string | null;
+  confirmaCu: "parola" | "cuvant";
+  cuvant: string;
+  pastram: { comenzi: number; contracte: number };
+};
+
+/**
+ * BBT: ștergerea contului (4 nov 2026), perechea foii din aplicație (`mobil/src/cont/ZonaCont.tsx`). Aceeași rută,
+ * `participant/sterge-contul`; regula e în admin (`lib/reguli/stergereCont.ts`).
+ *
+ * Textul spune ce pleacă și ce rămâne ÎNAINTE de apăsare, iar „ce rămâne" vine din răspunsul adminului: cine n-a
+ * cumpărat nimic nu citește despre facturi. Confirmarea e parola; contul intrat doar cu Google n-are parolă, deci
+ * tastează cuvântul.
+ *
+ * Spre deosebire de dezactivare, aici NU se deconectează la eroare: o ștergere picată nu are voie să arate ca una
+ * reușită. Omul vede eroarea și rămâne înăuntru.
+ */
+function StergeContul(props: { laRenunta: () => void }) {
+  const sesiune = useSesiune();
+  const { logout } = useClientLifecycle();
+  const stare = useQuery(() => ({
+    queryKey: ["bbt-sterge-contul"],
+    queryFn: () => cerereCont<StareStergere>(sesiune(), "/api/public/participant/sterge-contul"),
+    // Se cere la fiecare deschidere: între două deschideri omul poate plăti o tranșă sau termina o tabără.
+    staleTime: 0,
+    gcTime: 0,
+  }));
+  const [text, setText] = createSignal("");
+  const [lucrez, setLucrez] = createSignal(false);
+  const [eroare, setEroare] = createSignal("");
+
+  async function sterge(e: SubmitEvent) {
+    e.preventDefault();
+    const s = stare.data;
+    if (!s) return;
+    setLucrez(true);
+    setEroare("");
+    try {
+      await cerereCont(sesiune(), "/api/public/participant/sterge-contul", {
+        method: "POST",
+        body: JSON.stringify(s.confirmaCu === "parola" ? { parola: text() } : { confirmare: text() }),
+      });
+      uitaTokenBbt();
+      logout();
+    } catch (err) {
+      setEroare(
+        err instanceof Error && err.message !== "Cererea n-a mers."
+          ? err.message
+          : "Contul nu s-a șters. Încearcă din nou.",
+      );
+      setLucrez(false);
+    }
+  }
+
+  const paragraf: import("solid-js").JSX.CSSProperties = {
+    margin: "0",
+    color: C.stins,
+    "font-size": "14px",
+    "line-height": "1.5",
+  };
+
+  return (
+    <div style={{ display: "flex", "flex-direction": "column", gap: "10px" }}>
+      <p style={{ margin: 0, color: C.text, "font-weight": 700, "font-size": "16px" }}>
+        Șterge contul
+      </p>
+      <Show
+        when={stare.data}
+        fallback={
+          <p style={paragraf}>
+            {stare.isError ? "Contul nu răspunde acum. Încearcă din nou puțin mai târziu." : "Un moment…"}
+          </p>
+        }
+      >
+        {(s) => (
+          <Show
+            when={s().poate}
+            fallback={
+              <>
+                <p style={{ ...paragraf, color: C.text }}>{s().motiv}</p>
+                <div>
+                  <Buton piele="alb" mic onClick={props.laRenunta}>
+                    Înapoi
+                  </Buton>
+                </div>
+              </>
+            }
+          >
+            <p style={paragraf}>
+              Ștergem numele, emailul, telefonul, adresa, parola, profilul, poza și contul din Community. Ieși de pe
+              toate dispozitivele. Mesajele trimise în canale rămân, fără numele și poza ta.
+            </p>
+            <p style={paragraf}>
+              {s().pastram.comenzi > 0
+                ? "Păstrăm facturile, plățile și contractele semnate, pentru că legea contabilității ne cere să le ținem. Nu mai sunt legate de niciun cont."
+                : "N-ai comenzi la noi, deci nu păstrăm nimic despre tine."}
+            </p>
+            <p style={paragraf}>Nu se mai poate anula. Dacă vrei doar o pauză, dezactivează contul.</p>
+            <form onSubmit={sterge} style={{ display: "flex", "flex-direction": "column", gap: "10px" }}>
+              <CampText
+                eticheta={s().confirmaCu === "parola" ? "Parola contului" : `Scrie ${s().cuvant} ca să confirmi`}
+                tip={s().confirmaCu === "parola" ? "password" : "text"}
+                autocomplete={s().confirmaCu === "parola" ? "current-password" : "off"}
+                valoare={text()}
+                laSchimbare={setText}
+              />
+              <Show when={eroare()}>
+                <p style={{ margin: 0, color: C.rosu, "font-size": "14px" }}>{eroare()}</p>
+              </Show>
+              <div style={{ display: "flex", gap: "8px", "flex-wrap": "wrap" }}>
+                <Buton piele="alb" mic onClick={props.laRenunta}>
+                  Renunță
+                </Buton>
+                <button
+                  type="submit"
+                  disabled={lucrez() || !text().trim()}
+                  style={{
+                    display: "inline-flex",
+                    "align-items": "center",
+                    "justify-content": "center",
+                    height: "42px",
+                    padding: "0 18px",
+                    "border-radius": "999px",
+                    "font-family": "inherit",
+                    "font-size": "14px",
+                    "font-weight": 700,
+                    cursor: "pointer",
+                    border: "0",
+                    background: C.rosu,
+                    color: C.peNegru,
+                    opacity: lucrez() || !text().trim() ? 0.6 : 1,
+                  }}
+                >
+                  {lucrez() ? "Un moment…" : "Șterge definitiv"}
+                </button>
+              </div>
+            </form>
+          </Show>
+        )}
+      </Show>
+    </div>
   );
 }
