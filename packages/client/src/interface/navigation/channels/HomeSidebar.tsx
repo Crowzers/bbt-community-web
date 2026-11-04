@@ -21,7 +21,9 @@ import { useNavigate } from "@revolt/routing";
 import { Avatar, Deferred, UserStatus } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
+import { CardCont } from "../../../bbt/CardCont";
 import { MesajNou } from "../../../bbt/MesajNou";
+import { S1 } from "../../../bbt/tema";
 import { SidebarBase } from "./common";
 
 interface Props {
@@ -84,15 +86,15 @@ export const HomeSidebar = (props: Props) => {
               padding: "16px 22px 10px",
             }}
           >
+            {/* S1 (4 nov 2026): Inter 15, alb pe cerneală, ca titlurile unei unelte; până atunci De Fonte 22 pe alb (23a). */}
             <h2
               style={{
                 margin: 0,
-                "font-family": '"De Fonte BBT", Inter, sans-serif',
-                "font-weight": 400,
-                "font-size": "22px",
-                "letter-spacing": "0.01em",
-                "font-synthesis": "none",
-                color: "#0A0A0B",
+                "font-family": "Inter, system-ui, sans-serif",
+                "font-weight": 700,
+                "font-size": "15px",
+                "line-height": "20px",
+                color: "#FFFFFF",
               }}
             >
               Mesaje
@@ -104,14 +106,14 @@ export const HomeSidebar = (props: Props) => {
               title="Mesaj nou"
               onClick={() => setMesajNou(true)}
               style={{
-                width: "36px",
-                height: "36px",
+                width: "32px",
+                height: "32px",
                 display: "flex",
                 "align-items": "center",
                 "justify-content": "center",
                 "border-radius": "999px",
                 border: 0,
-                background: "#0A0A0B",
+                background: S1.placa,
                 color: "#FFFFFF",
                 cursor: "pointer",
               }}
@@ -171,7 +173,7 @@ export const HomeSidebar = (props: Props) => {
               <p
                 style={{
                   margin: "8px 20px",
-                  color: "#6C6C6D",
+                  color: S1.stins,
                   "font-size": "14px",
                   "line-height": "1.45",
                 }}
@@ -212,11 +214,14 @@ export const HomeSidebar = (props: Props) => {
           </Show>
         </List>
       </div>
+      {/* BBT: contul la baza listei, ca la canale (S1). */}
+      <div style={{ flex: 1 }} />
+      <CardCont />
     </SidebarBase>
   );
 };
 
-/** Pastila unui filtru (23a): neagră pe cel ales, gri pe celelalte. */
+/** Pastila unui filtru (23a): albă pe cel ales, pe placa listei celelalte (S1). */
 function Filtru(props: {
   activ: boolean;
   onClick: () => void;
@@ -228,16 +233,16 @@ function Filtru(props: {
       aria-pressed={props.activ}
       onClick={() => props.onClick()}
       style={{
-        // 23a: 6 / 12, text de 12 gros.
+        // S1: 14/600, pragul de text din interfață (până atunci 12/700, după 23a).
         height: "28px",
         padding: "0 12px",
         "border-radius": "999px",
         border: 0,
-        background: props.activ ? "#0A0A0B" : "#F2F2F3",
-        color: props.activ ? "#FFFFFF" : "#6C6C6D",
+        background: props.activ ? "#FFFFFF" : S1.placa,
+        color: props.activ ? "#0A0A0B" : S1.stins,
         "font-family": "inherit",
-        "font-size": "12px",
-        "font-weight": 700,
+        "font-size": "14px",
+        "font-weight": 600,
         cursor: "pointer",
       }}
     >
@@ -352,8 +357,9 @@ function Entry(
         padding: "0 10px",
         "box-sizing": "border-box",
         "border-radius": "16px",
-        background: local.active ? "#F2F2F3" : "transparent",
-        color: "#0A0A0B",
+        // S1: conversația deschisă e roz, ca canalul deschis; restul pe cerneală.
+        background: local.active ? "#FFA8CD" : "transparent",
+        color: local.active ? "#0A0A0B" : "#FFFFFF",
         opacity: local.channel.muted ? 0.6 : 1,
       }}
       use:floating={{
@@ -411,7 +417,7 @@ function Entry(
               style={{
                 "flex-shrink": 0,
                 "font-size": "12px",
-                color: "#6C6C6D",
+                color: local.active ? "#333333" : S1.stins,
               }}
             >
               {cand(local.channel.lastMessageAt!)}
@@ -427,7 +433,11 @@ function Entry(
               "text-overflow": "ellipsis",
               "white-space": "nowrap",
               "font-size": "13px",
-              color: necitit() ? "#0A0A0B" : "#6C6C6D",
+              color: local.active
+                ? "#333333"
+                : necitit()
+                  ? "#FFFFFF"
+                  : S1.stins,
               "font-weight": necitit() ? 600 : 400,
             }}
           >

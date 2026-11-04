@@ -39,32 +39,23 @@
   }
   .bbt-instalare-buton {
     padding: 0 !important;
-    width: 48px !important;
+    width: 36px !important;
   }
 }
 
-/* Rama din 25e (1 nov 2026): bandă de 88 și o singură margine, de 24 (fereastră, pastilă, foaie). Pe tabletă sau pe o fereastră
-   scundă: bandă de 72, margine de 12, ca să rămână loc de lucru. */
+/* Rama S1 (4 nov 2026, `website/docs/plans/2026-11-04-community-ca-slack-discord-studiu.md`): bandă de 56 și 8 între panouri,
+   pe toate lățimile. Până atunci, rama din 25e: bandă de 88 și margine de 24 (72 și 12 pe tabletă); la o unealtă cu multă lume,
+   cele 24 de margine și salutul de 26 făceau ecranul să pară gol. */
 :root {
-  --bbt-banda: 88px;
-  --bbt-margine: 24px;
+  --bbt-banda: 56px;
+  --bbt-margine: 8px;
 }
 .bbt-cautare-sus input::placeholder {
-  color: #8d8d9a;
+  color: #b9b3c7;
 }
-@media (max-width: 840px), (max-height: 600px) {
-  :root {
-    --bbt-banda: 72px;
-    --bbt-margine: 12px;
-  }
-  .bbt-titlu-sus-text {
-    font-size: 24px !important;
-    line-height: 30px !important;
-  }
-}
-/* Sub cursor, iconițele din pastilă primesc ce primesc sub deget în aplicație: un cerc de sticlă clară. */
+/* Sub cursor, plăcile din bara din stânga se luminează puțin, ca rândurile din listă. */
 .bbt-tab-pastila:hover {
-  background: rgba(255, 255, 255, 0.12) !important;
+  background: #2a2340 !important;
 }
 
 /* Contul (23b): meniul de 280 + rail-ul de 104 lăsau paginii sub 450px pe o tabletă. */
@@ -267,13 +258,23 @@
   }
 }
 
-/* Canalele de pe desktop, ca în 25e: alb, cu bule gri de 18, până la 560. */
+/* Canalele, albe și fără bule din 4 nov 2026 (S1, deciziile 2 și 4): text 15/22, ca la Slack; pe telefon 16, pragul textului citit.
+   Variabilele bulei au rămas pentru mesajele directe deschise din canal (25e: bule gri de 18, până la 560). */
 .bbt-canal-alb {
   --bbt-fond-sub-cursor: #f2f2f3;
   --bbt-fond-card: #f3f3f6;
   --bbt-fond-bula: #f3f3f6;
   --bbt-raza-bula: 18px;
   --bbt-lat-bula: 560px;
+  --message-size: 15px;
+}
+.bbt-canal-alb p {
+  line-height: 22px;
+}
+@media (max-width: 599px) {
+  .bbt-canal-alb {
+    --message-size: 16px;
+  }
 }
 
 /* Reacțiile stau sub bulă, lipite de ea (`RandMesaj.tsx`: `reactii`). */

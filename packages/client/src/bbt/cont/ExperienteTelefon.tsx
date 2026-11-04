@@ -9,8 +9,10 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 import { AnimatieLottie } from "../AnimatieLottie";
 import { AntetPagina, LOC_SUB_ANTET } from "../AntetPagina";
 import { BBT_SITE_URL } from "../config";
-import { LOC_PASTILA } from "../PastilaDeJos";
+import { useInapoiLaLista } from "../intoarcere";
 import {
+  CERC_40,
+  IconInapoi,
   TITLU_PAGINA,
   UN_RAND,
   deFonte,
@@ -37,6 +39,7 @@ import { C, Incarcare } from "./ui";
  */
 export function ExperienteTelefon() {
   const experiente = useExperiente();
+  const inapoi = useInapoiLaLista();
   const date = () => experiente.data;
   const gol = () =>
     date()?.active.length === 0 && date()?.trecute.length === 0;
@@ -52,6 +55,16 @@ export function ExperienteTelefon() {
       }}
     >
       <AntetPagina>
+        {/* Din 4 nov se intră din „Experiențele tale", din capul listei: fără pastila de jos, ieșirea e săgeata (S1). */}
+        <button
+          type="button"
+          class="bbt-moale"
+          aria-label="Înapoi"
+          onClick={inapoi}
+          style={{ ...CERC_40, width: "44px", height: "44px", background: C.fundal }}
+        >
+          <IconInapoi />
+        </button>
         <h1 style={{ ...TITLU_PAGINA, flex: 1 }}>Experiențe</h1>
       </AntetPagina>
       <div style={{ "flex-grow": 1, "min-height": 0, "overflow-y": "auto" }}>
@@ -100,7 +113,7 @@ export function ExperienteTelefon() {
                 display: "flex",
                 "flex-direction": "column",
                 gap: "12px",
-                padding: `${LOC_SUB_ANTET} 14px ${LOC_PASTILA}`,
+                padding: `${LOC_SUB_ANTET} 14px 32px`,
               }}
             >
               <For each={date()!.active}>
@@ -221,7 +234,7 @@ const CENTRU: JSX.CSSProperties = {
   "flex-direction": "column",
   "align-items": "center",
   "justify-content": "center",
-  padding: `0 32px ${LOC_PASTILA}`,
+  padding: "0 32px 32px",
   "box-sizing": "border-box",
 };
 

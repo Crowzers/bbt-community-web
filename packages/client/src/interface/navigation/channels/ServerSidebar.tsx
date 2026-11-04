@@ -1,45 +1,31 @@
-import { BiRegularCheckCircle, BiSolidCheckCircle } from "solid-icons/bi";
-import {
-  Accessor,
-  JSX,
-  Match,
-  Show,
-  Switch,
-  createMemo,
-  createSignal,
-} from "solid-js";
+import { Accessor, JSX, Show, createMemo, createSignal } from "solid-js";
 
-import { useLingui } from "@lingui/solid/macro";
-import type { Channel, Server, ServerFlags } from "stoat.js";
+import type { Channel, Server } from "stoat.js";
 import { styled } from "styled-system/jsx";
 
 import { useDevice } from "@revolt/common";
 import { KeybindAction, createKeybind } from "@revolt/keybinds";
 import { TextWithEmoji } from "@revolt/markdown";
 import { useModals } from "@revolt/modal";
-import { useNavigate } from "@revolt/routing";
+import { useLocation, useNavigate } from "@revolt/routing";
 import { useVoice } from "@revolt/rtc";
 import { useState } from "@revolt/state";
-import {
-  Column,
-  Draggable,
-  Header,
-  Row,
-  Tooltip,
-  iconSize,
-  symbolSize,
-} from "@revolt/ui";
+import { Column, Draggable, iconSize } from "@revolt/ui";
 import { UnreadCallout } from "@revolt/ui/components/features/navigation/UnreadCallout";
 import { VoiceChannelPreview } from "@revolt/ui/components/features/voice/VoiceChannelPreview";
 import { createDragHandle } from "@revolt/ui/components/utils/Draggable";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import MdChevronRight from "@material-design-icons/svg/filled/chevron_right.svg?component-solid";
-import MdSettings from "@material-symbols/svg-400/outlined/settings-fill.svg?component-solid";
 
 import { AvatarCanal } from "../../../bbt/AvatarCanal";
 import { CardAzi, experientaDeAzi } from "../../../bbt/CardAzi";
+import { CardCont } from "../../../bbt/CardCont";
 import { useExperiente } from "../../../bbt/cont/date";
+import { tineMinteLista } from "../../../bbt/intoarcere";
+import { SalutTelefon } from "../../../bbt/SalutTelefon";
+import { IconBilet } from "../../../bbt/telefon";
+import { S1 } from "../../../bbt/tema";
 import { SidebarBase } from "./common";
 import {
   OrderedCategory,
@@ -100,15 +86,6 @@ export const ServerSidebar = (props: Props) => {
   const { isMobile, layout } = useDevice();
   const experiente = useExperiente();
   const azi = () => experientaDeAzi(experiente.data?.active);
-
-  // Users can manage certain parts of the server individually, regardless of their ManageServer Permission
-  const canManageServer = () =>
-    props.server.orPermission(
-      "ManageServer",
-      "ManageCustomisation",
-      "ManageRole",
-      "ManagePermissions",
-    );
 
   const categories = createMemo<CategoryData[]>(() => {
     const channels = new Map(
@@ -224,37 +201,15 @@ export const ServerSidebar = (props: Props) => {
       class="channel_bar server"
       use:floating={props.menuGenerator(props.server)}
     >
-      <Switch
-        fallback={
-          <Header placement="secondary">
-            <ServerInfo
-              server={props.server}
-              canManageServer={canManageServer()}
-              openServerInfo={props.openServerInfo}
-              openServerSettings={props.openServerSettings}
-            />
-          </Header>
-        }
-      >
-        <Match when={props.server.banner}>
-          <Header
-            image
-            placement="secondary"
-            style={{
-              background: `url('${props.server.bannerURL}')`,
-            }}
-          >
-            <ServerInfo
-              server={props.server}
-              canManageServer={canManageServer()}
-              openServerInfo={props.openServerInfo}
-              openServerSettings={props.openServerSettings}
-            />
-          </Header>
-        </Match>
-      </Switch>
-      {/* BBT: cardul de azi (21a), deasupra canalelor. Pe telefon stă în `ComunitateTelefon`. */}
-      <Show when={layout() !== "phone" && azi()}>
+      {/* BBT: fără titlul „Canale" și fără rotiță (S1, 4 nov 2026, cererea userului: „să nu mai scrie Comunitate BBT sus, să
+          fie direct Experiențele tale"). Lista începe cu butonul experiențelor; Administrarea rămâne în Profil și pe rotița
+          fiecărui canal. Pe telefon, deasupra lui stă salutul cu clopoțelul (decizia 11), fiindcă acolo n-are bară de sus. */}
+      <Show when={layout() === "phone"}>
+        <SalutTelefon />
+      </Show>
+      <ButonExperiente />
+      {/* BBT: cardul de azi (21a), deasupra canalelor, și pe telefon (până pe 4 nov stătea acolo în `ComunitateTelefon`). */}
+      <Show when={azi()}>
         {(e) => (
           <div style={{ "padding-top": "8px" }}>
             <CardAzi
@@ -314,6 +269,7 @@ export const ServerSidebar = (props: Props) => {
           </Draggable>
         </div>
       </ChannelList>
+      <CardCont />
     </SidebarBase>
   );
 };
@@ -328,92 +284,65 @@ const ChannelList = styled("div", {
 });
 
 /**
- * Server Information
+ * BBT: „Experiențele tale", primul rând din listă (S1, decizia 10): duce la taberele, cursurile și biletele tale, cu numărul
+ * lor. Punctul roz = ceva de făcut acum (o plată, o semnătură), cum era pe Experiențe în pastila de până pe 4 nov.
  */
-function ServerInfo(
-  props: Pick<Props, "server" | "openServerInfo" | "openServerSettings"> & {
-    canManageServer: boolean;
-  },
-) {
+function ButonExperiente() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { layout } = useDevice();
+  const telefon = () => layout() === "phone";
+  const experiente = useExperiente();
+  const numar = () => experiente.data?.active.length ?? 0;
+  const deFacut = () => !!experiente.data?.active.some((e) => e.plata);
+
   return (
-    <Row align grow minWidth={0}>
-      <ServerBadge flags={props.server.flags} />
-      <ServerName onClick={props.openServerInfo}>
-        {/* 21a: „Canale" mare, nu numele serverului (în BBT Community e unul singur). */}
+    <button
+      type="button"
+      class="bbt-moale"
+      onClick={() => {
+        tineMinteLista(location.pathname);
+        navigate("/cont/experiente");
+      }}
+      style={{
+        display: "flex",
+        "align-items": "center",
+        gap: "10px",
+        "flex-shrink": 0,
+        margin: "12px 10px 4px",
+        // Pe telefon 44, ținta minimă de deget (studiul, §6).
+        height: telefon() ? "44px" : "40px",
+        padding: "0 12px",
+        border: 0,
+        "border-radius": "10px",
+        background: S1.placa,
+        color: "#FFFFFF",
+        cursor: "pointer",
+        "font-family": "inherit",
+        "font-size": "14px",
+        "font-weight": 600,
+        "text-align": "left",
+      }}
+    >
+      <span style={{ display: "flex", color: "#FFA8CD" }}>
+        <IconBilet size={18} />
+      </span>
+      <span style={{ flex: 1 }}>Experiențele tale</span>
+      <Show when={deFacut()}>
         <span
+          aria-label="Ai ceva de făcut"
           style={{
-            display: "block",
-            "font-family": '"De Fonte BBT", Inter, sans-serif',
-            "font-size": "22px",
-            "font-weight": 400,
-            "letter-spacing": "0.01em",
-            "font-synthesis": "none",
-            "line-height": "1.15",
-          }}
-        >
-          Canale
-        </span>
-      </ServerName>
-      <Show when={props.canManageServer}>
-        {/* Cercul gri de 34 din 21a. */}
-        <button
-          type="button"
-          aria-label="Setările serverului"
-          onClick={() => props.openServerSettings()}
-          style={{
-            width: "34px",
-            height: "34px",
-            "flex-shrink": 0,
-            display: "flex",
-            "align-items": "center",
-            "justify-content": "center",
+            width: "8px",
+            height: "8px",
             "border-radius": "50%",
-            border: 0,
-            background: "#F2F2F3",
-            color: "#0A0A0B",
-            cursor: "pointer",
+            background: "#FFA8CD",
           }}
-        >
-          <MdSettings {...symbolSize(18)} />
-        </button>
+        />
       </Show>
-    </Row>
-  );
-}
-
-/**
- * Server name
- */
-const ServerName = styled("a", {
-  base: {
-    flexGrow: 1,
-    minWidth: 0,
-
-    overflow: "hidden",
-    whiteSpace: "nowrap",
-    textOverflow: "ellipsis",
-  },
-});
-
-/**
- * Server badge
- */
-function ServerBadge(props: { flags: ServerFlags }) {
-  const { t } = useLingui();
-
-  return (
-    <Show when={props.flags}>
-      <Tooltip
-        content={props.flags === 1 ? t`Official Server` : t`Verified`}
-        placement="top"
-      >
-        {props.flags === 1 ? (
-          <BiSolidCheckCircle size={12} />
-        ) : (
-          <BiRegularCheckCircle size={12} />
-        )}
-      </Tooltip>
-    </Show>
+      <Show when={numar() > 0}>
+        <span style={{ color: S1.stins, "font-weight": 500 }}>{numar()}</span>
+      </Show>
+    </button>
   );
 }
 
@@ -493,11 +422,11 @@ function Category(
   );
 }
 
-// BBT (pânza TRW): categorii și rânduri dense, fără blocuri colorate — vezi `RandCanal` mai jos.
+// BBT (pânza TRW, apoi S1): categorii și rânduri dense, fără blocuri colorate — vezi `RandCanal` mai jos.
 const CategorySection = styled("div", {
   base: {
     display: "flex",
-    gap: "6px",
+    gap: "2px",
     flexDirection: "column",
     padding: "0 10px",
     background: "transparent",
@@ -518,17 +447,22 @@ const CategoryBase = styled("div", {
     userSelect: "none",
     transition: "var(--transitions-fast) all",
 
-    "--color": "#8D8D9A",
+    // S1 (4 nov 2026): 13/600 fără majuscule, ca etichetele de pe site după Klarna; până atunci 11 cu majuscule.
+    "--color": "#8F88A3",
     color: "var(--color)",
     fill: "var(--color)",
 
-    fontSize: "11px",
+    fontSize: "13px",
+    lineHeight: "18px",
     fontWeight: 600,
-    letterSpacing: "0.06em",
-    textTransform: "uppercase",
+
+    _phone: {
+      fontSize: "14px",
+      padding: "16px 8px 6px",
+    },
 
     "&:hover": {
-      "--color": "#0A0A0B",
+      "--color": "#FFFFFF",
     },
 
     "& svg": {
@@ -592,7 +526,7 @@ function Entry(
         stare={attentionState()}
       >
         {/* Avatarul din aplicație, cu iconul canalului când are unul. */}
-        <AvatarCanal canal={props.channel} marime={28} />
+        <AvatarCanal canal={props.channel} marime={20} />
         <span class="nume">
           <TextWithEmoji content={props.channel.name!} />
         </span>
@@ -622,27 +556,35 @@ function Entry(
 }
 
 /**
- * BBT: rândul de canal din pânza TRW — 28px, 13px, colțuri de 6px. Stări: activ (alb 10%), necitit
- * (alb, îngroșat), mut (stins), normal (alb 60%). Mențiunile = pastilă roșie cu numărul.
+ * BBT: rândul de canal. S1 (4 nov 2026, studiul Slack/Discord, deciziile 4 și 6): 32 de înălțime, ca la Slack, pe cerneală.
+ * Stări: deschis (roz, text negru), necitit (alb, gros), mut (stins), citit (#B9B3C7). Mențiunile = pastilă roz cu numărul.
  * Înlocuiește `MenuButton`-ul lor (pastile de 40px, prea „voluminoase" pentru user).
+ *
+ * Până pe 4 nov: rânduri de 48 pe alb (25d), cu avatarul de 28. La un singur canal pe ecran, lista părea goală.
  */
 const RandCanal = styled("a", {
   base: {
     display: "flex",
     alignItems: "center",
-    // BBT (25d, 31 oct 2026): rânduri de 48 (10 + avatarul de 28 + 10), colțuri de 14, text de 15, pe alb. În 21a, 44 / 14 / 14.
-    gap: "10px",
-    height: "48px",
-    padding: "0 12px",
-    borderRadius: "14px",
+    gap: "8px",
+    height: "32px",
+    padding: "0 10px",
+    borderRadius: "8px",
     fontSize: "15px",
     fontWeight: 500,
-    color: "#6C6C6D",
+    color: "#B9B3C7",
 
     fill: "currentColor",
     textDecoration: "none",
     cursor: "pointer",
     flexShrink: 0,
+
+    // Pe telefon 40 și 16, ca în schița „HubCampusTelTRW": rândul trebuie nimerit cu degetul, iar 16 e pragul de text citit.
+    _phone: {
+      height: "40px",
+      padding: "0 12px",
+      fontSize: "16px",
+    },
 
     "& .nume": {
       flexGrow: 1,
@@ -668,11 +610,11 @@ const RandCanal = styled("a", {
     },
     "& .actiuni": {
       display: "none",
-      color: "#6C6C6D",
+      color: "#B9B3C7",
     },
     "&:hover": {
-      background: "#F2F2F3",
-      color: "#0A0A0B",
+      background: "#2A2340",
+      color: "#FFFFFF",
     },
     "&:hover .actiuni": {
       display: "flex",
@@ -681,14 +623,14 @@ const RandCanal = styled("a", {
   variants: {
     activ: {
       true: {
-        background: "#F2F2F3 !important",
+        background: "#FFA8CD !important",
         color: "#0A0A0B !important",
-        fontWeight: 700,
+        fontWeight: 600,
       },
     },
     stare: {
       selected: {},
-      active: { color: "#0A0A0B", fontWeight: 600 },
+      active: { color: "#FFFFFF", fontWeight: 700 },
       muted: { opacity: 0.45 },
       normal: {},
     },

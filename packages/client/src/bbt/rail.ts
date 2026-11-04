@@ -1,47 +1,9 @@
-import { createSignal } from "solid-js";
-
 /**
- * BBT: pastila din stânga se deschide la 200, cu numele lângă iconițe (25f): din logo, din tastatură (⌘. sau Ctrl+.), iar starea
- * se ține minte. Implicit e închisă (25e), ca ecranul să rămână al chat-ului.
+ * BBT: lățimea barei din stânga, pe desktop și tabletă: 64, cu plăci de 40 (S1, 4 nov 2026). Bara de sus își aliniază logoul
+ * cu ea.
  *
- * Pe tabletă și pe ferestre scunde rămâne închisă: la 200, chat-ul ar rămâne sub 300 de lățime. Prag ales de noi, macheta nu
- * desenează cazul.
+ * Până pe 4 nov bara era o pastilă care se deschidea la 200, cu numele lângă iconițe (25f), din logo sau din ⌘. / Ctrl+.
+ * În S1 bara ține doar plăcile (Comunitatea, Mesajele, spațiile experiențelor), ca la Discord și The Real World: numele stă în
+ * `title`, iar contul s-a mutat în cardul de la baza listei (`CardCont.tsx`).
  */
-
-const CHEIE = "bbt.rail-deschis";
-
-function citeste() {
-  try {
-    return localStorage.getItem(CHEIE) === "da";
-  } catch {
-    return false;
-  }
-}
-
-const [dorit, setDorit] = createSignal(citeste());
-
-const loc = window.matchMedia("(min-width: 1100px) and (min-height: 601px)");
-const [incape, setIncape] = createSignal(loc.matches);
-loc.addEventListener("change", () => setIncape(loc.matches));
-
-export const railDeschis = () => dorit() && incape();
-export const poateDeschide = incape;
-export const latimeRail = () => (railDeschis() ? "200px" : "52px");
-
-export function comutaRail() {
-  const urmator = !dorit();
-  setDorit(urmator);
-  try {
-    localStorage.setItem(CHEIE, urmator ? "da" : "nu");
-  } catch {
-    // Doar o comoditate: fără stocare, pastila revine închisă la următoarea pornire.
-  }
-}
-
-/** ⌘. pe Mac, Ctrl+. pe Windows. */
-export function tastaRail(e: KeyboardEvent) {
-  if (e.key === "." && (e.metaKey || e.ctrlKey)) {
-    e.preventDefault();
-    comutaRail();
-  }
-}
+export const LATIME_RAIL = "64px";

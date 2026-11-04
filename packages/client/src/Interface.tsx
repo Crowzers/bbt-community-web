@@ -34,7 +34,6 @@ import { BaraSus } from "./bbt/BaraSus";
 import { firDeschis } from "./bbt/fir";
 import { FundalRama } from "./bbt/FundalRama";
 import { membriDeschisi } from "./bbt/MembriComunitate";
-import { PastilaDeJos } from "./bbt/PastilaDeJos";
 import { RegulileComunitatii } from "./bbt/RegulileComunitatii";
 import { RAZA_FOAIE, Sidebar, useListaLaVedere } from "./interface/Sidebar";
 
@@ -122,7 +121,7 @@ const Interface = (props: { children: JSX.Element }) => {
             <Navigate href="/login" />
           </Match>
           <Match when={lifecycle.loadedOnce()}>
-            {/* BBT: bara de sus cu contul separat — doar desktop; pe telefon, pastila de jos. src/bbt/BaraSus.tsx */}
+            {/* BBT: bara de sus cu contul separat — doar desktop; pe telefon salutul stă în capul listei. src/bbt/BaraSus.tsx */}
             <Show when={!telefon()}>
               <FundalRama />
               <BaraSus />
@@ -167,15 +166,15 @@ const Interface = (props: { children: JSX.Element }) => {
                   LAYOUT_SECTIONS.PRIMARY_SIDEBAR,
                   true,
                 )}
-                // BBT: foaia albă începe de la lista din `Sidebar` și continuă aici; fără listă, foaia e toată aici.
+                // BBT: conversația e panoul ei, alb, cu 8 față de lista închisă (S1, 4 nov 2026). Până atunci, foaia albă începea
+                // de la listă și continua aici.
                 style={
                   telefon()
                     ? undefined
                     : {
                         overflow: "hidden",
-                        "border-radius": cuLista()
-                          ? `0 ${RAZA_FOAIE} ${RAZA_FOAIE} 0`
-                          : RAZA_FOAIE,
+                        "border-radius": RAZA_FOAIE,
+                        "margin-left": cuLista() ? "var(--bbt-margine)" : "0",
                       }
                 }
               >
@@ -186,10 +185,8 @@ const Interface = (props: { children: JSX.Element }) => {
         </Switch>
 
         <NotificationsWorker />
-        {/* BBT: pastila de meniu de pe telefon, ca în aplicația mobilă — src/bbt/PastilaDeJos.tsx */}
-        <Show when={lifecycle.loadedOnce() && layout() === "phone"}>
-          <PastilaDeJos />
-        </Show>
+        {/* BBT: pe telefon, fără pastila de meniu de jos din 4 nov 2026 (S1, decizia 11): bara din stânga stă lângă listă, ca
+            pe desktop, iar contul e cardul de la baza listei (`bbt/CardCont.tsx`). */}
         {/* BBT: „X te sună" — src/bbt/ApelPrimit.tsx */}
         <Show when={lifecycle.loadedOnce()}>
           <ApelPrimit />

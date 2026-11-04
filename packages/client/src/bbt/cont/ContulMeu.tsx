@@ -190,7 +190,8 @@ export function ContulMeu() {
     </Show>
   );
 
-  // BBT: Profil și, pe telefon, Experiențe sunt tab-uri, ca în aplicație: fără „înapoi", cu pastila de meniu jos pe telefon.
+  // BBT: Profil și, pe telefon, Experiențe au ecranele lor, cu antetul roz. Până pe 4 nov erau tab-uri în pastila de jos; acum
+  // se intră din listă (cardul contului, „Experiențele tale") și se iese cu săgeata lor (`bbt/intoarcere.ts`).
   const ecranTab = () =>
     !pagina() || (telefon() && pagina() === "experiente");
   // Detaliul experienței (20d) are „înapoi" în partea lui roz, deci nici antet, nici marginile paginilor.

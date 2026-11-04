@@ -95,8 +95,9 @@ function AntetLat(props: Props) {
             props.channel.type === "Group"
           }
         >
-          {/* BBT (21a, 30 oct 2026): numele mare în De Fonte și descrierea dedesubt, nu alături după o linie. În stânga,
-              avatarul din aplicație, de aceeași mărime ca antetul firului de pe telefon. */}
+          {/* BBT (21a, 30 oct 2026): numele și descrierea dedesubt, nu alături după o linie. În stânga, avatarul din aplicație,
+              de aceeași mărime ca antetul firului de pe telefon. Numele în Inter 16 gros din 4 nov (S1, decizia 4: titlul unei
+              unelte, ca la Slack); până atunci De Fonte 22, care pe o bară de canal se citea ca un titlu de pagină. */}
           <HeaderIcon>
             <AvatarCanal canal={props.channel} marime={28} />
           </HeaderIcon>
@@ -105,11 +106,11 @@ function AntetLat(props: Props) {
               class={mobileOverflow}
               style={{
                 display: "block",
-                "font-family": '"De Fonte BBT", Inter, sans-serif',
-                "font-size": "22px",
-                "font-weight": 400,
-                "letter-spacing": "0.01em",
-                "font-synthesis": "none",
+                "font-family": "Inter, system-ui, sans-serif",
+                "font-size": "16px",
+                "line-height": "20px",
+                "font-weight": 700,
+                "letter-spacing": 0,
               }}
             >
               {/* BBT: numele nu se apasă, ca pe telefon: fără descriere, fereastra de mai jos ieșea goală. */}

@@ -20,6 +20,23 @@
  * `components/ui/themes/materialTheme.ts`.
  */
 
+/**
+ * Coloana de navigare pe cerneala Klarna (S1, 4 nov 2026, `website/docs/plans/2026-11-04-community-ca-slack-discord-studiu.md`
+ * decizia 1): rama și bara de sus pe `rama`, bara din stânga și lista de canale pe `lista`, conversația albă. Ca la Slack și
+ * Discord, navigarea se desparte de conversație prin culoare; rozul rămâne semnal (deschis, mențiune, necitit).
+ */
+export const S1 = {
+  rama: "#0B051D",
+  lista: "#1A1430",
+  /** Plăcile și butoanele de pe listă, și rândul sub cursor. */
+  placa: "#2A2340",
+  text: "#E6E2EE",
+  /** Canalele citite, rândul de membri din bara de sus. */
+  stins: "#B9B3C7",
+  /** Titlurile categoriilor și rolul din cardul contului. */
+  categorie: "#8F88A3",
+} as const;
+
 const ROZ = "#FFA8CD";
 const ROZ_DESCHIS = "#FEDCEC";
 const ROZ_INTENS = "#B85C86"; // hover și stare apăsată pe acțiuni

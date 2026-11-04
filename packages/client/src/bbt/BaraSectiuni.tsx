@@ -1,94 +1,109 @@
-import { For, JSX, Show, onCleanup, onMount } from "solid-js";
+import { JSX, Show } from "solid-js";
 
 import { useClient } from "@revolt/client";
+import { useDevice } from "@revolt/common";
 import { useLocation, useNavigate, useParams } from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
-import { useAlunecare } from "./Alunecare";
 import { BBT_SITE_URL } from "./config";
-import { useCont, useExperiente } from "./cont/date";
-import { eInExperiente } from "./cont/pagini";
 import { tintaSite } from "./instalare";
-import { latimeRail, railDeschis, tastaRail } from "./rail";
-import { AvatarOm, IconBalon, IconBilet, IconDiez, UN_RAND } from "./telefon";
+import { LATIME_RAIL } from "./rail";
+import { IconBalon, IconDiez } from "./telefon";
+import { S1 } from "./tema";
 
 /**
- * BBT: meniul principal pe desktop și tabletă: pastila neagră din aplicație, ridicată pe verticală (cererea userului, 31 oct 2026).
- * Ia locul listei de servere a lor (`ServerList`): BBT Community e UN server (design §2 decizia 12), deci o listă de servere
- * n-avea ce lista. Pe telefon, `PastilaDeJos.tsx`.
+ * BBT: bara din stânga pe desktop și tabletă (S1, 4 nov 2026, `website/docs/plans/2026-11-04-community-ca-slack-discord-studiu.md`
+ * deciziile 1 și 12): plăci de 40 pe cerneală, ca la Discord și The Real World. Sus Comunitatea, mereu; dedesubt Mesajele; sub
+ * linie, în faza 2, câte un spațiu pentru fiecare experiență la care omul e înscris (o tabără, un curs), arhivat o dată pe an și
+ * rămas de citit. Fără „+": spațiul vine cu înscrierea.
  *
- * Copie după 25e și 25f (cererea userului, 1 nov 2026), care înlocuiesc cele două pastile de mai devreme: o singură pastilă, pe
- * toată înălțimea foii, cu secțiunile sus, iar avatarul și site-ul jos. Închisă: 52 de lățime, 8 sus și jos, butoane de 36 la 10
- * unul de altul. Deschisă (`rail.ts`): 200, 10 de jur împrejur, rânduri de 48 la 4 unul de altul, cu numele lângă iconiță.
- * Rozul e un singur strat care curge spre intrarea nouă (`Alunecare.tsx`), cu arcul din aplicație; în Profil dispare, iar
- * avatarul primește inelul.
+ * Ia locul listei de servere a lor (`ServerList`). Pe telefon aceeași bară, cu plăci de 44, direct pe ramă (decizia 11).
  *
- * Până pe 31 oct: rail alb de 104 cu numele sub iconițe (21/23). Punctul roz a înlocuit cifra, ca în aplicație.
- * ⛔ Fără Challenge: userul nu l-a vrut în meniu.
- *
- * Experiențe și Profil sunt separate, ca în aplicație (cererea userului, 31 oct 2026). Până atunci, „Experiențe" deschidea tot
- * contul, deci lângă bilete stăteau setările de profil.
+ * Până pe 4 nov: pastila neagră din 25e/25f, cu Comunitate, Mesaje, Experiențe și avatarul. Experiențele au trecut în butonul din
+ * capul listei, iar contul în cardul de la baza ei (`CardCont.tsx`), ca pe desktopul Discord.
  */
 
-type Sectiune = {
-  nume: string;
-  Icon: (p: { size?: number; color?: string }) => JSX.Element;
-  activ: () => boolean;
-  punct: () => boolean;
-  laApasare: () => void;
-};
-
-const NEGRU = "#0A0A0B";
 const ROZ = "#FFA8CD";
-/** Cercul de sub iconița activă, în pastila deschisă (25f). */
-const ROZ_TARE = "#FF8EC6";
-const ALB = "#FFFFFF";
-const ALB_STINS = "rgba(255,255,255,0.8)";
-/** Arcul tab-ului din aplicație: 300 ms, o optime la 100 BPM. */
-const ARC = "300ms cubic-bezier(.34,1.56,.64,1)";
+const NEGRU = "#0A0A0B";
 
-const TEXT_RAND: JSX.CSSProperties = {
-  ...UN_RAND,
-  "font-size": "14px",
-  "font-weight": 700,
-};
-
-const rand = (inaltime = "48px"): JSX.CSSProperties =>
-  railDeschis()
-    ? {
+function Placa(props: {
+  nume: string;
+  activ: boolean;
+  /** 40 pe desktop, 44 pe telefon (ținta minimă de deget). */
+  marime: number;
+  /** Câte lucruri necitite; 0 = fără cifră. */
+  cifra?: number;
+  laApasare: () => void;
+  children: JSX.Element;
+}) {
+  return (
+    <button
+      type="button"
+      class={props.activ ? "bbt-moale" : "bbt-moale bbt-tab-pastila"}
+      title={props.nume}
+      aria-label={props.nume}
+      aria-current={props.activ ? "page" : undefined}
+      onClick={() => props.laApasare()}
+      style={{
         position: "relative",
-        "z-index": 1,
-        width: "100%",
-        height: inaltime,
-        "flex-shrink": 0,
-        "box-sizing": "border-box",
-        display: "flex",
-        "align-items": "center",
-        gap: "12px",
-        padding: "0 10px",
-        border: 0,
-        "border-radius": "999px",
-        background: "transparent",
-        cursor: "pointer",
-        "font-family": "inherit",
-        "text-align": "left",
-      }
-    : {
-        position: "relative",
-        "z-index": 1,
-        width: "36px",
-        height: "36px",
+        width: `${props.marime}px`,
+        height: `${props.marime}px`,
         "flex-shrink": 0,
         display: "flex",
         "align-items": "center",
         "justify-content": "center",
         padding: 0,
         border: 0,
-        "border-radius": "18px",
-        background: "transparent",
+        "border-radius": "12px",
+        background: props.activ ? ROZ : S1.placa,
+        color: props.activ ? NEGRU : "#FFFFFF",
         cursor: "pointer",
-      };
+        transition: "background-color 160ms ease-out",
+      }}
+    >
+      {/* Liniuța albă de lângă placa deschisă, ca la Discord: se vede și când placa e roz. */}
+      <Show when={props.activ}>
+        <span
+          style={{
+            position: "absolute",
+            // Lipită de marginea barei de 64, oricât de mare e placa.
+            left: `${-(64 - props.marime) / 2}px`,
+            top: `${(props.marime - 24) / 2}px`,
+            width: "4px",
+            height: "24px",
+            "border-radius": "0 4px 4px 0",
+            background: "#FFFFFF",
+          }}
+        />
+      </Show>
+      {props.children}
+      <Show when={(props.cifra ?? 0) > 0}>
+        <span
+          style={{
+            position: "absolute",
+            top: "-5px",
+            right: "-7px",
+            "min-width": "20px",
+            height: "20px",
+            padding: "0 5px",
+            "box-sizing": "border-box",
+            "border-radius": "999px",
+            border: `2px solid ${props.marime > 40 ? S1.rama : S1.lista}`,
+            background: ROZ,
+            color: NEGRU,
+            "font-size": "11px",
+            "font-weight": 700,
+            "line-height": "16px",
+            "text-align": "center",
+          }}
+        >
+          {props.cifra! > 99 ? "99+" : props.cifra}
+        </span>
+      </Show>
+    </button>
+  );
+}
 
 export function BaraSectiuni(props: {
   /** Câte conversații directe au mesaje necitite. */
@@ -99,227 +114,85 @@ export function BaraSectiuni(props: {
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams<{ server?: string }>();
-  const experiente = useExperiente();
-  const cont = useCont();
-
-  onMount(() => document.addEventListener("keydown", tastaRail));
-  onCleanup(() => document.removeEventListener("keydown", tastaRail));
+  const { layout } = useDevice();
+  const telefon = () => layout() === "phone";
+  const marime = () => (telefon() ? 44 : 40);
 
   const serverBbt = () => client().servers.toList()[0];
   const inServer = () => !!params.server;
-
-  const sectiuni: Sectiune[] = [
-    {
-      nume: "Comunitate",
-      Icon: IconDiez,
-      activ: inServer,
-      punct: () => false,
-      laApasare: () => {
-        const s = serverBbt();
-        if (s) navigate(`/server/${s.id}`);
-      },
-    },
-    {
-      nume: "Mesaje",
-      Icon: IconBalon,
-      // Mesajele directe și lista de prieteni trăiesc în afara serverului.
-      activ: () =>
-        !inServer() &&
-        (location.pathname.startsWith("/friends") ||
-          location.pathname.startsWith("/channel")),
-      punct: () => props.necititeMesaje > 0,
-      // 23a: Mesaje deschide direct ultima conversație, cu lista lângă ea. Fără conversații, lista de prieteni
-      // (în Community scrii doar prietenilor).
-      laApasare: () => {
-        const ultima = state.ordering.orderedConversations(client())[0];
-        navigate(ultima ? `/channel/${ultima.id}` : "/friends");
-      },
-    },
-    {
-      nume: "Experiențe",
-      Icon: IconBilet,
-      activ: () => eInExperiente(location.pathname),
-      // Ceva de făcut acum: o plată sau o semnătură.
-      punct: () => !!experiente.data?.active.some((e) => e.plata),
-      laApasare: () => navigate("/cont/experiente"),
-    },
-  ];
-  const profilActiv = () =>
-    location.pathname.startsWith("/cont") && !eInExperiente(location.pathname);
-
-  const alunecare = useAlunecare(() => sectiuni.findIndex((s) => s.activ()));
-
-  const pasi = () => (railDeschis() ? "4px" : "10px");
+  // Mesajele directe și lista de prieteni trăiesc în afara serverului.
+  const inMesaje = () =>
+    !inServer() &&
+    (location.pathname.startsWith("/friends") ||
+      location.pathname.startsWith("/channel"));
 
   return (
     <nav
       aria-label="Secțiuni"
       style={{
-        width: latimeRail(),
+        width: LATIME_RAIL,
         "flex-shrink": 0,
         "box-sizing": "border-box",
         display: "flex",
         "flex-direction": "column",
-        "align-items": railDeschis() ? "stretch" : "center",
-        gap: pasi(),
-        padding: railDeschis() ? "10px" : "8px 0",
+        "align-items": "center",
+        gap: "12px",
+        // Pe telefon bara stă direct pe ramă, fără panou, ca în schiță: lățimea e prețioasă pe 375.
+        padding: telefon() ? "4px 0" : "12px 0",
         overflow: "hidden",
-        "border-radius": railDeschis() ? "28px" : "26px",
-        background: NEGRU,
-        transition: "width 200ms ease-out",
+        "border-radius": "12px",
+        background: telefon() ? "transparent" : S1.lista,
       }}
     >
-      <div
-        style={{
-          position: "relative",
-          display: "flex",
-          "flex-direction": "column",
-          gap: pasi(),
+      <Placa
+        nume="Comunitate"
+        marime={marime()}
+        activ={inServer()}
+        laApasare={() => {
+          const s = serverBbt();
+          if (s) navigate(`/server/${s.id}`);
         }}
       >
-        <alunecare.Strat
-          culoare={ROZ}
-          raza="24px"
-          tranzitie={`transform ${ARC}, height ${ARC}`}
-        />
-        <For each={sectiuni}>
-          {(s, i) => (
-            <button
-              ref={alunecare.rand(i())}
-              type="button"
-              class={s.activ() ? "bbt-moale" : "bbt-moale bbt-tab-pastila"}
-              title={railDeschis() ? undefined : s.nume}
-              aria-label={s.nume}
-              aria-current={s.activ() ? "page" : undefined}
-              onClick={() => s.laApasare()}
-              style={{
-                ...rand(),
-                color: s.activ() ? NEGRU : railDeschis() ? ALB_STINS : ALB,
-                transition:
-                  "color 220ms ease-in-out, background-color 160ms ease-out, transform 160ms ease-out",
-              }}
-            >
-              <span
-                style={{
-                  position: "relative",
-                  display: "flex",
-                  "align-items": "center",
-                  "justify-content": "center",
-                  "flex-shrink": 0,
-                  ...(railDeschis()
-                    ? {
-                        width: "32px",
-                        height: "32px",
-                        "border-radius": "50%",
-                        background: s.activ() ? ROZ_TARE : "transparent",
-                      }
-                    : {}),
-                }}
-              >
-                <s.Icon size={20} />
-                <Show when={s.punct() && !s.activ()}>
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: railDeschis() ? "4px" : "-2px",
-                      right: railDeschis() ? "2px" : "-4px",
-                      width: "9px",
-                      height: "9px",
-                      "border-radius": "50%",
-                      background: ROZ,
-                    }}
-                  />
-                </Show>
-              </span>
-              <Show when={railDeschis()}>
-                <span style={TEXT_RAND}>{s.nume}</span>
-              </Show>
-            </button>
-          )}
-        </For>
-      </div>
+        <IconDiez size={20} />
+      </Placa>
+      <Placa
+        nume="Mesaje"
+        marime={marime()}
+        activ={inMesaje()}
+        cifra={props.necititeMesaje}
+        // 23a: Mesaje deschide direct ultima conversație, cu lista lângă ea. Fără conversații, lista de prieteni (în Community
+        // scrii doar prietenilor). Pe telefon doar lista: conversația o alegi tu, ca în orice aplicație de mesaje.
+        laApasare={() => {
+          const ultima = state.ordering.orderedConversations(client())[0];
+          navigate(ultima && !telefon() ? `/channel/${ultima.id}` : "/friends");
+        }}
+      >
+        <IconBalon size={20} />
+      </Placa>
 
       <div style={{ flex: 1 }} />
 
-      <button
-        type="button"
-        class="bbt-moale"
-        title={railDeschis() ? undefined : "Profil"}
-        aria-label="Profil"
-        aria-current={profilActiv() ? "page" : undefined}
-        onClick={() => navigate("/cont")}
-        style={{ ...rand("56px"), color: ALB }}
-      >
-        {/* Inelul doar în Profil: cu rozul plecat de sus, altfel n-ai vedea unde ești. */}
-        <span
-          style={{
-            display: "flex",
-            "flex-shrink": 0,
-            "border-radius": "50%",
-            outline: profilActiv() ? `2px solid ${ROZ}` : "none",
-            "outline-offset": "1px",
-          }}
-        >
-          <AvatarOm om={client().user} marime={railDeschis() ? 32 : 36} />
-        </span>
-        <Show when={railDeschis()}>
-          <span style={{ "min-width": 0, "line-height": 1.1 }}>
-            <span
-              style={{
-                ...UN_RAND,
-                display: "block",
-                "font-size": "13px",
-                "font-weight": 800,
-              }}
-            >
-              {cont.data?.numeAfisat ?? client().user?.displayName}
-            </span>
-            {/* Aceeași regulă ca în `ProfilDesktop.tsx`: telefonul confirmat face „Artist verificat". */}
-            <Show when={cont.data?.phoneVerified}>
-              <span
-                style={{
-                  display: "block",
-                  "margin-top": "2px",
-                  "font-size": "12px",
-                  "font-weight": 700,
-                  color: ROZ,
-                }}
-              >
-                Artist verificat
-              </span>
-            </Show>
-          </span>
-        </Show>
-      </button>
-      {/* „Site" (cererea userului, 31 oct 2026): nu e o secțiune, duce afară. În browser același tab, în aplicația instalată
-          se deschide în browser (`tintaSite`). */}
+      {/* „Site" (cererea userului, 31 oct 2026): nu e o secțiune, duce afară. În browser același tab, în aplicația instalată se
+          deschide în browser (`tintaSite`). */}
       <a
         href={BBT_SITE_URL}
         target={tintaSite()}
         rel="noopener"
         class="bbt-moale bbt-tab-pastila"
-        title={railDeschis() ? undefined : "Site"}
+        title="Mergi pe site"
         aria-label="Mergi pe site"
         style={{
-          ...rand(),
-          color: railDeschis() ? ALB_STINS : "rgba(255,255,255,0.7)",
+          width: `${marime()}px`,
+          height: `${marime()}px`,
+          display: "flex",
+          "align-items": "center",
+          "justify-content": "center",
+          "border-radius": "12px",
+          color: S1.stins,
           "text-decoration": "none",
         }}
       >
-        <span
-          style={{
-            display: "flex",
-            "flex-shrink": 0,
-            "align-items": "center",
-            "justify-content": "center",
-            ...(railDeschis() ? { width: "32px", height: "32px" } : {}),
-          }}
-        >
-          <Symbol size={16}>open_in_new</Symbol>
-        </span>
-        <Show when={railDeschis()}>
-          <span style={TEXT_RAND}>Mergi pe site</span>
-        </Show>
+        <Symbol size={18}>open_in_new</Symbol>
       </a>
     </nav>
   );

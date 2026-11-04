@@ -146,6 +146,8 @@ export interface Participant {
   socialLinks: Record<string, string> | null;
   phoneVerified: boolean;
   emailVerified: boolean;
+  /** Scorul din cache, ca în cardul de pe homepage; în hub, în cardul contului de la baza listei (`CardCont.tsx`). */
+  powerScore?: number | null;
   // Setări cont (Faza 6). Numele real e despărțit în prenume + nume; `numeComplet` se recompune din ele.
   prenume: string | null;
   numeFamilie: string | null;

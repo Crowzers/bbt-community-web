@@ -1,5 +1,6 @@
 import {
   For,
+  JSX,
   Show,
   createEffect,
   createMemo,
@@ -15,36 +16,56 @@ import { useNavigate } from "@revolt/routing";
 import { useState } from "@revolt/state";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
-import { AntetPagina, LOC_SUB_ANTET } from "./AntetPagina";
-import { C } from "./cont/ui";
+import { CardCont } from "./CardCont";
 import { MesajNou } from "./MesajNou";
 import { mesajSistem } from "./mesajSistem";
-import { LOC_PASTILA } from "./PastilaDeJos";
 import { trimiteCererea } from "./relatii";
 import {
   AvatarOm,
-  CERC_40,
-  Cip,
   IconCautare,
   IconPlus,
-  TITLU_PAGINA,
   UN_RAND,
   dupaNavigare,
   numeDin,
   oraRand,
   rezumatMesaj,
 } from "./telefon";
+import { S1 } from "./tema";
 import { aduUltimul, ultimulMesaj } from "./ultimulMesaj";
 
 /**
- * BBT: tab-ul Mesaje pe telefon (macheta 20a), copia ecranului `mobil/src/app/(tabs)/mesaje.tsx`, cu măsurile de acolo:
- * titlul 32, cercurile 40, cipurile 29, rândurile 56 cu raza 18, avatarul 40. Desktopul rămâne pe 23a (`HomeSidebar`).
+ * BBT: lista Mesaje pe telefon (macheta 20a): căutarea, cipurile, rândurile 56 cu avatarul 40. Desktopul rămâne pe 23a
+ * (`HomeSidebar`).
+ *
+ * S1 (4 nov 2026, decizia 11): pe cerneală, lângă bara din stânga, cu cardul contului jos, ca lista de canale. Până atunci
+ * stătea pe alb, sub antetul roz al aplicației, cu pastila de meniu deasupra.
  *
  * „+" deschide lista prietenilor, ca în aplicație: în Stoat mesajele directe merg doar între prieteni (403 altfel). Pe
  * desktop duce la pagina Prieteni, care pe telefon nu mai are drum: cererile stau aici, în cipul „Cereri".
  */
 
 type Filtru = "toate" | "necitite" | "cereri";
+
+const ALB = "#FFFFFF";
+const ROZ = "#FFA8CD";
+const NEGRU = "#0A0A0B";
+
+/** Cercurile de 44 din capul listei, pe placa listei. */
+const CERC: JSX.CSSProperties = {
+  width: "44px",
+  height: "44px",
+  "flex-shrink": 0,
+  display: "flex",
+  "align-items": "center",
+  "justify-content": "center",
+  padding: 0,
+  border: 0,
+  "border-radius": "50%",
+  background: S1.placa,
+  color: ALB,
+  cursor: "pointer",
+  "-webkit-tap-highlight-color": "transparent",
+};
 
 export function MesajeTelefon(props: { conversations: () => Channel[] }) {
   const client = useClient();
@@ -74,7 +95,7 @@ export function MesajeTelefon(props: { conversations: () => Channel[] }) {
     if (filtru() === "cereri" && !cereri().length) setFiltru("toate");
   });
 
-  // Ultimul mesaj al conversațiilor care nu-l au în memorie, o dată la deschidere (ca la Comunitate).
+  // Ultimul mesaj al conversațiilor care nu-l au în memorie, o dată la deschidere.
   createEffect(
     on(
       () => props.conversations().length,
@@ -93,19 +114,40 @@ export function MesajeTelefon(props: { conversations: () => Channel[] }) {
         "min-height": 0,
         width: "100%",
         "box-sizing": "border-box",
-        background: C.fundal,
-        color: C.text,
+        color: S1.text,
         "font-family": "Inter, sans-serif",
       }}
     >
-      <AntetPagina>
-        <h1 style={{ ...TITLU_PAGINA, flex: 1 }}>Mesaje</h1>
+      {/* Capul listei ca la canale (`SalutTelefon`): Inter 20, cercurile de 44. */}
+      <div
+        style={{
+          display: "flex",
+          "align-items": "center",
+          gap: "8px",
+          "flex-shrink": 0,
+          padding: "14px 12px 10px 16px",
+        }}
+      >
+        <h1
+          style={{
+            flex: 1,
+            margin: 0,
+            "font-family": "Inter, system-ui, sans-serif",
+            "font-size": "20px",
+            "line-height": "26px",
+            "font-weight": 700,
+            "letter-spacing": 0,
+            color: ALB,
+          }}
+        >
+          Mesaje
+        </h1>
         <button
           type="button"
           class="bbt-moale"
           aria-label="Caută o persoană"
           onClick={() => setCauta(cauta() === null ? "" : null)}
-          style={{ ...CERC_40, background: C.fundal }}
+          style={CERC}
         >
           <Show
             when={cauta() === null}
@@ -119,20 +161,18 @@ export function MesajeTelefon(props: { conversations: () => Channel[] }) {
           class="bbt-moale"
           aria-label="Mesaj nou"
           onClick={() => setNou(true)}
-          style={{ ...CERC_40, background: C.negru, color: C.peNegru }}
+          style={CERC}
         >
           <IconPlus />
         </button>
-      </AntetPagina>
+      </div>
 
-      {/* Căutarea și cipurile merg cu lista, ca la Comunitate: pagina albă trece pe sub antet și sub colțurile lui. */}
       <div
         style={{
           "flex-grow": 1,
           "min-height": 0,
           "overflow-y": "auto",
-          "padding-top": LOC_SUB_ANTET,
-          "padding-bottom": LOC_PASTILA,
+          "padding-bottom": "8px",
         }}
       >
         <Show when={cauta() !== null}>
@@ -141,12 +181,12 @@ export function MesajeTelefon(props: { conversations: () => Channel[] }) {
               display: "flex",
               "align-items": "center",
               gap: "8px",
-              height: "42px",
-              margin: "0 16px 6px",
+              height: "44px",
+              margin: "0 12px 8px",
               padding: "0 14px",
               "border-radius": "999px",
-              background: C.foaieTare,
-              color: C.slab,
+              background: S1.placa,
+              color: S1.stins,
             }}
           >
             <IconCautare size={16} />
@@ -163,7 +203,7 @@ export function MesajeTelefon(props: { conversations: () => Channel[] }) {
                 border: 0,
                 outline: 0,
                 background: "transparent",
-                color: C.text,
+                color: ALB,
                 "font-family": "inherit",
                 "font-size": "16px",
               }}
@@ -173,23 +213,20 @@ export function MesajeTelefon(props: { conversations: () => Channel[] }) {
 
         <div
           role="tablist"
-          style={{ display: "flex", gap: "8px", padding: "0 16px 8px" }}
+          style={{ display: "flex", gap: "6px", padding: "0 12px 8px" }}
         >
           <Cip
-            peNegru
             text="Toate"
             activ={filtru() === "toate"}
             laApasare={() => setFiltru("toate")}
           />
           <Cip
-            peNegru
             text="Necitite"
             activ={filtru() === "necitite"}
             laApasare={() => setFiltru("necitite")}
           />
           <Show when={cereri().length}>
             <Cip
-              peNegru
               text={`Cereri ${cereri().length}`}
               activ={filtru() === "cereri"}
               laApasare={() => setFiltru("cereri")}
@@ -214,6 +251,8 @@ export function MesajeTelefon(props: { conversations: () => Channel[] }) {
         </Show>
       </div>
 
+      <CardCont />
+
       <Show when={nou()}>
         <MesajNou laInchidere={() => setNou(false)} />
       </Show>
@@ -221,10 +260,39 @@ export function MesajeTelefon(props: { conversations: () => Channel[] }) {
   );
 }
 
+/** Filtrele, ca pe desktop (`HomeSidebar`): alb pe cel ales, pe placa listei celelalte. 32 pe telefon, 14/600. */
+function Cip(props: { text: string; activ: boolean; laApasare: () => void }) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={props.activ}
+      onClick={() => props.laApasare()}
+      style={{
+        "flex-shrink": 0,
+        height: "32px",
+        padding: "0 14px",
+        border: 0,
+        "border-radius": "999px",
+        background: props.activ ? ALB : S1.placa,
+        color: props.activ ? NEGRU : S1.stins,
+        "font-family": "inherit",
+        "font-size": "14px",
+        "font-weight": 600,
+        "white-space": "nowrap",
+        cursor: "pointer",
+        "-webkit-tap-highlight-color": "transparent",
+      }}
+    >
+      {props.text}
+    </button>
+  );
+}
+
 const NOTA = {
   margin: 0,
-  padding: "16px 28px",
-  color: C.slab,
+  padding: "16px 24px",
+  color: S1.stins,
   "font-size": "14px",
   "line-height": "20px",
   "text-align": "center",
@@ -240,10 +308,10 @@ const RAND = {
   display: "flex",
   "align-items": "center",
   gap: "12px",
-  margin: "0 8px",
-  padding: "8px 12px",
-  "border-radius": "18px",
-  color: C.text,
+  margin: "0 6px",
+  padding: "8px 10px",
+  "border-radius": "12px",
+  color: ALB,
   "text-decoration": "none",
 } as const;
 
@@ -277,7 +345,7 @@ function RandConversatie(props: { canal: Channel; euId: string | undefined }) {
             <ChannelContextMenu channel={props.canal} />
           ),
       }}
-      style={{ ...RAND, background: necitit() ? C.foaie : "transparent" }}
+      style={{ ...RAND, background: necitit() ? S1.placa : "transparent" }}
     >
       <AvatarOm om={props.canal.recipient} marime={40} />
       <span style={{ flex: 1, "min-width": 0 }}>
@@ -286,9 +354,9 @@ function RandConversatie(props: { canal: Channel; euId: string | undefined }) {
             style={{
               ...UN_RAND,
               "flex-shrink": 1,
-              "font-size": "15px",
+              "font-size": "16px",
               "line-height": "20px",
-              "font-weight": 800,
+              "font-weight": 700,
             }}
           >
             {numeConversatie(props.canal)}
@@ -297,7 +365,7 @@ function RandConversatie(props: { canal: Channel; euId: string | undefined }) {
             style={{
               "margin-left": "auto",
               "flex-shrink": 0,
-              color: C.slab,
+              color: S1.stins,
               "font-size": "12px",
             }}
           >
@@ -314,7 +382,7 @@ function RandConversatie(props: { canal: Channel; euId: string | undefined }) {
         >
           <Show when={esteApel()}>
             <span
-              style={{ display: "flex", color: necitit() ? C.text : C.stins }}
+              style={{ display: "flex", color: necitit() ? ALB : S1.stins }}
             >
               <Symbol size={14}>call</Symbol>
             </span>
@@ -323,9 +391,9 @@ function RandConversatie(props: { canal: Channel; euId: string | undefined }) {
             style={{
               ...UN_RAND,
               flex: 1,
-              color: necitit() ? C.text : C.stins,
-              "font-size": "13px",
-              "line-height": "16px",
+              color: necitit() ? ALB : S1.stins,
+              "font-size": "14px",
+              "line-height": "18px",
               "font-weight": necitit() ? 600 : 400,
             }}
           >
@@ -338,7 +406,7 @@ function RandConversatie(props: { canal: Channel; euId: string | undefined }) {
                 height: "10px",
                 "flex-shrink": 0,
                 "border-radius": "5px",
-                background: C.roz,
+                background: ROZ,
               }}
             />
           </Show>
@@ -356,20 +424,26 @@ function RandCerere(props: { om: User }) {
     await f().catch(() => {});
     setLucreaza(false);
   };
-  const buton = (text: string, negru: boolean, f: () => Promise<unknown>) => (
+  // „Acceptă" e acțiunea, deci roz; „Refuză" stă pe placa listei.
+  const buton = (
+    text: string,
+    principal: boolean,
+    f: () => Promise<unknown>,
+  ) => (
     <button
       type="button"
       disabled={lucreaza()}
       onClick={actiune(f)}
       style={{
-        padding: "7px 12px",
+        height: "36px",
+        padding: "0 14px",
         border: 0,
         "border-radius": "999px",
-        background: negru ? C.negru : C.foaie,
-        color: negru ? C.peNegru : C.text,
+        background: principal ? ROZ : S1.placa,
+        color: principal ? NEGRU : ALB,
         "font-family": "inherit",
         "font-size": "14px",
-        "font-weight": negru ? 700 : 600,
+        "font-weight": principal ? 700 : 600,
         cursor: "pointer",
       }}
     >
@@ -383,8 +457,8 @@ function RandCerere(props: { om: User }) {
         style={{
           ...UN_RAND,
           flex: 1,
-          "font-size": "15px",
-          "font-weight": 800,
+          "font-size": "16px",
+          "font-weight": 700,
         }}
       >
         {props.om.displayName}

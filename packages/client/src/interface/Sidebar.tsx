@@ -22,8 +22,9 @@ import { LAYOUT_SECTIONS } from "@revolt/state/stores/Layout";
 import { useDevice } from "@revolt/common";
 
 import { BaraSectiuni } from "../bbt/BaraSectiuni";
-import { ComunitateTelefon } from "../bbt/ComunitateTelefon";
+import { useInchidereLaSosire } from "../bbt/intoarcere";
 import { MesajeTelefon } from "../bbt/MesajeTelefon";
+import { S1 } from "../bbt/tema";
 import { HomeSidebar, ServerSidebar } from "./navigation";
 
 const MainBar = styled("div", {
@@ -43,8 +44,29 @@ const MainBar = styled("div", {
   },
 });
 
-/** BBT: colțurile foii albe de pe desktop: 24, ca în 25e. */
-export const RAZA_FOAIE = "24px";
+/**
+ * BBT: colțurile panourilor de pe desktop: 12 (S1, 4 nov 2026). Lista și conversația sunt panouri separate, cu 8 între ele;
+ * până atunci formau o singură foaie albă, cu colțuri de 24 (25e).
+ */
+export const RAZA_FOAIE = "12px";
+
+/**
+ * BBT: lista de canale și de conversații pe cerneală (S1). Componentele lor citesc rolurile Material, deci culorile se schimbă
+ * prin variabile pe panou, nu în fiecare componentă (vezi „Culori în hub" din regulile hub-ului: `@layer` bate `!important`).
+ */
+const PANOU_LISTA: JSX.CSSProperties = {
+  background: S1.lista,
+  "--md-sys-color-surface-container-low": S1.lista,
+  "--md-sys-color-on-surface": S1.text,
+  "--md-sys-color-on-surface-variant": S1.stins,
+  "--md-sys-color-outline": S1.categorie,
+  "--md-sys-color-outline-variant": "transparent",
+  "--md-sys-color-secondary-container": S1.placa,
+  "--md-sys-color-on-secondary-container": "#FFFFFF",
+  "--md-sys-color-surface-container": S1.placa,
+  "--md-sys-color-surface-container-highest": S1.placa,
+  color: S1.text,
+};
 
 /** BBT: dacă lista (canale sau conversații) stă lângă conținut. Pe desktop, de ea depinde unde începe foaia albă. */
 export function useListaLaVedere() {
@@ -79,49 +101,52 @@ export const Sidebar = (_props: {
   const cuLista = useListaLaVedere();
 
   // BBT: în locul listei de servere (`ServerList`), bara de secțiuni BBT — src/bbt/BaraSectiuni.tsx.
-  // Pe telefon, ecranul cu lista de canale devine o coloană: bara de sus (contul) → canalele → bara
-  // de tab-uri jos, ca într-o aplicație (pânza aprobată, 5 oct 2026).
   const necititeMesaje = () =>
     state.ordering
       .orderedConversations(client())
       .filter((channel) => channel.unread).length;
 
+  // BBT: întoarcerea din Experiențe și Profil în listă închide panoul de deasupra ei (`bbt/intoarcere.ts`).
+  useInchidereLaSosire();
+
   return (
     <MainBar
       class="main_bar"
-      style={telefon() ? { "flex-direction": "column" } : undefined}
+      // BBT: pe telefon, bara din stânga și lista stau pe rama de cerneală, ca pe desktop (S1, decizia 11); sus, sub ceas.
+      style={
+        telefon()
+          ? {
+              background: S1.rama,
+              padding:
+                "calc(env(safe-area-inset-top) + 8px) var(--bbt-margine) var(--bbt-margine) 0",
+              "box-sizing": "border-box",
+            }
+          : undefined
+      }
     >
-      {/* BBT: pe telefon, fără bară de sus și bară de tab-uri: ecranele sunt ale aplicației mobile, cu pastila
-          plutitoare (`bbt/PastilaDeJos.tsx`, montată în `Interface.tsx`). Cererea userului, 30 oct 2026. */}
-      <Show when={!telefon()}>
-        <BaraSectiuni necititeMesaje={necititeMesaje()} />
-      </Show>
+      {/* BBT: bara din stânga, și pe telefon din 4 nov 2026 (schița „HubCampusTelTRW", aleasă de user). Între 30 oct și 4 nov
+          telefonul avea pastila plutitoare a aplicației (`PastilaDeJos`), fără bară. */}
+      <BaraSectiuni necititeMesaje={necititeMesaje()} />
       <div
         style={{
           display: "flex",
           "flex-grow": 1,
+          "min-width": 0,
           "min-height": 0,
-          ...(telefon()
-            ? { width: "100%" }
-            : {
-                // Spațiul dintre pastilă și foaie, egal cu marginea ferestrei (25e).
-                "margin-left": "var(--bbt-margine)",
-                ...(cuLista()
-                  ? {
-                      overflow: "hidden",
-                      background: "#FFFFFF",
-                      "border-radius": `${RAZA_FOAIE} 0 0 ${RAZA_FOAIE}`,
-                    }
-                  : {}),
-              }),
+          // Spațiul dintre bara din stânga și listă, egal cu cel dintre panouri (S1). Pe telefon bara n-are panou, deci lista
+          // se lipește de plăcile ei.
+          "margin-left": telefon() ? 0 : "var(--bbt-margine)",
+          ...(cuLista()
+            ? {
+                overflow: "hidden",
+                "border-radius": RAZA_FOAIE,
+                ...PANOU_LISTA,
+              }
+            : {}),
         }}
       >
         <Show when={cuLista()}>
           <Switch fallback={<Home />}>
-            {/* BBT: pe telefon, ecranul Comunitate din aplicație (19a); `ServerSidebar` rămâne pe desktop (21a). */}
-            <Match when={params.server && telefon()}>
-              <ComunitateTelefon />
-            </Match>
             <Match when={params.server}>
               <Server />
             </Match>
@@ -175,7 +200,7 @@ const Home: Component = () => {
         />
       }
     >
-      {/* BBT: pe telefon, ecranul Mesaje din aplicație (20a). */}
+      {/* BBT: pe telefon, lista Mesaje cu căutarea și cererile de prietenie (20a), pe cerneală din 4 nov (S1). */}
       <MesajeTelefon conversations={conversations} />
     </Show>
   );

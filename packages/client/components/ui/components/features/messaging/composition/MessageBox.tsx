@@ -102,37 +102,33 @@ const Base = styled("div", {
     flexGrow: 1,
     minWidth: 0,
 
-    // BBT: proporțiile din 25d (31 oct 2026): pastila are 56 pe un rând = 8 + 40 + 8, cu „+", emoji și microfonul în cercuri
+    // BBT: proporțiile din 25d (31 oct 2026): caseta are 56 pe un rând = 8 + 40 + 8, cu „+", emoji și microfonul în cercuri
     // de 40, la 12 unul de altul. Paddingul e cu 1 mai mic din cauza chenarului. Textul lung crește în sus.
-    // 🔥 Pastila NEAGRĂ din 21 și 23 (30 oct 2026, „bara de scris e pastila neagră"), ca în aplicația de telefon.
-    // Până atunci: #141414 cu fir, colțuri de 10px. Variabilele de culoare se suprascriu AICI, ca textul și
-    // iconițele dinăuntru (care citesc tema albă) să iasă albe pe negru.
+    // 🔥 ALBĂ cu chenar din 4 nov 2026 (S1, schița „HubCampusDesktop"), cu colțurile panourilor (12): o unealtă, nu o pastilă de
+    // aplicație. Între 30 oct și 4 nov era pastila NEAGRĂ din 21 și 23, cu variabilele de culoare suprascrise pe alb. Variabilele
+    // rămân scrise AICI, ca iconițele dinăuntru să nu depindă de fundalul conversației.
     minHeight: "56px",
     boxSizing: "border-box",
     padding: "7px 7px 7px 9px",
     gap: "12px",
-    borderRadius: "28px",
-    border: "1px solid transparent",
+    borderRadius: "12px",
+    border: "1px solid #E5E5E5",
 
     display: "flex",
     alignItems: "flex-end",
-    background: "#0A0A0B",
-    color: "#FFFFFF",
-    "--md-sys-color-on-surface": "#FFFFFF",
-    "--md-sys-color-on-surface-variant": "#C9C9CE",
-    "--md-sys-color-outline": "#A0A0AA",
+    background: "#FFFFFF",
+    color: "#0A0A0B",
+    "--md-sys-color-on-surface": "#0A0A0B",
+    "--md-sys-color-on-surface-variant": "#6C6C6D",
+    "--md-sys-color-outline": "#8D8D9A",
 
-    // Pe telefon, aceeași pastilă ca meniul de jos (`bbt/PastilaDeJos.tsx`), ca în aplicație (`ui/morf.ts`): 60 de
-    // înălțime = 6 + 48 + 6. Textul rămâne la 16, nu 15 ca în aplicație: sub 16, iOS mărește pagina la focus.
+    // Pe telefon, 60 de înălțime = 6 + 48 + 6, rotunjită: ținta de deget și forma din aplicație (`ui/morf.ts`). Textul rămâne la
+    // 16, nu 15 ca în aplicație: sub 16, iOS mărește pagina la focus.
     _phone: {
       minHeight: "60px",
-      padding: "6px",
+      padding: "5px",
       gap: "4px",
       borderRadius: "30px",
-      border: 0,
-      background: "rgba(10,10,11,0.92)",
-      backdropFilter: "blur(20px) saturate(1.6)",
-      boxShadow: "0 8px 18px rgba(0,0,0,0.28)",
       "--message-size": "16px",
     },
   },

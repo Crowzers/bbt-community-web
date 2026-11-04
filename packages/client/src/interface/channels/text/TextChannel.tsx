@@ -1,6 +1,7 @@
 import {
   Match,
   Show,
+  Suspense,
   Switch,
   createEffect,
   createSignal,
@@ -83,8 +84,9 @@ export function TextChannel(props: ChannelPageProps) {
   const state = useState();
   const client = useClient();
   const { layout } = useDevice();
-  const canalAlb = () =>
-    layout() !== "phone" && props.channel.type === "TextChannel";
+  // BBT: canalele sunt albe și pe telefon din 4 nov 2026 (S1): fără bule, textul stă direct pe foaie. Griul rămâne la mesajele
+  // directe, unde bulele albe au nevoie de el.
+  const canalAlb = () => props.channel.type === "TextChannel";
   const antet = () => (
     <Header placement="primary">
       <ChannelHeader
@@ -260,8 +262,8 @@ export function TextChannel(props: ChannelPageProps) {
       </Show>
       <Show when={layout() === "phone"}>{antet()}</Show>
       <Content>
-        {/* BBT: locul unde se vorbește e gri, cu bule albe. Excepție: canalele de pe desktop, albe cu bule gri, ca în 25e
-            (cererea userului, 1 nov 2026, peste cea din 31 oct, când erau gri și ele). */}
+        {/* BBT: locul unde se vorbește e gri, cu bule albe. Excepție: canalele, albe și fără bule (S1, 4 nov 2026; între 1 și
+            4 nov albe cu bule gri pe desktop, ca în 25e, iar pe 31 oct gri și ele). */}
         <main
           class={main()}
           classList={{ "bbt-canal-alb": canalAlb() }}
@@ -403,8 +405,12 @@ export function TextChannel(props: ChannelPageProps) {
                           channel={props.channel}
                           cautare={cautareMembri()}
                         />
+                        {/* ⚠️ `Suspense` al lui: cardul citește experiențele din admin, iar cât cererea așteaptă (admin căzut sau
+                            lent), fără el se suspenda tot canalul și conversația rămânea pe cercul de încărcare (văzut 4 nov). */}
                         <Show when={layout() !== "phone"}>
-                          <CardUrmatoareaTabara />
+                          <Suspense>
+                            <CardUrmatoareaTabara />
+                          </Suspense>
                         </Show>
                       </Show>
                     </>

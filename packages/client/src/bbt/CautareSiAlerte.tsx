@@ -7,9 +7,11 @@ import { Avatar } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { cereCautare } from "./cautare";
+import { S1 } from "./tema";
 
 /**
- * Căutarea și clopoțelul din bara de sus (pânza TRW aprobată, 5 oct 2026). Albe, de 48, ca în 25e.
+ * Căutarea și clopoțelul din bara de sus (pânza TRW aprobată, 5 oct 2026). Pe placa barei închise, de 36, cât „Instalează" (S1,
+ * 4 nov 2026); până atunci albe, de 48, ca în 25e.
  *
  * Căutarea: în canalul DESCHIS — singura căutare pe care o are Stoat (vezi `cautare.ts`). Enter
  * deschide rezultatele în panoul din dreapta al canalului. Fără canal deschis, câmpul nu apare.
@@ -45,13 +47,14 @@ export function CautareSus() {
           gap: "10px",
           width: "420px",
           "max-width": "100%",
-          height: "48px",
-          padding: "0 18px",
+          // 36, cât „Instalează", pe placa barei închise (S1, 4 nov 2026; până atunci 48, albă pe roz).
+          height: "36px",
+          padding: "0 16px",
           "box-sizing": "border-box",
           "border-radius": "999px",
-          background: "#FFFFFF",
+          background: S1.placa,
           border: "0",
-          color: "#8D8D9A",
+          color: S1.stins,
           "font-size": "14px",
         }}
       >
@@ -70,7 +73,7 @@ export function CautareSus() {
             background: "transparent",
             border: "0",
             outline: "none",
-            color: "#0A0A0B",
+            color: "#FFFFFF",
             "font-family": "inherit",
             "font-size": "14px",
           }}
@@ -143,12 +146,12 @@ export function Clopotel() {
         onClick={() => setDeschis((d) => !d)}
         style={{
           position: "relative",
-          width: "48px",
-          height: "48px",
+          width: "36px",
+          height: "36px",
           border: "0",
           "border-radius": "999px",
-          background: deschis() ? "#F2F2F3" : "#FFFFFF",
-          color: "#0A0A0B",
+          background: deschis() ? S1.stins : S1.placa,
+          color: deschis() ? "#0A0A0B" : "#FFFFFF",
           display: "flex",
           "align-items": "center",
           "justify-content": "center",
@@ -160,8 +163,8 @@ export function Clopotel() {
           <span
             style={{
               position: "absolute",
-              top: "2px",
-              right: "0",
+              top: "-4px",
+              right: "-6px",
               "min-width": "18px",
               height: "18px",
               padding: "0 5px",
@@ -169,7 +172,7 @@ export function Clopotel() {
               "border-radius": "999px",
               // Roz cu cifră neagră, ca cifrele de necitite din 23 (până pe 30 oct, roșu).
               background: "#FFA8CD",
-              border: "2px solid #FFFFFF",
+              border: `2px solid ${S1.rama}`,
               color: "#0A0A0B",
               "font-size": "11px",
               "font-weight": 700,

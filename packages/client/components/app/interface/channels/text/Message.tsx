@@ -182,10 +182,15 @@ export function Message(props: Props) {
     ),
   );
 
-  // BBT: pe telefon firul e cel din aplicație (19b): bule și în canale, ale tale în dreapta. Pe desktop, bulele din 23a
-  // (mai jos). Mesajele de sistem, editarea și rezultatele din căutare își păstrează rândul lor.
+  // BBT: în canale, mesajele fără bule, toate la stânga, ca la Slack și Discord (S1, 4 nov 2026, studiul, deciziile 2 și 3): bula
+  // stânga-dreapta e semnul conversației în doi și făcea din canal un „chat personal". În mesajele directe bulele rămân.
+  const inCanal = () => props.message.channel?.type === "TextChannel";
+
+  // BBT: pe telefon, mesajele directe sunt cele din aplicație (19b): bule, ale tale în dreapta. Pe desktop, bulele din 23a
+  // (mai jos). Mesajele de sistem, editarea și rezultatele din căutare își păstrează rândul lor. Până pe 4 nov, bule și în canale.
   const bula = () =>
     layout() === "phone" &&
+    !inCanal() &&
     !props.isLink &&
     !props.editing &&
     !props.message.systemMessage &&
@@ -289,12 +294,13 @@ export function Message(props: Props) {
             class={avatarContainer()}
             use:floating={floatingUserMenusFromMessage(props.message)}
           >
-            {/* 40, ca în 21a (până pe 30 oct, 36); coloana avatarului are 54 = 40 + 14. Lângă bulă, 32, ca în 19b. */}
+            {/* 40, ca în 21a (până pe 30 oct, 36); coloana avatarului are 54 = 40 + 14. Lângă bulă, 32, ca în 19b. În canale 36
+                (S1, decizia 2): densitatea unei unelte. */}
             <Show
               when={bula()}
               fallback={
                 <Avatar
-                  size={props.avatarFir ?? 40}
+                  size={props.avatarFir ?? (inCanal() ? 36 : 40)}
                   src={
                     isHovering()
                       ? props.message.animatedAvatarURL
@@ -510,12 +516,14 @@ export function Message(props: Props) {
           {/* BBT (23a, 30 oct 2026): textul stă în bule — ale tale roz, ale celorlalți albe, pe fundalul gri. Din 31 oct
               și în canale, odată cu griul cerut de user: 21a le desena liniare pe alb, iar pe gri textul n-avea contrast.
               Firul (panou alb) și rezultatele căutării rămân liniare. ⚠️ Bulele tale NU trec în dreapta, ca în machetă:
-              rândul mesajului (avatar, nume, oră) e al lui Stoat și ar trebui întors cu totul. */}
+              rândul mesajului (avatar, nume, oră) e al lui Stoat și ar trebui întors cu totul. Din 4 nov doar în mesajele
+              directe: în canale textul stă liber, sub nume (`inCanal`). */}
           <Match
             when={
               props.message.content &&
               !isOnlyGIF() &&
               !bula() &&
+              !inCanal() &&
               !props.inFir &&
               !props.isLink
             }
@@ -560,7 +568,9 @@ export function Message(props: Props) {
           {(embed) => <Embed embed={embed} />}
         </For>
         <Show when={!bula()}>{reactii()}</Show>
-        {/* Pe desktop, sub mesaj: pastila firului sau „Răspunde", ca în 24e. Pe telefon, pastila stă sub bulă. */}
+        {/* Pe desktop, sub mesaj: pastila firului sau „Răspunde", ca în 24e. Pe telefon, pastila stă sub bulă. În canale (S1,
+            decizia 7) „Răspunde" nu mai stă sub fiecare mesaj: e în bara de la hover (`MessageToolbar`), iar pe telefon în meniul
+            de la apăsarea lungă. Pastila cu răspunsurile rămâne: arată mișcare. */}
         <Show
           when={
             !bula() &&
@@ -572,7 +582,11 @@ export function Message(props: Props) {
         >
           <Show
             when={grupare().firuri.has(props.message.id)}
-            fallback={<RaspundeInFir mesajId={props.message.id} />}
+            fallback={
+              <Show when={!inCanal()}>
+                <RaspundeInFir mesajId={props.message.id} />
+              </Show>
+            }
           >
             <PastilaRaspunsuri mesajId={props.message.id} />
           </Show>

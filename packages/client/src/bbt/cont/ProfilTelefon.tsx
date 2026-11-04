@@ -5,10 +5,11 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { AntetPagina, LOC_SUB_ANTET } from "../AntetPagina";
 import { BBT_SITE_URL } from "../config";
-import { LOC_PASTILA } from "../PastilaDeJos";
+import { useInapoiLaLista } from "../intoarcere";
 import {
   CERC_40,
   IconCamera,
+  IconInapoi,
   IconRotita,
   TITLU_PAGINA,
   UN_RAND,
@@ -35,6 +36,7 @@ export function ProfilTelefon() {
   const rapoarte = useRapoarte();
   const notificari = useNotificari();
   const descriere = useDescriere();
+  const inapoi = useInapoiLaLista();
 
   const toate = () => [
     ...(experiente.data?.active ?? []),
@@ -92,6 +94,21 @@ export function ProfilTelefon() {
       }}
     >
       <AntetPagina>
+        {/* Din 4 nov se intră din cardul contului, de la baza listei: fără pastila de jos, ieșirea e săgeata (S1). */}
+        <button
+          type="button"
+          class="bbt-moale"
+          aria-label="Înapoi"
+          onClick={inapoi}
+          style={{
+            ...CERC_40,
+            width: "44px",
+            height: "44px",
+            background: C.fundal,
+          }}
+        >
+          <IconInapoi />
+        </button>
         <h1 style={{ ...TITLU_PAGINA, flex: 1 }}>Profil</h1>
         <Rotita />
       </AntetPagina>
@@ -101,7 +118,7 @@ export function ProfilTelefon() {
             display: "flex",
             "flex-direction": "column",
             gap: "10px",
-            padding: `${LOC_SUB_ANTET} 12px ${LOC_PASTILA}`,
+            padding: `${LOC_SUB_ANTET} 12px 32px`,
             margin: "0 auto",
             "box-sizing": "border-box",
           }}

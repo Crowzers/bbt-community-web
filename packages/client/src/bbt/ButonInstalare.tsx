@@ -35,7 +35,9 @@ import { browser, instalare, sistemDesktop, sistemTelefon } from "./instalare";
 const NEGRU = "#0A0A0B";
 const NEGRU_APASAT = "#2A2A2C";
 const ALB = "#FFFFFF";
-const ALB_APASAT = "#F2F2F3";
+/** Pe bara închisă de sus (S1, 4 nov 2026), butonul e roz, ca orice acțiune; până atunci alb pe roz. */
+const ROZ = "#FFA8CD";
+const ROZ_APASAT = "#FF8EC6";
 const LINIE = "#E5E5E5";
 const FOAIE = "#FFFFFF";
 
@@ -83,8 +85,8 @@ export function ButonInstalare(props: { compact?: boolean }) {
         ? NEGRU_APASAT
         : NEGRU
       : apasat
-        ? ALB_APASAT
-        : ALB;
+        ? ROZ_APASAT
+        : ROZ;
 
   async function apasa() {
     if (instalare.directa() && (await instalare.porneste())) return;
@@ -112,14 +114,14 @@ export function ButonInstalare(props: { compact?: boolean }) {
             "align-items": "center",
             "justify-content": "center",
             gap: props.compact ? "6px" : "8px",
-            height: props.compact ? "34px" : "48px",
+            height: props.compact ? "34px" : "36px",
             "min-width": props.compact ? "34px" : undefined,
             "box-sizing": "border-box",
             padding: props.compact
               ? text()
                 ? "0 14px 0 10px"
                 : "0"
-              : "0 18px",
+              : "0 16px",
             "border-radius": "999px",
             border: "0",
             background: fond(pasi()),
