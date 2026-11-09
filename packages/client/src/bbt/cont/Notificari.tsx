@@ -1,4 +1,4 @@
-import { For, Show } from "solid-js";
+import { For, Show, createEffect } from "solid-js";
 
 import { useQueryClient } from "@tanstack/solid-query";
 
@@ -54,6 +54,23 @@ export function ListaNotificari() {
       "noopener",
     );
   }
+
+  // Deschiderea paginii = „le-am văzut", ca la clopoțelul de pe site și din admin și ca în aplicație (9 nov 2026): cifra
+  // de pe clopoțel și din meniu se stinge pe loc și revine doar la următoarea notificare. Se scrie doar `necitite` în
+  // cache, nu `citita` pe rânduri: punctele din lista asta rămân până la următoarea încărcare, ca omul să vadă ce era nou.
+  // O singură dată pe deschidere: altfel fiecare notificare venită cât stă pe pagină ar mai trimite o cerere.
+  let vazute = false;
+  createEffect(() => {
+    const d = notificari.data;
+    if (vazute || !d || !(d.necitite ?? 0)) return;
+    vazute = true;
+    client.setQueryData([...CHEIE_CONT, "notificari"], { ...d, necitite: 0 });
+    void cerereCont(
+      sesiune(),
+      "/api/public/participant/notificari/citeste-tot",
+      { method: "PUT", body: "{}" },
+    ).catch(() => {});
+  });
 
   function apasa(n: Notificare) {
     if (!n.citita) citeste(`/api/public/participant/notificari/${n.id}`);
