@@ -122,14 +122,39 @@ const Base = styled("div", {
     "--md-sys-color-on-surface-variant": "#6C6C6D",
     "--md-sys-color-outline": "#8D8D9A",
 
-    // Pe telefon, 60 de înălțime = 6 + 48 + 6, rotunjită: ținta de deget și forma din aplicație (`ui/morf.ts`). Textul rămâne la
-    // 16, nu 15 ca în aplicație: sub 16, iOS mărește pagina la focus.
+    // 🔥 Pe telefon, ca la WhatsApp, ca în aplicație (4 nov, cererea userului: „mai mult loc în pagină"): fără casetă, iconițele
+    // stau direct pe fâșia de jos (`Parent`), iar rotunjit e doar câmpul de text (`CampTelefon`). Până atunci, pastila albă
+    // de 60 cu chenar. Textul rămâne la 16: sub 16, iOS mărește pagina la focus.
     _phone: {
-      minHeight: "60px",
-      padding: "5px",
-      gap: "4px",
-      borderRadius: "30px",
+      minHeight: "36px",
+      padding: 0,
+      gap: "2px",
+      borderRadius: 0,
+      border: 0,
+      background: "transparent",
       "--message-size": "16px",
+    },
+  },
+});
+
+/**
+ * Câmpul de text pe telefon, ca la WhatsApp și ca în aplicație (`mobil/src/fir/BaraScris.tsx`): rotunjit, 36 pe un rând, gri
+ * deschis. Pe desktop `display: contents`: caseta din 25d rămâne cum era.
+ */
+const CampTelefon = styled("div", {
+  base: {
+    display: "contents",
+    _phone: {
+      display: "flex",
+      alignItems: "center",
+      flexGrow: 1,
+      minWidth: 0,
+      minHeight: "36px",
+      boxSizing: "border-box",
+      padding: "0 12px",
+      borderRadius: "18px",
+      background: "#F3F3F6",
+      border: "1px solid #E5E5E5",
     },
   },
 });
@@ -144,8 +169,12 @@ const Parent = styled("div", {
     // BBT: zona de mesaje n-are padding lateral (e plată, pânza TRW) — marginea o pune caseta. 12 / 20 / 16 ca în
     // 25d; pe telefon, mai strâns.
     margin: "12px 20px 16px",
+    // Pe telefon, fâșia de jos ca la WhatsApp: pe toată lățimea, cu o linie fină deasupra, 6 de jur împrejur.
     _phone: {
-      margin: "6px 12px",
+      margin: 0,
+      padding: "6px",
+      background: "#FFFFFF",
+      borderTop: "1px solid #E5E5E5",
     },
     maxHeight: "var(--layout-height-message-box)",
   },
@@ -190,11 +219,11 @@ export const InlineIcon = styled("div", {
       short: { width: "4px" },
       normal: {
         width: "40px",
-        // „+" și camera din aplicație: 44 × 48, fără cerc în jur.
+        // „+" și camera din aplicație: 38 × 36, fără cerc în jur (bara ca la WhatsApp, 4 nov; până atunci 44 × 48).
         _phone: {
-          width: "44px",
-          height: "48px",
-          "& > button": { width: "44px", height: "48px" },
+          width: "38px",
+          height: "36px",
+          "& > button": { width: "38px", height: "36px" },
         },
       },
     },
@@ -278,16 +307,18 @@ export function MessageBox(props: Props) {
         <Switch
           fallback={
             <>
-              <TextEditor2
-                placeholder={props.placeholder}
-                initialValue={props.initialValue}
-                nodeReplacement={props.nodeReplacement}
-                onChange={props.setContent}
-                onComplete={props.onSendMessage}
-                onTyping={props.onTyping}
-                onPreviousContext={props.onEditLastMessage}
-                autoCompleteSearchSpace={props.autoCompleteSearchSpace}
-              />
+              <CampTelefon>
+                <TextEditor2
+                  placeholder={props.placeholder}
+                  initialValue={props.initialValue}
+                  nodeReplacement={props.nodeReplacement}
+                  onChange={props.setContent}
+                  onComplete={props.onSendMessage}
+                  onTyping={props.onTyping}
+                  onPreviousContext={props.onEditLastMessage}
+                  autoCompleteSearchSpace={props.autoCompleteSearchSpace}
+                />
+              </CampTelefon>
               <Show when={props.sendingAllowed}>{props.actionsEnd}</Show>
             </>
           }

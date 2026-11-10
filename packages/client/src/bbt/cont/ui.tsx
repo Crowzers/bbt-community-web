@@ -57,12 +57,15 @@ export const C = {
   cursuri: "#5C4ADE",
 };
 
-/** Titlurile mari din 23 (`fonte.css`). Spațierea de pe site, fără spațiere negativă: regulă de marcă. */
+/**
+ * Titlurile mari din 23. Din 4 nov Inter Bold, ca în aplicație (`mobil/src/ui/fonturi.ts`, cererea userului: titlurile fără
+ * De Fonte); până atunci De Fonte BBT (`fonte.css`), cu spațierea de pe site. Numele rămâne, ca să nu se schimbe toate
+ * locurile care îl folosesc.
+ */
 export const DE_FONTE: JSX.CSSProperties = {
-  "font-family": '"De Fonte BBT", Inter, sans-serif',
-  "font-weight": 400,
-  "letter-spacing": "0.01em",
-  "font-synthesis": "none",
+  "font-family": "Inter, sans-serif",
+  "font-weight": 700,
+  "letter-spacing": "-0.015em",
 };
 
 /** „Mesaje" din `HomeSidebar.tsx`. */

@@ -60,12 +60,13 @@ export const Header = styled("div", {
     placement: {
       primary: {
         margin: 0,
-        // Antetul firului din aplicație (19b): alb, fără fir dedesubt, 6 + pastila de 48 + 6, 12 pe laterale.
+        // Antetul firului din aplicație (19b): alb, 6 + pastila de 48 + 6, 12 pe laterale. Din 4 nov cu un fir fin dedesubt, ca
+        // în aplicație, pereche cu cel de deasupra barei de scris (cererea userului); până atunci fără.
         _phone: {
           height: "60px",
           padding: "0 12px",
           gap: "8px",
-          borderBottom: "0",
+          borderBottom: "1px solid #E5E5E5",
           background: "#FFFFFF",
         },
       },

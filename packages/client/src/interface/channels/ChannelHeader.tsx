@@ -170,14 +170,13 @@ function AntetLat(props: Props) {
               cursor: "pointer",
             }}
           >
-            {/* 23a: numele la 18, titlu (De Fonte la noi), sub el starea la 12 gros. */}
+            {/* 23a: numele la 18, titlu (Inter Bold din 4 nov, ca în aplicație; până atunci De Fonte), sub el starea la 12 gros. */}
             <OverflowingText
               style={{
-                "font-family": '"De Fonte BBT", Inter, sans-serif',
+                "font-family": "Inter, sans-serif",
                 "font-size": "18px",
-                "font-weight": 400,
-                "letter-spacing": "0.01em",
-                "font-synthesis": "none",
+                "font-weight": 700,
+                "letter-spacing": "-0.01em",
               }}
             >
               {/* BBT: numele afișat (ca în lista de prieteni), nu username-ul. */}

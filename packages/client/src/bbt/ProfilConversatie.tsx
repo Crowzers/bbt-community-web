@@ -105,10 +105,11 @@ export function ProfilConversatie(props: { user: User; channel: Channel }) {
         <p
           style={{
             margin: 0,
-            "font-family": '"De Fonte BBT", Inter, sans-serif',
+            // Inter Bold din 4 nov, ca titlurile din aplicație; până atunci De Fonte BBT.
+            "font-family": "Inter, sans-serif",
             "font-size": "22px",
-            "letter-spacing": "0.01em",
-            "font-synthesis": "none",
+            "font-weight": 700,
+            "letter-spacing": "-0.015em",
             "line-height": "1.1",
           }}
         >

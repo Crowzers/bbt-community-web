@@ -18,7 +18,25 @@ const [cautareCeruta, setCautareCeruta] = createSignal<{
 /** Ecranul de căutare de pe telefon (`CautareTelefon.tsx`): acolo panoul din dreapta n-are loc. */
 const [cautareTelefon, setCautareTelefon] = createSignal(false);
 
-export { cautareCeruta, cautareTelefon, setCautareTelefon };
+/**
+ * Fila cu care se deschide ecranul de telefon: Caută, Fixate sau Membri (4 nov, ca în aplicație). Lupa din antetul firului
+ * îl deschide pe Caută, „Vezi" din banda „Fixat" pe Fixate.
+ */
+export type FilaCautare = "cauta" | "fixate" | "membri";
+const [filaCautare, setFilaCautare] = createSignal<FilaCautare>("cauta");
+
+export {
+  cautareCeruta,
+  cautareTelefon,
+  filaCautare,
+  setCautareTelefon,
+  setFilaCautare,
+};
+
+export function deschideCautareTelefon(fila: FilaCautare = "cauta") {
+  setFilaCautare(fila);
+  setCautareTelefon(true);
+}
 
 export function cereCautare(q: string) {
   const text = q.trim();

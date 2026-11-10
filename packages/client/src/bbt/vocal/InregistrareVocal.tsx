@@ -371,10 +371,14 @@ const ButonRoz = styled("button", {
     alignItems: "center",
     justifyContent: "center",
     cursor: "pointer",
-    // Microfonul din aplicație (19b): 48, în pastila de 60.
+    // Pe telefon, ca în aplicație (bara ca la WhatsApp, 4 nov): doar iconița, 38 × 36, fără cercul roz. Până atunci, cercul roz
+    // de 48 din 19b, în pastila de 60.
     _phone: {
-      width: "48px",
-      height: "48px",
+      width: "38px",
+      height: "36px",
+      borderRadius: 0,
+      background: "transparent",
+      color: "#0A0A0B",
     },
   },
 });

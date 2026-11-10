@@ -610,10 +610,10 @@ const ButonTrimite = styled("button", {
       opacity: 0.35,
       cursor: "default",
     },
-    // 48, ca în aplicație (19b).
+    // 36, ca în aplicație (bara ca la WhatsApp, 4 nov; până atunci 48, din 19b).
     _phone: {
-      width: "48px",
-      height: "48px",
+      width: "36px",
+      height: "36px",
     },
   },
 });

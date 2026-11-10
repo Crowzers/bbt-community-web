@@ -30,12 +30,13 @@ import {
 import { VoiceChannelCallCardMount } from "@revolt/ui/components/features/voice/callCard/VoiceCallCard";
 
 import { BandaFixat } from "../../../bbt/BandaFixat";
+import { CardUrmatoareaTabara } from "../../../bbt/CardUrmatoareaTabara";
 import {
   cautareCeruta,
   cautareTelefon,
+  deschideCautareTelefon,
   setCautareTelefon,
 } from "../../../bbt/cautare";
-import { CardUrmatoareaTabara } from "../../../bbt/CardUrmatoareaTabara";
 import { CautareTelefon } from "../../../bbt/CautareTelefon";
 import { firDeschis, inchideFir } from "../../../bbt/fir";
 import { FirPanou, FirRaspunsuri } from "../../../bbt/FirRaspunsuri";
@@ -274,7 +275,12 @@ export function TextChannel(props: ChannelPageProps) {
           {/* BBT: ultimul mesaj fixat, ca bandă sub antet (pânza TRW). */}
           <BandaFixat
             channel={props.channel}
-            onVezi={() => setSidebarState({ state: "pins" })}
+            // Pe telefon, fila Fixate din ecranul Caută / Fixate / Membri (4 nov); pe desktop, panoul din dreapta.
+            onVezi={() =>
+              layout() === "phone"
+                ? deschideCautareTelefon("fixate")
+                : setSidebarState({ state: "pins" })
+            }
           />
           <Show
             when={canConnect()}

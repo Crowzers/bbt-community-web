@@ -1,4 +1,4 @@
-import { For, JSX, Show, createMemo } from "solid-js";
+import { JSX, Show, createMemo } from "solid-js";
 import { Dynamic } from "solid-js/web";
 
 import type { Channel, User } from "stoat.js";
@@ -10,9 +10,8 @@ import { useState } from "@revolt/state";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { AvatarCanal } from "./AvatarCanal";
-import { setCautareTelefon } from "./cautare";
+import { deschideCautareTelefon } from "./cautare";
 import { C } from "./cont/ui";
-import { setMembriDeschisi } from "./MembriComunitate";
 import { AvatarOm, CERC_40, IconCautare, IconInapoi, UN_RAND } from "./telefon";
 
 /**
@@ -22,11 +21,15 @@ import { AvatarOm, CERC_40, IconCautare, IconInapoi, UN_RAND } from "./telefon";
  *
  * „N online" numără oamenii care au scris în firul încărcat și sunt online acum, nu tot serverul, ca în aplicație.
  *
- * Rămâne doar butonul de apel pe canalele de voce: fără el nu ai cum intra în apel. Fixatele se deschid din banda de
- * sub antet (`BandaFixat`), iar setările canalului din apăsarea lungă pe rândul lui (`ComunitateTelefon`).
+ * Rămâne doar butonul de apel pe canalele de voce: fără el nu ai cum intra în apel. Setările canalului se deschid din
+ * apăsarea lungă pe rândul lui (`ComunitateTelefon`).
  *
- * Pastila stă pe mijlocul ecranului, ca în aplicație, unde e titlul nativ al iPhone-ului. ⚠️ Cele două coloane egale din
- * jurul ei o țin pe centru, deși în stânga e un singur buton, iar în dreapta pot fi mai multe.
+ * Din 4 nov, ca în aplicație (cererea userului): în dreapta doar lupa, care deschide Caută / Fixate / Membri pe file
+ * (`CautareTelefon.tsx`). În aceeași zi au fost întâi trei butoane separate, apoi căutarea și fixatele într-o capsulă, cu
+ * membrii lângă: de fiecare dată numele canalului nu încăpea.
+ *
+ * Pastila stă în stânga, lângă săgeată, ca în aplicație din 4 nov (ca la WhatsApp): pe mijloc, între două coloane egale, nu
+ * mai încăpea lângă cele trei butoane din dreapta. Ia tot locul rămas și taie numele când nu încape.
  *
  * Într-o conversație, pastila e chiar omul, deci deschide profilul lui, ca în aplicație (cererea userului, 31 oct). Într-un
  * canal nu se apasă: membrii se deschid din avatarul din dreapta.
@@ -63,11 +66,9 @@ export function AntetFirTelefon(props: { channel: Channel }) {
     return n > 0 ? `${n} online` : undefined;
   };
 
-  const rest = () => autori().length - 1;
-
   return (
     <>
-      <div style={COLOANA}>
+      <div style={{ ...COLOANA, flex: "0 0 auto" }}>
         <button
           type="button"
           aria-label="Înapoi"
@@ -101,8 +102,7 @@ export function AntetFirTelefon(props: { channel: Channel }) {
           "-webkit-tap-highlight-color": "transparent",
           "flex-shrink": 1,
           "min-width": 0,
-          // 170, nu 230 ca în 19b: a venit cercul de căutare în dreapta, deci lângă el încape un singur avatar.
-          "max-width": "170px",
+          margin: "0 auto 0 8px",
           padding: "6px 18px 6px 6px",
           "box-sizing": "border-box",
           "border-radius": "24px",
@@ -144,7 +144,15 @@ export function AntetFirTelefon(props: { channel: Channel }) {
         </span>
       </Dynamic>
 
-      <div style={{ ...COLOANA, "justify-content": "flex-end", gap: "8px" }}>
+      <div
+        style={{
+          ...COLOANA,
+          flex: "0 0 auto",
+          "margin-left": "8px",
+          "justify-content": "flex-end",
+          gap: "8px",
+        }}
+      >
         <Show when={props.channel.isVoice && !voice.showCard(props.channel)}>
           <button
             type="button"
@@ -160,64 +168,11 @@ export function AntetFirTelefon(props: { channel: Channel }) {
           <button
             type="button"
             class="bbt-moale"
-            aria-label="Caută în conversație"
-            onClick={() => setCautareTelefon(true)}
-            style={{ ...CERC_40, width: "32px", height: "32px" }}
+            aria-label="Caută, fixate și membri"
+            onClick={() => deschideCautareTelefon("cauta")}
+            style={CERC_40}
           >
             <IconCautare />
-          </button>
-        </Show>
-
-        {/* Doar în canale, ca în aplicație: într-o conversație, omul e deja în pastilă. */}
-        <Show when={!om() && autori().length}>
-          <button
-            type="button"
-            aria-label="Membrii comunității"
-            onClick={() => setMembriDeschisi(true)}
-            style={{
-              display: "flex",
-              "align-items": "center",
-              height: "44px",
-              padding: 0,
-              border: 0,
-              background: "transparent",
-              cursor: "pointer",
-              "-webkit-tap-highlight-color": "transparent",
-            }}
-          >
-            <For each={autori().slice(0, 1)}>
-              {(a, i) => (
-                <span
-                  style={{
-                    "margin-left": i() > 0 ? "-10px" : 0,
-                    "border-radius": "17px",
-                    border: `2px solid ${C.fundal}`,
-                  }}
-                >
-                  <AvatarOm om={a} marime={30} />
-                </span>
-              )}
-            </For>
-            <Show when={rest() > 0}>
-              <span
-                style={{
-                  width: "30px",
-                  height: "30px",
-                  "margin-left": "-10px",
-                  display: "flex",
-                  "align-items": "center",
-                  "justify-content": "center",
-                  "border-radius": "17px",
-                  border: `2px solid ${C.fundal}`,
-                  background: C.negru,
-                  color: C.peNegru,
-                  "font-size": "12px",
-                  "font-weight": 800,
-                }}
-              >
-                +{rest() > 99 ? 99 : rest()}
-              </span>
-            </Show>
           </button>
         </Show>
       </div>
