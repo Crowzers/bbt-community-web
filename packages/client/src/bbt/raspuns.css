@@ -227,7 +227,7 @@
 
 /* Panoul firului de pe desktop (24e): avatare mai mici, text 14. */
 .bbt-fir-panou {
-  --bbt-col-avatar: 38px;
+  --bbt-col-avatar: 52px; /* 48 = cutia inelului pentru poza de 32, + 4 (până pe 18 nov, 38) */
   --bbt-fond-card: #f2f2f3;
   --bbt-fond-sub-cursor: #f2f2f3;
   --message-size: 14px;

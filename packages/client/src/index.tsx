@@ -8,6 +8,7 @@ import "./sentry";
 import "./bbt/instalare";
 import "./bbt/fonte.css";
 import "./bbt/raspuns.css";
+import "./bbt/inel.css";
 
 import { JSX, onMount } from "solid-js";
 import { render } from "solid-js/web";

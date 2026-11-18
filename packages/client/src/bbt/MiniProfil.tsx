@@ -10,7 +10,10 @@ import { Avatar, IconButton } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { BBT_ADMIN_URL } from "./config";
-import { PiesaProfil, type UltimaPiesa } from "./PiesaProfil";
+import { HartaNivele } from "./HartaNivele";
+import { InelNivel } from "./InelNivel";
+import { formatXp, nivelPentruScor } from "./nivele";
+import { type UltimaPiesa, PiesaProfil } from "./PiesaProfil";
 import { trimiteCererea } from "./relatii";
 
 /**
@@ -34,6 +37,11 @@ type ProfilBBT = {
   roles: string[];
   mainRole: string | null;
   powerScore: number;
+  /**
+   * Echipa BBT (cont de admin legat și activ): inelul unic, „∞" în loc de scor și fără hartă (design
+   * `2026-11-18-inel-nivel`, deciziile 8-10). Opțional cât hub-ul poate ajunge înaintea adminului care îl trimite.
+   */
+  echipa?: boolean;
   nrBangere: number;
   membruDin: string | null;
   verificat: boolean;
@@ -107,6 +115,9 @@ export function MiniProfilBBT(props: {
   const nume = () =>
     props.member?.displayName ?? props.user.displayName ?? profil.data?.nume;
 
+  // Harta nivelelor ia locul cardului, în același popover / aceeași foaie (vezi `HartaNivele.tsx`).
+  const [vedeHarta, setVedeHarta] = createSignal(false);
+
   return (
     <Switch>
       {/* Eroare (admin căzut) sau fără profil BBT: cardul Stoat — mai bine el decât un card gol. */}
@@ -144,194 +155,228 @@ export function MiniProfilBBT(props: {
                 : "0 16px 48px rgb(0 0 0 / 60%)",
             }}
           >
-            {/* Coperta. Fără imagine: o bandă în rozul Slush — un dreptunghi gri ar fi arătat ca o
+            <Show when={vedeHarta()}>
+              <HartaNivele
+                scor={p().powerScore}
+                onInapoi={() => setVedeHarta(false)}
+              />
+            </Show>
+            {/* Profilul rămâne montat sub hartă, doar ascuns: la întoarcere inelul nu se mai animă încă o dată
+                (animația e pentru deschidere și atingerea pozei, nu pentru „‹"). */}
+            <div style={{ display: vedeHarta() ? "none" : undefined }}>
+              {/* Coperta. Fără imagine: o bandă în rozul Slush — un dreptunghi gri ar fi arătat ca o
                 imagine care n-a reușit să se încarce. */}
-            <div
-              style={{
-                position: "relative",
-                height: "76px",
-                background: p().coverUrl
-                  ? `center / cover no-repeat url("${p().coverUrl}")`
-                  : ROZ_DESCHIS,
-              }}
-            />
-
-            <div style={{ position: "relative", padding: "0 16px 16px" }}>
               <div
                 style={{
-                  "margin-top": "-36px",
-                  "margin-bottom": "8px",
-                  width: "fit-content",
-                  "border-radius": "50%",
-                  "box-shadow": `0 0 0 4px ${FUNDAL}`,
+                  position: "relative",
+                  height: "76px",
+                  background: p().coverUrl
+                    ? `center / cover no-repeat url("${p().coverUrl}")`
+                    : ROZ_DESCHIS,
                 }}
-              >
-                <Avatar
-                  src={props.user.animatedAvatarURL}
-                  fallback={nume()}
-                  fallbackBackground
-                  size={64}
-                />
-              </div>
+              />
 
-              <div
-                style={{
-                  display: "flex",
-                  "align-items": "center",
-                  gap: "6px",
-                  "flex-wrap": "wrap",
-                }}
-              >
-                <span style={{ "font-size": "17px", "font-weight": 700 }}>
-                  {nume()}
-                </span>
-                <Show when={p().verificat}>
-                  <span
-                    title="Email și telefon confirmate"
-                    style={{
-                      display: "inline-flex",
-                      "align-items": "center",
-                      "justify-content": "center",
-                      width: "18px",
-                      height: "18px",
-                      "border-radius": "50%",
-                      background: "#4DA2FF",
-                      color: "#0A0A0B",
-                      "font-size": "12px",
-                    }}
-                  >
-                    <Symbol size={12}>check</Symbol>
-                  </span>
-                </Show>
-              </div>
-              <div style={{ "font-size": "13px", color: "#6C6C6D" }}>
-                @{p().username}
-                <Show when={p().membruDin}>
-                  {" · "}Din {luna.format(new Date(p().membruDin!))}
-                </Show>
-              </div>
-
-              <Show when={p().bio}>
-                <p
+              <div style={{ position: "relative", padding: "0 16px 16px" }}>
+                {/* Inelul de nivel: AICI, și doar aici, animat o dată la deschidere și la atingerea pozei (în liste e
+                  static). Cutia are 96 = 64 × 1,5; `-52` = vechiul `-36` minus banda de 16, ca poza să stea tot unde
+                  stătea pe copertă. Discul alb ia locul bordurii de 4 px: inelul stă pe alb, nu pe fotografia de copertă. */}
+                <InelNivel
+                  cheie={
+                    p().echipa
+                      ? "echipa"
+                      : nivelPentruScor(p().powerScore).curent.cheie
+                  }
+                  poza={64}
+                  animat
+                  disc
+                  fundal={FUNDAL}
                   style={{
-                    margin: "8px 0 0",
-                    "font-size": "14px",
-                    "line-height": 1.5,
-                    color: "#0A0A0B",
-                    "white-space": "pre-line",
-                    display: "-webkit-box",
-                    "-webkit-line-clamp": 3,
-                    "-webkit-box-orient": "vertical",
-                    overflow: "hidden",
+                    "margin-top": "-52px",
+                    "margin-left": "-10px",
+                    // Nu −8, ca să rămână 8 px sub poză: scânteia de jos (Icon, Echipa) ar fi stat peste nume.
+                    cursor: "pointer",
                   }}
                 >
-                  {p().bio}
-                </p>
-              </Show>
+                  <Avatar
+                    src={props.user.animatedAvatarURL}
+                    fallback={nume()}
+                    fallbackBackground
+                    size={64}
+                  />
+                </InelNivel>
 
-              <Show when={p().roles.length > 0}>
                 <div
                   style={{
                     display: "flex",
-                    "flex-wrap": "wrap",
+                    "align-items": "center",
                     gap: "6px",
-                    "margin-top": "10px",
+                    "flex-wrap": "wrap",
                   }}
                 >
-                  <For each={p().roles.slice(0, 4)}>
-                    {(rol) => (
-                      <span
-                        style={{
-                          "border-radius": "999px",
-                          padding: "4px 10px",
-                          "font-size": "12px",
-                          "font-weight": 600,
-                          background: "#F2F2F3",
-                          color: "#0A0A0B",
-                        }}
-                      >
-                        {ROLURI[rol] ?? rol}
-                      </span>
-                    )}
-                  </For>
+                  <span style={{ "font-size": "17px", "font-weight": 700 }}>
+                    {nume()}
+                  </span>
+                  <Show when={p().verificat}>
+                    <span
+                      title="Email și telefon confirmate"
+                      style={{
+                        display: "inline-flex",
+                        "align-items": "center",
+                        "justify-content": "center",
+                        width: "18px",
+                        height: "18px",
+                        "border-radius": "50%",
+                        background: "#4DA2FF",
+                        color: "#0A0A0B",
+                        "font-size": "12px",
+                      }}
+                    >
+                      <Symbol size={12}>check</Symbol>
+                    </span>
+                  </Show>
                 </div>
-              </Show>
+                <div style={{ "font-size": "13px", color: "#6C6C6D" }}>
+                  @{p().username}
+                  <Show when={p().membruDin}>
+                    {" · "}Din {luna.format(new Date(p().membruDin!))}
+                  </Show>
+                </div>
 
-              {/* Cifrele și ultima piesă, ca în aplicație (`mobil/src/fir/ProfilScurt.tsx`). */}
-              <div style={{ display: "flex", gap: "6px", "margin-top": "12px" }}>
-                <Cifra valoare={p().powerScore} eticheta="Power" />
-                <Show when={p().stats}>
-                  {(s) => (
-                    <>
-                      <Cifra valoare={s().tabere} eticheta="Tabere" />
-                      <Cifra valoare={s().piese} eticheta="Piese" />
-                      <Cifra valoare={s().bangere} eticheta="Bangere" />
-                    </>
+                <Show when={p().bio}>
+                  <p
+                    style={{
+                      margin: "8px 0 0",
+                      "font-size": "14px",
+                      "line-height": 1.5,
+                      color: "#0A0A0B",
+                      "white-space": "pre-line",
+                      display: "-webkit-box",
+                      "-webkit-line-clamp": 3,
+                      "-webkit-box-orient": "vertical",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {p().bio}
+                  </p>
+                </Show>
+
+                <Show when={p().roles.length > 0}>
+                  <div
+                    style={{
+                      display: "flex",
+                      "flex-wrap": "wrap",
+                      gap: "6px",
+                      "margin-top": "10px",
+                    }}
+                  >
+                    <For each={p().roles.slice(0, 4)}>
+                      {(rol) => (
+                        <span
+                          style={{
+                            "border-radius": "999px",
+                            padding: "4px 10px",
+                            "font-size": "12px",
+                            "font-weight": 600,
+                            background: "#F2F2F3",
+                            color: "#0A0A0B",
+                          }}
+                        >
+                          {ROLURI[rol] ?? rol}
+                        </span>
+                      )}
+                    </For>
+                  </div>
+                </Show>
+
+                {/* Cifrele și ultima piesă, ca în aplicație (`mobil/src/fir/ProfilScurt.tsx`). */}
+                <div
+                  style={{ display: "flex", gap: "6px", "margin-top": "12px" }}
+                >
+                  {/* Eticheta e numele nivelului (decizia 12: în listă nu-l scriem, aici da). Echipa: „∞", fără „?". */}
+                  <Show
+                    when={!p().echipa}
+                    fallback={<Cifra valoare="∞" eticheta="Echipa BBT" lat />}
+                  >
+                    <Cifra
+                      valoare={formatXp(p().powerScore)}
+                      eticheta={nivelPentruScor(p().powerScore).curent.nume}
+                      lat
+                      intrebare={() => setVedeHarta(true)}
+                    />
+                  </Show>
+                  <Show when={p().stats}>
+                    {(s) => (
+                      <>
+                        <Cifra valoare={s().tabere} eticheta="Tabere" />
+                        <Cifra valoare={s().piese} eticheta="Piese" />
+                        <Cifra valoare={s().bangere} eticheta="Bangere" />
+                      </>
+                    )}
+                  </Show>
+                </div>
+                <Show when={p().ultimaPiesa}>
+                  {(piesa) => (
+                    <PiesaProfil
+                      piesa={piesa()}
+                      total={p().stats?.piese ?? 1}
+                      profilUrl={p().profilUrl}
+                    />
                   )}
                 </Show>
-              </div>
-              <Show when={p().ultimaPiesa}>
-                {(piesa) => (
-                  <PiesaProfil
-                    piesa={piesa()}
-                    total={p().stats?.piese ?? 1}
-                    profilUrl={p().profilUrl}
-                  />
-                )}
-              </Show>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: "8px",
-                  "margin-top": "12px",
-                  "align-items": "center",
-                }}
-              >
-                <a
-                  href={p().profilUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <div
                   style={{
-                    flex: 1,
                     display: "flex",
+                    gap: "8px",
+                    "margin-top": "12px",
                     "align-items": "center",
-                    "justify-content": "center",
-                    height: "36px",
-                    "border-radius": "10px",
-                    background: ROZ,
-                    color: "#000",
-                    "font-size": "13px",
-                    "font-weight": 600,
-                    "text-decoration": "none",
                   }}
                 >
-                  Vezi profilul
-                </a>
-                <Show
-                  when={!p().eu}
-                  fallback={
-                    <ButonSecundar onClick={editeaza}>Editează</ButonSecundar>
-                  }
-                >
-                  <ButonRelatie user={props.user} onMesaj={mesaj} />
-                </Show>
-                {/* Restul acțiunilor Stoat (prieten, blocare, moderare) — meniul lor, neschimbat. */}
-                <IconButton
-                  size="sm"
-                  use:floating={{
-                    contextMenu: () => (
-                      <UserContextMenu
-                        user={props.user}
-                        member={props.member}
-                        onClose={props.onClose}
-                      />
-                    ),
-                    contextMenuHandler: "click",
-                  }}
-                >
-                  <Symbol>more_vert</Symbol>
-                </IconButton>
+                  <a
+                    href={p().profilUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      "align-items": "center",
+                      "justify-content": "center",
+                      height: "36px",
+                      "border-radius": "10px",
+                      background: ROZ,
+                      color: "#000",
+                      "font-size": "13px",
+                      "font-weight": 600,
+                      "text-decoration": "none",
+                    }}
+                  >
+                    Vezi profilul
+                  </a>
+                  <Show
+                    when={!p().eu}
+                    fallback={
+                      <ButonSecundar onClick={editeaza}>Editează</ButonSecundar>
+                    }
+                  >
+                    <ButonRelatie user={props.user} onMesaj={mesaj} />
+                  </Show>
+                  {/* Restul acțiunilor Stoat (prieten, blocare, moderare) — meniul lor, neschimbat. */}
+                  <IconButton
+                    size="sm"
+                    use:floating={{
+                      contextMenu: () => (
+                        <UserContextMenu
+                          user={props.user}
+                          member={props.member}
+                          onClose={props.onClose}
+                        />
+                      ),
+                      contextMenuHandler: "click",
+                    }}
+                  >
+                    <Symbol>more_vert</Symbol>
+                  </IconButton>
+                </div>
               </div>
             </div>
           </div>
@@ -341,21 +386,73 @@ export function MiniProfilBBT(props: {
   );
 }
 
-function Cifra(props: { valoare: number; eticheta: string }) {
+function Cifra(props: {
+  valoare: number | string;
+  eticheta: string;
+  /** Power: mai lată, ca „Professional" și „12.345 ?" să încapă lângă celelalte trei. */
+  lat?: boolean;
+  /** „?" de lângă cifră: deschide harta nivelelor. */
+  intrebare?: () => void;
+}) {
   return (
     <div
       style={{
-        flex: 1,
+        flex: props.lat ? 1.6 : 1,
+        "min-width": 0,
         padding: "8px 0",
         "text-align": "center",
         "border-radius": "12px",
         background: "#F2F2F3",
       }}
     >
-      <div style={{ "font-size": "16px", "font-weight": 700 }}>
+      <div
+        style={{
+          display: "flex",
+          "align-items": "center",
+          "justify-content": "center",
+          gap: "2px",
+          "font-size": "16px",
+          "font-weight": 700,
+        }}
+      >
         {props.valoare}
+        <Show when={props.intrebare}>
+          {/* Ținta e 28 de px (lângă un text de 16), cât încape în rând fără să-l înalțe: pe telefon tot se nimerește. */}
+          <button
+            type="button"
+            aria-label="Ce înseamnă nivelele"
+            onClick={(e) => {
+              e.stopPropagation();
+              props.intrebare!();
+            }}
+            style={{
+              display: "flex",
+              "align-items": "center",
+              "justify-content": "center",
+              width: "28px",
+              height: "22px",
+              "margin-right": "-14px",
+              padding: 0,
+              border: 0,
+              background: "transparent",
+              color: "#6C6C6D",
+              cursor: "pointer",
+            }}
+          >
+            <Symbol size={16}>help</Symbol>
+          </button>
+        </Show>
       </div>
-      <div style={{ "font-size": "12px", color: "#6C6C6D" }}>
+      <div
+        style={{
+          "font-size": "12px",
+          color: "#6C6C6D",
+          "white-space": "nowrap",
+          overflow: "hidden",
+          "text-overflow": "ellipsis",
+          padding: "0 4px",
+        }}
+      >
         {props.eticheta}
       </div>
     </div>
@@ -393,7 +490,10 @@ function ButonRelatie(props: { user: User; onMesaj: () => void }) {
         <ButonSecundar onClick={props.onMesaj}>Mesaj</ButonSecundar>
       </Match>
       <Match when={props.user.relationship === "Incoming"}>
-        <ButonSecundar plin onClick={() => fa(() => trimiteCererea(client(), props.user))}>
+        <ButonSecundar
+          plin
+          onClick={() => fa(() => trimiteCererea(client(), props.user))}
+        >
           Acceptă prietenia
         </ButonSecundar>
       </Match>
@@ -403,7 +503,9 @@ function ButonRelatie(props: { user: User; onMesaj: () => void }) {
         </ButonSecundar>
       </Match>
       <Match when={props.user.relationship === "None"}>
-        <ButonSecundar onClick={() => fa(() => trimiteCererea(client(), props.user))}>
+        <ButonSecundar
+          onClick={() => fa(() => trimiteCererea(client(), props.user))}
+        >
           Adaugă la prieteni
         </ButonSecundar>
       </Match>

@@ -4,6 +4,7 @@ import { useDevice } from "@revolt/common";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { cuCatTimpInUrma, deschideFir, grupare, numarRaspunsuri } from "./fir";
+import { InelOm } from "./InelNivel";
 import { AvatarOm } from "./telefon";
 
 /** Câte avatare încap în pastilă, ca în 24a. */
@@ -66,7 +67,9 @@ export function PastilaRaspunsuri(props: { mesajId: string }) {
             "max-width": "100%",
             "margin-top": "6px",
             "align-self": "flex-start",
-            padding: lat() ? "5px 10px 5px 5px" : "6px 12px 6px 6px",
+            // Fără aer sus, jos și în stânga: banda inelului de nivel (5,5 px la poza de 22) îl ține, iar pastila
+            // rămâne cât era (33 / 34), cu pozele tot de 22.
+            padding: lat() ? "0 10px 0 0" : "0.5px 12px 0.5px 0.5px",
             border: "1.5px solid #FFA8CD",
             "border-radius": "999px",
             background: lat() ? "#FFFFFF" : "#FFEEF5",
@@ -77,18 +80,19 @@ export function PastilaRaspunsuri(props: { mesajId: string }) {
           }}
         >
           <span style={{ display: "flex", "flex-shrink": 0 }}>
+            {/* Inelul de nivel, static. Cutia de 33 e sub 48, deci doar inelul interior (fără punctat și scântei,
+                care s-ar fi încălecat în stivă). Pozele se suprapun tot cu 8 px: −19 = −8 − cele două benzi de 5,5.
+                Discul alb ia locul vechii borduri albe de 2 px, care acum ar fi acoperit inelul. */}
             <For each={oameni()}>
               {(om, i) => (
-                <span
-                  style={{
-                    display: "flex",
-                    "margin-left": i() ? "-8px" : 0,
-                    "border-radius": "50%",
-                    "box-shadow": "0 0 0 2px #FFFFFF",
-                  }}
+                <InelOm
+                  id={om?.id}
+                  poza={22}
+                  disc
+                  style={{ "margin-left": i() ? "-19px" : 0 }}
                 >
                   <AvatarOm om={om} marime={22} />
-                </span>
+                </InelOm>
               )}
             </For>
           </span>

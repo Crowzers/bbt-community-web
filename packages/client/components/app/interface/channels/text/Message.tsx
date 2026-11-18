@@ -49,11 +49,12 @@ import {
 } from "../../../menus/UserContextMenu";
 
 import { createIsTimedOut } from "@revolt/common/lib/createIsTimedOut";
+import { firDeschis, grupare } from "../../../../../src/bbt/fir";
+import { InelOm } from "../../../../../src/bbt/InelNivel";
 import {
   PastilaRaspunsuri,
   RaspundeInFir,
 } from "../../../../../src/bbt/PastilaRaspunsuri";
-import { firDeschis, grupare } from "../../../../../src/bbt/fir";
 import { AvatarOm } from "../../../../../src/bbt/telefon";
 import { EditMessage } from "./EditMessage";
 
@@ -185,6 +186,7 @@ export function Message(props: Props) {
   // BBT: în canale, mesajele fără bule, toate la stânga, ca la Slack și Discord (S1, 4 nov 2026, studiul, deciziile 2 și 3): bula
   // stânga-dreapta e semnul conversației în doi și făcea din canal un „chat personal". În mesajele directe bulele rămân.
   const inCanal = () => props.message.channel?.type === "TextChannel";
+  const pozaAutor = () => props.avatarFir ?? (inCanal() ? 36 : 40);
 
   // BBT: pe telefon, mesajele directe sunt cele din aplicație (19b): bule, ale tale în dreapta. Pe desktop, bulele din 23a
   // (mai jos). Mesajele de sistem, editarea și rezultatele din căutare își păstrează rândul lor. Până pe 4 nov, bule și în canale.
@@ -296,23 +298,43 @@ export function Message(props: Props) {
           >
             {/* 40, ca în 21a (până pe 30 oct, 36); coloana avatarului are 54 = 40 + 14. Lângă bulă, 32, ca în 19b. În canale 36
                 (S1, decizia 2): densitatea unei unelte. */}
+            {/* BBT: inelul de nivel al autorului, STATIC (design 2026-11-18-inel-nivel: în chat nu se mișcă nimic).
+                Cutia are poza × 1,5 (`bbt/InelNivel.tsx`); pe orizontală îi face loc coloana avatarului
+                (`Container.tsx`). Pe verticală, banda se ridică peste aerul dintre mesaje, ca poza să stea tot în
+                dreptul numelui (iar în bulă, tot pe linia de jos a bulei). */}
             <Show
               when={bula()}
               fallback={
-                <Avatar
-                  size={props.avatarFir ?? (inCanal() ? 36 : 40)}
-                  src={
-                    isHovering()
-                      ? props.message.animatedAvatarURL
-                      : props.message.avatarURL
-                  }
-                />
+                <InelOm
+                  id={props.message.authorId}
+                  poza={pozaAutor()}
+                  style={{ "margin-top": `-${pozaAutor() / 4}px` }}
+                >
+                  <Avatar
+                    size={pozaAutor()}
+                    src={
+                      isHovering()
+                        ? props.message.animatedAvatarURL
+                        : props.message.avatarURL
+                    }
+                  />
+                </InelOm>
               }
             >
-              <AvatarOm
-                om={props.message.author}
-                marime={props.cardFir ? 36 : 32}
-              />
+              <InelOm
+                id={props.message.authorId}
+                poza={props.cardFir ? 36 : 32}
+                style={
+                  props.cardFir
+                    ? { margin: "-9px -6px 0 -9px" }
+                    : { "margin-bottom": "-8px" }
+                }
+              >
+                <AvatarOm
+                  om={props.message.author}
+                  marime={props.cardFir ? 36 : 32}
+                />
+              </InelOm>
             </Show>
           </div>
         }

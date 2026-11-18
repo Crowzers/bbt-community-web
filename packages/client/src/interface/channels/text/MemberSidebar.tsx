@@ -12,6 +12,8 @@ import { TextWithEmoji } from "@revolt/markdown";
 import { userInformation } from "@revolt/markdown/users";
 import { Avatar, Deferred, Symbol, Tooltip, UserStatus } from "@revolt/ui";
 
+import { InelOm } from "../../../bbt/InelNivel";
+
 interface Props {
   /**
    * Channel
@@ -301,8 +303,9 @@ export function GroupMemberSidebar(props: Props) {
  * BBT (pânza TRW): o singură înălțime pentru rânduri ȘI titlurile de categorie — lista e virtuală,
  * cu pas fix, deci titlul își ia aerul de sus din aceeași înălțime (aliniat jos).
  */
-// 44 = 6 + avatarul de 32 + 6, ca în 21a (până pe 30 oct, 32 cu avatarul de 28).
-const INALTIME_RAND = 44;
+// 48 = cutia inelului de nivel (poza de 32 × 1,5, `bbt/InelNivel.tsx`), din 18 nov 2026. Până atunci 44 = 6 + avatarul
+// de 32 + 6, ca în 21a (până pe 30 oct, 32 cu avatarul de 28). Banda inelului ține acum locul celor 6 px de aer.
+const INALTIME_RAND = 48;
 
 /**
  * Container styles
@@ -359,8 +362,9 @@ const RandMembru = styled("div", {
     boxSizing: "border-box",
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    padding: "0 10px",
+    // 2 + banda de 8 a inelului = vechii 10: poza și numele stau la același x ca înainte de inel.
+    gap: "2px",
+    padding: "0 10px 0 2px",
     borderRadius: "14px",
     cursor: "pointer",
     userSelect: "none",
@@ -461,16 +465,20 @@ function Member(props: {
             display: "flex",
           }}
         >
-          <Avatar
-            src={user().avatar}
-            size={32}
-            holepunch="bottom-right"
-            overlay={
-              <UserStatus.Graphic
-                status={(props.user ?? props.member?.user)?.presence}
-              />
-            }
-          />
+          {/* BBT: inelul de nivel, STATIC (în listă nu se mișcă nimic, design 2026-11-18-inel-nivel). Sub nume nu
+              scriem nivelul (decizia 12): inelul îl spune, numele lui e în mini-profil. */}
+          <InelOm id={(props.user ?? props.member?.user)?.id} poza={32}>
+            <Avatar
+              src={user().avatar}
+              size={32}
+              holepunch="bottom-right"
+              overlay={
+                <UserStatus.Graphic
+                  status={(props.user ?? props.member?.user)?.presence}
+                />
+              }
+            />
+          </InelOm>
         </div>
         <span class="text">
           <span class="nume">

@@ -34,6 +34,7 @@ import i_circle from "lucide-static/icons/circle.svg?raw";
 import i_circle_alert from "lucide-static/icons/circle-alert.svg?raw";
 import i_circle_check from "lucide-static/icons/circle-check.svg?raw";
 import i_circle_dot from "lucide-static/icons/circle-dot.svg?raw";
+import i_circle_help from "lucide-static/icons/circle-help.svg?raw";
 import i_circle_minus from "lucide-static/icons/circle-minus.svg?raw";
 import i_circle_off from "lucide-static/icons/circle-off.svg?raw";
 import i_circle_plus from "lucide-static/icons/circle-plus.svg?raw";
@@ -197,6 +198,7 @@ export const SVG_LUCIDE: Record<string, string> = {
   "circle-alert": i_circle_alert,
   "circle-check": i_circle_check,
   "circle-dot": i_circle_dot,
+  "circle-help": i_circle_help,
   "circle-minus": i_circle_minus,
   "circle-off": i_circle_off,
   "circle-plus": i_circle_plus,
