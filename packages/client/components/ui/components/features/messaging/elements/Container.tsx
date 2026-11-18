@@ -255,8 +255,7 @@ const Info = styled("div", {
     display: "flex",
     flexShrink: 0,
     justifyContent: "end",
-    // BBT: fără aer la stânga: cutia inelului de nivel (`bbt/InelNivel.tsx`) are deja banda ei de jur împrejur.
-    padding: "2px var(--gap-sm) 2px 0",
+    padding: "2px var(--gap-sm)",
   },
   variants: {
     tail: {
@@ -267,9 +266,8 @@ const Info = styled("div", {
     compact: {
       true: {},
       false: {
-        // BBT: panoul firului (24e) are avatare mai mici (`bbt-fir-panou`). 64 = cutia inelului de nivel pentru poza de
-        // 40 (60) + 4, din 18 nov 2026; până atunci 54 = 40 + 14. Poza de 36 din canale stă în aceeași coloană, la dreapta.
-        width: "var(--bbt-col-avatar, 64px)",
+        // BBT: panoul firului (24e) are avatare mai mici (`bbt-fir-panou`).
+        width: "var(--bbt-col-avatar, 54px)",
       },
     },
   },
@@ -461,14 +459,12 @@ function ContainerBula(props: Props) {
         "flex-direction": "row",
         "align-items": "flex-end",
         "justify-content": mea() ? "flex-end" : undefined,
-        gap: mea() ? "6px" : 0,
-        padding: `${props.tail ? 2 : 8}px 8px 0 ${mea() ? 8 : 0}px`,
+        gap: "6px",
+        padding: `${props.tail ? 2 : 8}px 8px 0`,
       }}
     >
       <Show when={!mea()}>
-        {/* 48 = cutia inelului de nivel pentru poza de 32 (`bbt/InelNivel.tsx`); banda ei de 8 ține locul aerului din stânga
-            și al golului până la bulă, de-aia padding-ul și `gap`-ul de mai sus sunt 0 la mesajele celorlalți. */}
-        <div style={{ width: "48px", "flex-shrink": 0 }}>
+        <div style={{ width: "32px", "flex-shrink": 0 }}>
           <Show when={!props.tail}>{props.avatar}</Show>
         </div>
       </Show>

@@ -9,6 +9,7 @@ import { useNavigate } from "@revolt/routing";
 import { useState } from "@revolt/state";
 
 import { C } from "./cont/ui";
+import { InelOm } from "./InelNivel";
 import { trimiteCererea } from "./relatii";
 import {
   AvatarOm,
@@ -228,7 +229,10 @@ export function MesajNou(props: { laInchidere: () => void }) {
                       cursor: "pointer",
                     }}
                   >
-                    <AvatarOm om={om} marime={36} />
+                    {/* Inelul de nivel, static, peste margini (rândul nu crește). */}
+                    <InelOm id={om.id} poza={36} peste>
+                      <AvatarOm om={om} marime={36} />
+                    </InelOm>
                     <span style={{ ...NUME, flex: 1 }}>{om.displayName}</span>
                   </button>
                 )}
@@ -239,7 +243,10 @@ export function MesajNou(props: { laInchidere: () => void }) {
               <For each={altii()}>
                 {(om) => (
                   <div style={RAND}>
-                    <AvatarOm om={om} marime={36} />
+                    {/* Inelul de nivel, static, peste margini (rândul nu crește). */}
+                    <InelOm id={om.id} poza={36} peste>
+                      <AvatarOm om={om} marime={36} />
+                    </InelOm>
                     <span style={{ flex: 1, "min-width": 0 }}>
                       <span style={{ ...NUME, display: "block" }}>
                         {om.displayName}

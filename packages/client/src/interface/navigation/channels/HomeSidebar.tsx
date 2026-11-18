@@ -22,6 +22,7 @@ import { Avatar, Deferred, UserStatus } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { CardCont } from "../../../bbt/CardCont";
+import { InelOm } from "../../../bbt/InelNivel";
 import { MesajNou } from "../../../bbt/MesajNou";
 import { S1 } from "../../../bbt/tema";
 import { SidebarBase } from "./common";
@@ -385,16 +386,27 @@ function Entry(
           />
         </Match>
         <Match when={local.channel.type === "DirectMessage"}>
-          <Avatar
-            size={40}
-            src={local.channel.iconURL}
-            fallback={nume()}
-            fallbackBackground
-            holepunch="bottom-right"
-            overlay={
-              <UserStatus.Graphic status={local.channel?.recipient?.presence} />
-            }
-          />
+          {/* BBT: inelul de nivel al omului, static, PESTE marginile rândului (`bbt/InelNivel.tsx`): rândul rămâne de
+              56 și textul nu se mută. Conturul scânteilor e cerneala listei (`S1.lista`). */}
+          <InelOm
+            id={local.channel.recipient?.id}
+            poza={40}
+            peste
+            fundal={S1.lista}
+          >
+            <Avatar
+              size={40}
+              src={local.channel.iconURL}
+              fallback={nume()}
+              fallbackBackground
+              holepunch="bottom-right"
+              overlay={
+                <UserStatus.Graphic
+                  status={local.channel?.recipient?.presence}
+                />
+              }
+            />
+          </InelOm>
         </Match>
       </Switch>
       <div style={{ "min-width": 0, "flex-grow": 1 }}>

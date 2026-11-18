@@ -26,6 +26,7 @@ import {
   setFilaCautare,
 } from "./cautare";
 import { C } from "./cont/ui";
+import { InelOm } from "./InelNivel";
 import { CautareMembri, NimeniGasit } from "./MembriComunitate";
 import {
   AvatarOm,
@@ -408,7 +409,10 @@ function RandMesaj(props: { m: Message; text: string; laApasare: () => void }) {
         cursor: "pointer",
       }}
     >
-      <AvatarOm om={props.m.author} marime={36} />
+      {/* Inelul de nivel al autorului, static, peste margini: rezultatul nu crește. */}
+      <InelOm id={props.m.authorId} poza={36} peste>
+        <AvatarOm om={props.m.author} marime={36} />
+      </InelOm>
       <span style={{ flex: 1, "min-width": 0 }}>
         <span
           style={{

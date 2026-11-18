@@ -6,8 +6,9 @@
  * o singură dată (~5 s). De-aia aici nu există niciun `infinite`: o buclă s-ar fi citit „e LIVE", ca pe
  * TikTok/Instagram, și ar fi încălcat WCAG 2.2.2 (mișcare peste 5 s lângă alt conținut cere buton de pauză).
  *
- * ⚠️ Rotirile (gradientul, punctatul) se opresc unde au ajuns (`forwards`) și pornesc data viitoare de acolo
- * (`--de` → `--la`, ținute în JS): cu întoarcere la 0 la final, gradientul ar fi sărit vizibil.
+ * ⚠️ Rotirile se termină exact cum au pornit, ca pe site și în aplicație: gradientul face ture ÎNTREGI (`--rot`
+ * = 360° × ture), punctatul se rotește un multiplu de 22° (pasul liniuței). Fără `forwards`: la final totul e
+ * înapoi în repaus fără salt vizibil, iar repausul din mini-profil e identic cu cel din liste.
  */
 
 .bbt-inel {
@@ -19,15 +20,20 @@
   box-sizing: border-box;
 }
 
+/* Cadrul S × S, centrat pe poză. Cu `peste`, mai mare decât rădăcina: iese peste margini fără să intre în layout. */
+.bbt-inel-cadru {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
 .bbt-inel-strat {
   position: absolute;
   inset: 0;
   border-radius: 50%;
   pointer-events: none;
-}
-
-.bbt-inel-rotit {
-  transform: rotate(var(--la, 0deg));
 }
 
 .bbt-inel-scanteie {
@@ -46,11 +52,9 @@
 .bbt-inel[data-anim] .bbt-inel-lumina {
   animation: bbt-inel-roteste var(--t-lumina) linear var(--n-lumina);
 }
-.bbt-inel[data-anim] .bbt-inel-gradient {
-  animation: bbt-inel-roteste-de-la 5s ease-in-out forwards;
-}
+.bbt-inel[data-anim] .bbt-inel-gradient,
 .bbt-inel[data-anim] .bbt-inel-exterior {
-  animation: bbt-inel-roteste-de-la 5s ease-in-out forwards;
+  animation: bbt-inel-roteste-cu 5s ease-in-out;
 }
 .bbt-inel[data-anim] .bbt-inel-scanteie {
   animation: bbt-inel-clipeste 2s ease-in-out 2;
@@ -73,12 +77,12 @@
   }
 }
 
-@keyframes bbt-inel-roteste-de-la {
+@keyframes bbt-inel-roteste-cu {
   from {
-    transform: rotate(var(--de, 0deg));
+    transform: rotate(0deg);
   }
   to {
-    transform: rotate(var(--la, 0deg));
+    transform: rotate(var(--rot, 0deg));
   }
 }
 

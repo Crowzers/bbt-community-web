@@ -52,6 +52,7 @@ import { useState } from "@revolt/state";
 import { AutoCompleteSearchSpace } from "../utils/autoComplete";
 
 import { getEmojiByShorthand, MAPPED_EMOJI_KEYS } from "@revolt/ui";
+import { InelOm } from "../../../../src/bbt/InelNivel";
 import { Avatar } from "./Avatar";
 import { typography } from "./Text";
 
@@ -954,7 +955,14 @@ function Suggestions(props: {
                 onMouseDown={(e) => e.preventDefault()} // don't lose editor focus
                 onClick={props.confirmAutoCompleteItem}
               >
-                <Avatar src={match.animatedAvatarURL} size={24} />{" "}
+                {/* BBT: inelul de nivel, static, peste margini. Cutia de 36 e sub 48: doar inelul interior. */}
+                <InelOm
+                  id={match instanceof ServerMember ? match.id.user : match.id}
+                  poza={24}
+                  peste
+                >
+                  <Avatar src={match.animatedAvatarURL} size={24} />
+                </InelOm>{" "}
                 <Name>{match.displayName}</Name>
                 {match instanceof ServerMember &&
                   match.displayName !== match.user?.username && (

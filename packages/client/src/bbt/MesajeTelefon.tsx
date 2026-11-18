@@ -17,6 +17,7 @@ import { useState } from "@revolt/state";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { CardCont } from "./CardCont";
+import { InelOm } from "./InelNivel";
 import { MesajNou } from "./MesajNou";
 import { mesajSistem } from "./mesajSistem";
 import { trimiteCererea } from "./relatii";
@@ -347,7 +348,11 @@ function RandConversatie(props: { canal: Channel; euId: string | undefined }) {
       }}
       style={{ ...RAND, background: necitit() ? S1.placa : "transparent" }}
     >
-      <AvatarOm om={props.canal.recipient} marime={40} />
+      {/* Inelul de nivel, static, PESTE marginile rândului (`bbt/InelNivel.tsx`): rândul nu crește, textul nu se mută.
+          Conturul scânteilor e culoarea listei întunecate, ca steaua să se desprindă de inel. */}
+      <InelOm id={props.canal.recipient?.id} poza={40} peste fundal={S1.lista}>
+        <AvatarOm om={props.canal.recipient} marime={40} />
+      </InelOm>
       <span style={{ flex: 1, "min-width": 0 }}>
         <span style={{ display: "flex", "align-items": "center", gap: "8px" }}>
           <span
@@ -452,7 +457,9 @@ function RandCerere(props: { om: User }) {
   );
   return (
     <div style={RAND}>
-      <AvatarOm om={props.om} marime={40} />
+      <InelOm id={props.om.id} poza={40} peste fundal={S1.lista}>
+        <AvatarOm om={props.om} marime={40} />
+      </InelOm>
       <span
         style={{
           ...UN_RAND,

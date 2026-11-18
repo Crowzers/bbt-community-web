@@ -14,6 +14,7 @@ import { useDevice } from "@revolt/common";
 import { Emoji } from "@revolt/markdown";
 
 import { C } from "./cont/ui";
+import { InelOm } from "./InelNivel";
 import { AvatarOm } from "./telefon";
 
 /**
@@ -197,7 +198,10 @@ function RandOm(props: {
   const om = () => client().users.get(props.id);
   const continut = () => (
     <>
-      <AvatarOm om={om()} marime={40} />
+      {/* Inelul de nivel, static, peste marginile rândului: rândul rămâne cât era. */}
+      <InelOm id={props.id} poza={40} peste>
+        <AvatarOm om={om()} marime={40} />
+      </InelOm>
       <span style={{ flex: 1, "min-width": 0 }}>
         <span
           style={{

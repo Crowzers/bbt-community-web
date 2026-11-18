@@ -299,17 +299,13 @@ export function Message(props: Props) {
             {/* 40, ca în 21a (până pe 30 oct, 36); coloana avatarului are 54 = 40 + 14. Lângă bulă, 32, ca în 19b. În canale 36
                 (S1, decizia 2): densitatea unei unelte. */}
             {/* BBT: inelul de nivel al autorului, STATIC (design 2026-11-18-inel-nivel: în chat nu se mișcă nimic).
-                Cutia are poza × 1,5 (`bbt/InelNivel.tsx`); pe orizontală îi face loc coloana avatarului
-                (`Container.tsx`). Pe verticală, banda se ridică peste aerul dintre mesaje, ca poza să stea tot în
-                dreptul numelui (iar în bulă, tot pe linia de jos a bulei). */}
+                `peste`: poza rămâne cât și unde era, iar cutia inelului (poza × 1,5, `bbt/InelNivel.tsx`) se desenează
+                peste aerul din jur, ca în aplicație. Prima variantă (18 nov) lărgea coloana avatarului (54 → 64) și
+                muta tot textul mesajelor cu ~10 px: respinsă, textul nu trebuie să se miște din cauza inelului. */}
             <Show
               when={bula()}
               fallback={
-                <InelOm
-                  id={props.message.authorId}
-                  poza={pozaAutor()}
-                  style={{ "margin-top": `-${pozaAutor() / 4}px` }}
-                >
+                <InelOm id={props.message.authorId} poza={pozaAutor()} peste>
                   <Avatar
                     size={pozaAutor()}
                     src={
@@ -324,11 +320,7 @@ export function Message(props: Props) {
               <InelOm
                 id={props.message.authorId}
                 poza={props.cardFir ? 36 : 32}
-                style={
-                  props.cardFir
-                    ? { margin: "-9px -6px 0 -9px" }
-                    : { "margin-bottom": "-8px" }
-                }
+                peste
               >
                 <AvatarOm
                   om={props.message.author}

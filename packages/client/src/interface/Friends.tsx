@@ -35,6 +35,7 @@ import {
 } from "@revolt/ui";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
+import { InelOm } from "../bbt/InelNivel";
 import { trimiteCererea } from "../bbt/relatii";
 
 import { HeaderIcon } from "./common/CommonHeader";
@@ -294,21 +295,24 @@ function Entry(
       onClick={() => openModal({ type: "user_profile", user: local.user })}
     >
       <ListItem>
-        <Avatar
-          slot="icon"
-          size={36}
-          src={local.user.animatedAvatarURL}
-          holepunch={
-            props.user.relationship === "Friend" ? "bottom-right" : "none"
-          }
-          overlay={
-            <Show when={props.user.relationship === "Friend"}>
-              <UserStatus.Graphic
-                status={props.user.status?.presence ?? "Online"}
-              />
-            </Show>
-          }
-        />
+        {/* BBT: inelul de nivel, static, peste marginile rândului; `slot` trece pe înveliș, ca poza să stea tot în
+            locul iconiței din `ListItem`. */}
+        <InelOm slot="icon" id={local.user.id} poza={36} peste>
+          <Avatar
+            size={36}
+            src={local.user.animatedAvatarURL}
+            holepunch={
+              props.user.relationship === "Friend" ? "bottom-right" : "none"
+            }
+            overlay={
+              <Show when={props.user.relationship === "Friend"}>
+                <UserStatus.Graphic
+                  status={props.user.status?.presence ?? "Online"}
+                />
+              </Show>
+            }
+          />
+        </InelOm>
         <OverflowingText>{local.user.displayName}</OverflowingText>
         <span
           slot="end-icon"
