@@ -170,6 +170,11 @@ export interface Participant {
   inscrieri?: Inscriere[];
   inscrieriCurs?: InscriereCurs[];
   bileteWorkshop?: BiletWorkshop[];
+  /**
+   * Din echipa BBT (cont de admin activ sau bifa din Setări → Echipa fără cont de admin, 19 nov 2026). Echipa nu se
+   * înscrie la experiențe, deci listele goale nu-i spun „Nu ești înscris”. Lipsește pe un admin neactualizat.
+   */
+  echipa?: boolean;
   wishlistItems?: WishlistItem[];
   diplome?: Diploma[];
 }

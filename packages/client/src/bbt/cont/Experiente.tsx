@@ -7,7 +7,7 @@ import { useNavigate } from "@revolt/routing";
 import { BBT_SITE_URL } from "../config";
 
 import { lei, ora, useCont, useExperiente, zi, zileRo } from "./date";
-import { Gol, ratePlatite } from "./ExperienteTelefon";
+import { GOL_ECHIPA, Gol, ratePlatite } from "./ExperienteTelefon";
 import { ButonPlateste } from "./Plata";
 import type { Experienta } from "./tipuri";
 import {
@@ -40,6 +40,8 @@ export function Experiente(props: {
   titlu?: string;
 }) {
   const experiente = useExperiente();
+  // Echipa vede „Echipa BBT” în locul „Nu ești înscris…” (`GOL_ECHIPA`, 19 nov 2026).
+  const cont = useCont();
   const alFelului = (e: { fel: string }) => !props.fel || e.fel === props.fel;
   const active = () => (experiente.data?.active ?? []).filter(alFelului);
   const trecute = () => (experiente.data?.trecute ?? []).filter(alFelului);
@@ -75,7 +77,15 @@ export function Experiente(props: {
           active={() => (
             <Show
               when={active().length}
-              fallback={<Gol {...(props.fel ? GOL[props.fel] : {})} />}
+              fallback={
+                <Gol
+                  {...(cont.data?.echipa
+                    ? GOL_ECHIPA
+                    : props.fel
+                      ? GOL[props.fel]
+                      : {})}
+                />
+              }
             >
               <div
                 style={{

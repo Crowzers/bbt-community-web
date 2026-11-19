@@ -21,7 +21,7 @@ import {
   ziScurta,
 } from "../telefon";
 
-import { lei, ora, useExperiente, zileRo } from "./date";
+import { lei, ora, useCont, useExperiente, zileRo } from "./date";
 import { QrMare } from "./Experiente";
 import { ButonPlateste } from "./Plata";
 import type { Experienta, PlataExperienta } from "./tipuri";
@@ -39,6 +39,7 @@ import { C, Incarcare } from "./ui";
  */
 export function ExperienteTelefon() {
   const experiente = useExperiente();
+  const cont = useCont();
   const inapoi = useInapoiLaLista();
   const date = () => experiente.data;
   const gol = () =>
@@ -104,7 +105,7 @@ export function ExperienteTelefon() {
                   "box-sizing": "border-box",
                 }}
               >
-                <Gol />
+                <Gol {...(cont.data?.echipa ? GOL_ECHIPA : {})} />
               </div>
             }
           >
@@ -587,11 +588,24 @@ function CardGri(props: { e: Experienta }) {
   );
 }
 
+/**
+ * Lista goală pentru cineva din echipa BBT (19 nov 2026, cerut de user): echipa nu se înscrie la experiențe, deci nici
+ * „Nicio experiență activă” și nici butonul spre site. E deja în Community, deci n-are unde altundeva să fie trimisă.
+ * ⚠️ Pereche cu `StareEchipa` de pe site (`website/src/app/[limba]/dashboard/StareEchipa.tsx`) și cu fila Cont din
+ * aplicație (`mobil/src/app/(tabs)/cont.tsx`).
+ */
+export const GOL_ECHIPA = {
+  titlu: "Echipa BBT",
+  text: "Ești din echipă, nu ai nevoie de înscriere.",
+  link: null,
+} as const;
+
 /** 18h: contul fără nicio experiență. Starea goală a ecranului, mare, cu drumul spre site. */
 export function Gol(props: {
   titlu?: string;
   text?: string;
-  link?: { cale: string; text: string };
+  /** `null` = fără buton (echipa). Lipsă = „Vezi site” spre taberele de pe site. */
+  link?: { cale: string; text: string } | null;
 }) {
   return (
     <div style={CENTRU}>
@@ -618,14 +632,16 @@ export function Gol(props: {
         {props.text ??
           "Înscrie-te la următoarea experiență BBT pe website. După înscriere, accesul și detaliile apar aici."}
       </p>
-      <a
-        href={`${BBT_SITE_URL}${props.link?.cale ?? "/camps"}`}
-        target="_blank"
-        rel="noopener"
-        style={{ ...BUTON_NEGRU, "margin-top": "18px", padding: "12px 22px" }}
-      >
-        {props.link?.text ?? "Vezi site"} <Symbol size={15}>open_in_new</Symbol>
-      </a>
+      <Show when={props.link !== null}>
+        <a
+          href={`${BBT_SITE_URL}${props.link?.cale ?? "/camps"}`}
+          target="_blank"
+          rel="noopener"
+          style={{ ...BUTON_NEGRU, "margin-top": "18px", padding: "12px 22px" }}
+        >
+          {props.link?.text ?? "Vezi site"} <Symbol size={15}>open_in_new</Symbol>
+        </a>
+      </Show>
     </div>
   );
 }
