@@ -273,6 +273,9 @@ function cand(e: Experienta) {
 function Stare(props: { e: Experienta }) {
   const pila = () => {
     const e = props.e;
+    // Tabăra produsă n-are comandă: „Plătit” ar fi fals (19 nov 2026).
+    if (e.rol === "producator")
+      return { text: "Producător", fundal: C.negru, culoare: C.peNegru };
     if (e.plata?.intarziat)
       return { text: "Întârziat", fundal: C.rosu, culoare: C.peNegru };
     if (!e.plata && (!e.progres || e.progres.platit >= e.progres.total))

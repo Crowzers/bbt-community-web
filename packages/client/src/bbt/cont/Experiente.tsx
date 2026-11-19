@@ -313,8 +313,11 @@ function CardExperienta(props: { e: Experienta }) {
       ? (inscriere()?.penalizareTransa2 ?? 0)
       : 0;
 
+  // Tabăra produsă (19 nov 2026): fără comandă, deci fără plată de arătat.
+  const producator = () => e().rol === "producator";
   const stare = () => {
     const p = e().plata;
+    if (producator()) return <Stare fel="verde">Producător</Stare>;
     if (complet()) return <Stare fel="verde">{faraPlata() ? "Confirmat" : "Plătit"}</Stare>;
     if (p?.actiune === "contract") return <Stare fel="galben">Contract de semnat</Stare>;
     if (p?.intarziat) return <Stare fel="rosu">Întârziată</Stare>;
@@ -452,7 +455,9 @@ function CardExperienta(props: { e: Experienta }) {
                 <Show
                   when={!faraPlata()}
                   fallback={
-                    <b style={{ "font-weight": 700 }}>Nu ai nimic de plătit</b>
+                    <b style={{ "font-weight": 700 }}>
+                      {producator() ? "Conduci sesiuni în tabăra asta" : "Nu ai nimic de plătit"}
+                    </b>
                   }
                 >
                   <span style={{ "white-space": "nowrap" }}>
@@ -466,6 +471,7 @@ function CardExperienta(props: { e: Experienta }) {
                 </Show>
                 {stare()}
               </div>
+              <Show when={!producator()}>
               <div
                 role="progressbar"
                 aria-label="Cât ai plătit din total"
@@ -487,6 +493,7 @@ function CardExperienta(props: { e: Experienta }) {
                   }}
                 />
               </div>
+              </Show>
               {/* Suma de pe buton include deja penalizarea; aici omul vede de unde vine diferența. */}
               <Show when={penalizare() > 0}>
                 <p style={{ margin: 0, color: C.rosu, "font-size": "14px" }}>
