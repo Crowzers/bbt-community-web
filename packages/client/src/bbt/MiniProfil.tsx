@@ -193,7 +193,8 @@ export function MiniProfilBBT(props: {
                   style={{
                     "margin-top": "-52px",
                     "margin-left": "-10px",
-                    // Nu −8, ca să rămână 8 px sub poză: scânteia de jos (Icon, Echipa) ar fi stat peste nume.
+                    // Nu −8, ca să rămână 8 px sub poză până la nume. Din 19 nov (inelul subțire, varianta B)
+                    // decorul nu mai coboară sub `R2 + 2`, deci nici scânteile, nici punctatul nu mai ating numele.
                     cursor: "pointer",
                   }}
                 >

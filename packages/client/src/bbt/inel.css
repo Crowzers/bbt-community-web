@@ -6,9 +6,13 @@
  * o singură dată (~5 s). De-aia aici nu există niciun `infinite`: o buclă s-ar fi citit „e LIVE", ca pe
  * TikTok/Instagram, și ar fi încălcat WCAG 2.2.2 (mișcare peste 5 s lângă alt conținut cere buton de pauză).
  *
- * ⚠️ Rotirile se termină exact cum au pornit, ca pe site și în aplicație: gradientul face ture ÎNTREGI (`--rot`
- * = 360° × ture), punctatul se rotește un multiplu de 22° (pasul liniuței). Fără `forwards`: la final totul e
- * înapoi în repaus fără salt vizibil, iar repausul din mini-profil e identic cu cel din liste.
+ * ⚠️ Mișcările se termină exact cum au pornit, ca pe site și în aplicație: gradientul face ture ÎNTREGI (`--rot`
+ * = 360° × ture), liniuțele punctatului alunecă un număr întreg de pași (`--deplasare` = pași × (liniuță + pauză)).
+ * Fără `forwards`: la final totul e înapoi în repaus fără salt vizibil, iar repausul din mini-profil e identic cu
+ * cel din liste.
+ *
+ * Din 19 nov 2026 (varianta B, inelul subțire) punctatul e doar un arc sus și NU se mai rotește: rotirea l-ar fi dus
+ * pe jos, peste nume. Alunecă doar liniuțele pe el (`stroke-dashoffset`).
  */
 
 .bbt-inel {
@@ -52,9 +56,11 @@
 .bbt-inel[data-anim] .bbt-inel-lumina {
   animation: bbt-inel-roteste var(--t-lumina) linear var(--n-lumina);
 }
-.bbt-inel[data-anim] .bbt-inel-gradient,
-.bbt-inel[data-anim] .bbt-inel-exterior {
+.bbt-inel[data-anim] .bbt-inel-gradient {
   animation: bbt-inel-roteste-cu 5s ease-in-out;
+}
+.bbt-inel[data-anim] .bbt-inel-exterior {
+  animation: bbt-inel-aluneca 5s ease-in-out;
 }
 .bbt-inel[data-anim] .bbt-inel-scanteie {
   animation: bbt-inel-clipeste 2s ease-in-out 2;
@@ -86,6 +92,16 @@
   }
 }
 
+/* Offsetul pozitiv mută tiparul spre începutul arcului (ora 9): invers acelor, ca rotirea punctatului de dinainte. */
+@keyframes bbt-inel-aluneca {
+  from {
+    stroke-dashoffset: 0px;
+  }
+  to {
+    stroke-dashoffset: var(--deplasare, 0px);
+  }
+}
+
 /* Steaua are 4 colțuri, deci la 90° arată ca la 0°: se termină rotită, fără salt înapoi. */
 @keyframes bbt-inel-clipeste {
   0% {
@@ -102,17 +118,22 @@
   }
 }
 
+/* Respirația urcă doar până la scale 1, nu peste (19 nov): aura are diametrul 2·(R2+2) și nu trebuie să coboare
+   mai jos de atât sub poză, unde e numele. Ca pe site și în aplicație. */
 @keyframes bbt-inel-respira {
   0%,
   100% {
     opacity: 0;
+    transform: scale(0.92);
   }
   25%,
   75% {
     opacity: 0.9;
+    transform: scale(1);
   }
   50% {
     opacity: 0.35;
+    transform: scale(0.92);
   }
 }
 
@@ -135,6 +156,7 @@
    pornește animația; regula de aici e plasa, pentru o schimbare a setării cât e deschis mini-profilul. */
 @media (prefers-reduced-motion: reduce) {
   .bbt-inel[data-anim] .bbt-inel-strat,
+  .bbt-inel[data-anim] .bbt-inel-exterior,
   .bbt-inel[data-anim] .bbt-inel-scanteie {
     animation: none !important;
   }
