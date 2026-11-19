@@ -50,7 +50,8 @@ export function Experiente(props: {
     <>
       <TitluPagina
         dreapta={
-          <Show when={active().length}>
+          // Fără îndemnul de înscriere pentru echipă (19 nov 2026, `GOL_ECHIPA`).
+          <Show when={active().length && !cont.data?.echipa}>
             <div
               style={{ display: "flex", "align-items": "center", gap: "14px" }}
             >

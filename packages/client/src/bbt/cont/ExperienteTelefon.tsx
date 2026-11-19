@@ -123,6 +123,8 @@ export function ExperienteTelefon() {
                 }
               </For>
 
+              {/* Echipa nu se înscrie la experiențe (19 nov 2026, `GOL_ECHIPA`): fără îndemnul spre site. */}
+              <Show when={!cont.data?.echipa}>
               <a
                 href={`${BBT_SITE_URL}/camps`}
                 target="_blank"
@@ -159,6 +161,7 @@ export function ExperienteTelefon() {
                   Vezi site <Symbol size={14}>open_in_new</Symbol>
                 </span>
               </a>
+              </Show>
 
               <Show when={date()!.trecute.length > 0}>
                 <div
