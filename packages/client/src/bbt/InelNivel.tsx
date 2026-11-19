@@ -1,4 +1,4 @@
-import { type JSX, For, Show, createEffect, on, onCleanup } from "solid-js";
+import { type JSX, Show, createEffect, on } from "solid-js";
 
 import { type CheieInel, useInelOm } from "./nivele";
 
@@ -22,6 +22,10 @@ import { type CheieInel, useInelOm } from "./nivele";
  * Aceeași geometrie pe site (`website/src/components/InelNivel.tsx`) și în aplicație. Cutia și locul pozei NU s-au
  * schimbat.
  *
+ * 🔴 FĂRĂ LINIA PUNCTATĂ ȘI FĂRĂ SCÂNTEI (tot 19 nov, mai târziu): userul, „scoatem efectele în exces, mai exact liniile
+ * punctate și steluțele”. Rămân inelul, gradientul care se rotește, lumina, aura și orbita. Iar în mini-profil inelul
+ * merge ÎN BUCLĂ („animat non stop, acum se oprește la un moment dat”). La fel pe site și în aplicație.
+ *
  * Totul e calculat în px din poză și din S (SVG-urile au viewBox-ul cât cutia), deci aceeași componentă merge de la
  * 33 la 96 px.
  *
@@ -36,34 +40,16 @@ import { type CheieInel, useInelOm } from "./nivele";
  * `pointer-events: none`: un buton pus peste poză rămâne deasupra lui, și ca desen, și ca atingere.
  */
 
-/** Sub atât, doar inelul interior: punctatul și scânteile ar fi fost un pixel de zgomot (§3). */
+/** Sub atât, discul de sub inel e mai subțire (vezi `razaDisc`). */
 const PRAG_DECOR = 48;
 
-const DE_LA_POZA = 0.03; // distanța poză ↔ inel interior și inel interior ↔ punctat, din S
-/** Latura scânteii, din S (≈14 px la poza de 96). Din 19 nov, cam la jumătate: cele mari acopereau numele. */
-const SCANTEIE = 0.097;
-/** Liniuța și pauza punctatului, din R2 (≈5 și 3 px la poza de 96). */
-const LINIUTA = 0.084;
-const PAUZA = 0.05;
-/**
- * Unde stau scânteile, în grade: 0 = ora 3, negativ = în sus. Doar pe arcul de sus, ca punctatul: jos ar fi stat
- * peste nume (motivul variantei B, 19 nov).
- */
-const UNGHIURI_SCANTEI: Record<number, number[]> = {
-  2: [-140, -40],
-  3: [-150, -90, -30],
-};
-
+const DE_LA_POZA = 0.03; // distanța poză ↔ inel interior și inel interior ↔ aură/orbită, din S
 type Stil = {
   /** Grosimea inelului interior, din S (plafonată de poză, vezi `grosime`). */
   g: number;
   /** Fundalul inelului: o culoare plină sau un `conic-gradient`. */
   inel: string;
   conic?: boolean;
-  /** Culoarea liniei punctate de sus (Professional+). */
-  exterior?: string;
-  /** Culoarea fiecărei scântei, în ordine; câte sunt alege și unghiurile (`UNGHIURI_SCANTEI`). */
-  scantei?: string[];
   /** Animația (§4): lumina, în secunde pe tură. */
   tLumina: number;
   /** Câte ture ÎNTREGI face gradientul în cele 5 s (vezi `inel.css`: totul se termină cum a pornit). */
@@ -75,9 +61,9 @@ type Stil = {
 const conic = (...culori: string[]) => `conic-gradient(${culori.join(", ")})`;
 
 /**
- * Tabelul din §3. ⚠️ Pe lângă culoare, fiecare treaptă are și un al doilea semn (grosime, linia punctată, număr de
- * scântei), pentru daltoniști (WCAG 1.4.1): albastru/mov și portocaliu/roșu se confundă. Nu scoate semnele
- * „ca să fie mai curat".
+ * Tabelul din §3. ⚠️ Designul dădea fiecărei trepte și un al doilea semn pe lângă culoare (grosime, linia punctată,
+ * număr de scântei), pentru daltoniști (WCAG 1.4.1). Linia și scânteile au ieșit pe 19 nov, la cererea userului:
+ * acum treptele se deosebesc prin culoare, gradient, aură și orbită.
  */
 const STILURI: Record<Exclude<CheieInel, "beginner">, Stil> = {
   creator: { g: 0.035, inel: "#4DA2FF", tLumina: 3.6 },
@@ -85,15 +71,12 @@ const STILURI: Record<Exclude<CheieInel, "beginner">, Stil> = {
   professional: {
     g: 0.05,
     inel: "#FFA8CD",
-    exterior: "#FFA8CD",
     tLumina: 2.4,
   },
   elite: {
     g: 0.055,
     inel: conic("#FB4903", "#FFB38A", "#FB4903", "#C93A02", "#FB4903"),
     conic: true,
-    exterior: "#FB4903",
-    scantei: ["#FB4903", "#FB4903"],
     tLumina: 2,
     tureGradient: 1,
   },
@@ -101,8 +84,6 @@ const STILURI: Record<Exclude<CheieInel, "beginner">, Stil> = {
     g: 0.06,
     inel: conic("#CA1A38", "#FB4903", "#CA1A38", "#8E1027", "#CA1A38"),
     conic: true,
-    exterior: "#CA1A38",
-    scantei: ["#CA1A38", "#CA1A38", "#CA1A38"],
     tLumina: 1.6,
     tureGradient: 1,
     aura: "#CA1A38",
@@ -118,8 +99,6 @@ const STILURI: Record<Exclude<CheieInel, "beginner">, Stil> = {
       "#FFD731",
     ),
     conic: true,
-    exterior: "#E5B300",
-    scantei: ["#E5B300", "#E5B300", "#E5B300"],
     tLumina: 1.2,
     tureGradient: 2,
     aura: "#FFD731",
@@ -138,8 +117,6 @@ const STILURI: Record<Exclude<CheieInel, "beginner">, Stil> = {
       "#4DA2FF",
     ),
     conic: true,
-    exterior: "#FFA8CD",
-    scantei: ["#5C4ADE", "#FB4903"],
     tLumina: 2,
     tureGradient: 1,
     aura: "#FFA8CD",
@@ -147,23 +124,11 @@ const STILURI: Record<Exclude<CheieInel, "beginner">, Stil> = {
   },
 };
 
-/** Steaua cu 4 colțuri, în viewBox 20. */
-const STEA =
-  "M10 0C10.9 6.6 13.4 9.1 20 10C13.4 10.9 10.9 13.4 10 20C9.1 13.4 6.6 10.9 0 10C6.6 9.1 9.1 6.6 10 0Z";
-
 /** Inelul ca mască radială, în px: plin între `r1` și `r2`, transparent în rest (jumătate de pixel moale la margini). */
 function mascaInel(r1: number, r2: number) {
   const m = `radial-gradient(circle closest-side, transparent ${r1 - 0.5}px, #000 ${r1}px, #000 ${r2}px, transparent ${r2 + 0.5}px)`;
   return { "-webkit-mask-image": m, "mask-image": m };
 }
-
-/**
- * Câți pași ÎNTREGI (liniuță + pauză) alunecă liniuțele pe arc în cele 5 s: tiparul se termină exact cum a pornit,
- * deci listele (statice) și mini-profilul (după animație) arată la fel. Până pe 19 nov se rotea tot cercul; cu linia
- * doar sus, rotirea ar fi dus-o pe jos, peste nume, de-aia acum alunecă liniuțele (`stroke-dashoffset`) și arcul stă
- * pe loc. 10 pași la toate nivelele, ca pe site și în aplicație (nivelul se vede din culoare și scântei, nu din viteză).
- */
-const PASI_PUNCTAT = 10;
 
 const miscareRedusa = () =>
   typeof matchMedia === "function" &&
@@ -175,11 +140,11 @@ export type PropsInel = {
   /** Diametrul pozei, în px. Cutia are `poza × 1,5`. */
   poza: number;
   /**
-   * DOAR în mini-profil: animația pornește o dată la deschidere și încă o dată la atingerea pozei (§4). În liste
-   * rămâne `false`: nicio mișcare acolo (decizia 2).
+   * DOAR în mini-profil: animația pornește la deschidere și merge în buclă (19 nov 2026, cerut de user); atingerea
+   * pozei o ia de la capăt. În liste rămâne `false`: nicio mișcare acolo (decizia 2).
    */
   animat?: boolean;
-  /** Culoarea de sub inel: conturul scânteilor, ca steaua să se desprindă de inel. Implicit albul foii. */
+  /** Culoarea discului de sub inel (`disc`). Implicit albul foii. */
   fundal?: string;
   /**
    * Un disc în culoarea fundalului sub inelul interior. Pentru poza pusă peste o copertă (mini-profilul): fără el,
@@ -207,11 +172,11 @@ export function InelNivel(props: PropsInel) {
     props.cheie && props.cheie !== "beginner"
       ? STILURI[props.cheie]
       : undefined;
-  const decor = () => S() >= PRAG_DECOR;
+  const mare = () => S() >= PRAG_DECOR;
   const fundal = () => props.fundal ?? "#FFFFFF";
   const c = () => S() / 2; // centrul cutiei (și al pozei), în px
 
-  // Geometria, în px. `gap` e și între poză și inel, și între inel și linia punctată.
+  // Geometria, în px. `gap` e și între poză și inel, și între inel și aură/orbită.
   const gap = () => S() * DE_LA_POZA;
   /**
    * Grosimea inelului interior: cea pe nivel (cel puțin 1,5 px), dar nu peste `P/32` (cel puțin 2,5 px). Plafonul
@@ -224,20 +189,12 @@ export function InelNivel(props: PropsInel) {
   };
   const r1 = () => props.poza / 2 + gap();
   const r2 = () => r1() + grosime();
-  /** Raza liniei punctate, pe mijlocul ei (≈59,6 la poza de 96). Scânteile și orbita stau tot pe ea. */
+  /** Raza aurei și a orbitei (≈59,6 la poza de 96): încă un `gap` dincolo de inel. */
   const R2 = () => r2() + gap();
-  const grosimePunctat = () => Math.min(2, Math.max(1, S() * 0.0105));
-  const pasPunctat = () => R2() * (LINIUTA + PAUZA);
-  /** Arcul de sus: de la ora 9, în sensul acelor (sweep 1), peste vârf, la ora 3. */
-  const arcSus = () =>
-    `M ${c() - R2()} ${c()} A ${R2()} ${R2()} 0 0 1 ${c() + R2()} ${c()}`;
 
   // Discul: puțin peste inel; fără inel, cât vechea bordură albă (4 px pe poza mare, 2 px în stivele mici).
   const razaDisc = () =>
-    stil() ? r2() + (decor() ? 2 : 1) : props.poza / 2 + (decor() ? 4 : 2);
-
-  let opreste: ReturnType<typeof setTimeout> | undefined;
-  onCleanup(() => clearTimeout(opreste));
+    stil() ? r2() + (mare() ? 2 : 1) : props.poza / 2 + (mare() ? 4 : 2);
 
   function reda() {
     const s = stil();
@@ -245,10 +202,8 @@ export function InelNivel(props: PropsInel) {
     // Repornirea unei animații CSS: scoți atributul, forțezi o așezare, îl pui la loc.
     radacina.removeAttribute("data-anim");
     void radacina.offsetWidth;
+    // Atributul RĂMÂNE: animațiile din `inel.css` sunt `infinite` (19 nov 2026, în buclă la cererea userului).
     radacina.setAttribute("data-anim", "");
-    clearTimeout(opreste);
-    // Ultima mișcare (scânteile decalate) se termină pe la 4,75 s; după, atributul pleacă și totul e repaus.
-    opreste = setTimeout(() => radacina.removeAttribute("data-anim"), 6000);
   }
 
   // La deschidere (și când cheia sosește după ea). O cheie neschimbată nu repornește nimic.
@@ -340,80 +295,10 @@ export function InelNivel(props: PropsInel) {
                 />
               </Show>
 
-              <Show when={decor() && s().exterior}>
-                <svg
-                  class="bbt-inel-strat"
-                  viewBox={`0 0 ${S()} ${S()}`}
-                  width={S()}
-                  height={S()}
-                  style={{ overflow: "visible" }}
-                >
-                  {/* Doar arcul de sus (varianta B, 19 nov): cercul întreg trecea pe sub poză, peste nume. */}
-                  <path
-                    class="bbt-inel-exterior"
-                    d={arcSus()}
-                    fill="none"
-                    stroke={s().exterior}
-                    stroke-width={grosimePunctat()}
-                    stroke-dasharray={`${R2() * LINIUTA} ${R2() * PAUZA}`}
-                    style={{
-                      "--deplasare": `${PASI_PUNCTAT * pasPunctat()}px`,
-                    }}
-                  />
-                </svg>
-              </Show>
-
-              <Show when={decor() && s().scantei}>
-                {(culori) => (
-                  <svg
-                    class="bbt-inel-strat"
-                    viewBox={`0 0 ${S()} ${S()}`}
-                    width={S()}
-                    height={S()}
-                    style={{ overflow: "visible" }}
-                  >
-                    <For each={culori()}>
-                      {(culoare, j) => {
-                        const latura = () => S() * SCANTEIE;
-                        const a = () =>
-                          ((UNGHIURI_SCANTEI[culori().length]?.[j()] ?? -90) *
-                            Math.PI) /
-                          180;
-                        const x = () =>
-                          c() + R2() * Math.cos(a()) - latura() / 2;
-                        const y = () =>
-                          c() + R2() * Math.sin(a()) - latura() / 2;
-                        return (
-                          <g
-                            transform={`translate(${x()} ${y()}) scale(${latura() / 20})`}
-                          >
-                            <g
-                              class="bbt-inel-scanteie"
-                              style={{ "animation-delay": `${j() * 0.25}s` }}
-                            >
-                              {/* Conturul în culoarea fundalului, desenat SUB umplere (`paint-order`): steaua
-                                se desprinde de inel fără să-și piardă din mărime. */}
-                              <path
-                                d={STEA}
-                                fill={culoare}
-                                stroke={fundal()}
-                                stroke-width="1.2"
-                                stroke-linejoin="round"
-                                paint-order="stroke"
-                              />
-                            </g>
-                          </g>
-                        );
-                      }}
-                    </For>
-                  </svg>
-                )}
-              </Show>
-
               <Show when={props.animat && s().orbita}>
                 <span class="bbt-inel-strat bbt-inel-orbita">
-                  {/* Luminița pe orbită (Icon, Echipa), pe raza liniei punctate, nu mai departe (19 nov): pe tura
-                    de jos ar fi trecut peste nume. */}
+                  {/* Luminița pe orbită (Icon, Echipa), pe R2, nu mai departe (19 nov): pe tura de jos ar fi
+                    trecut peste nume. */}
                   <span
                     style={{
                       position: "absolute",
@@ -424,7 +309,8 @@ export function InelNivel(props: PropsInel) {
                       transform: "translate(-50%, -50%)",
                       "border-radius": "50%",
                       background: "#FFFFFF",
-                      "box-shadow": `0 0 ${S() * 0.03}px ${S() * 0.01}px ${s().exterior}`,
+                      // Haloul în culoarea aurei, ca pe site (până pe 19 nov era culoarea liniei punctate, scoase).
+                      "box-shadow": `0 0 ${S() * 0.03}px ${S() * 0.01}px ${s().aura ?? "#FFFFFF"}`,
                     }}
                   />
                 </span>

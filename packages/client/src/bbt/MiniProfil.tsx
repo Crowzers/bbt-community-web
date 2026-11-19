@@ -64,6 +64,38 @@ const ROLURI: Record<string, string> = {
   other: "Explorer",
 };
 
+/**
+ * Culoarea fiecărui rol, aceeași ca pe site (`CULORI_ROL` din `website/src/app/[limba]/u/[username]/stil.ts`): pastelul
+ * paletei ca fundal, treapta închisă ca text. Familiile sunt cele din lista de membri (`admin/lib/stoat/roluri.ts`).
+ * 19 nov 2026, userul: „să fim coerenți în culorile pastilelor de roluri”; până atunci pastilele erau gri aici, albe
+ * pe site. Foaia e albă (`FUNDAL`), deci valorile de zi, fără variantă de noapte.
+ */
+const VERDE = {
+  fundal: "#99E9C4",
+  text: "color-mix(in oklab, #55DB9C 55%, #000000)",
+};
+const ALBASTRU = {
+  fundal: "#DCEEFF",
+  text: "color-mix(in oklab, #4DA2FF 70%, #000000)",
+};
+const CULORI_ROL: Record<string, { fundal: string; text: string }> = {
+  vocalist: {
+    fundal: "color-mix(in srgb, #FB4903 10%, #FFFFFF)",
+    text: "color-mix(in oklab, #FB4903 70%, #000000)",
+  },
+  producer: VERDE,
+  dj: ALBASTRU,
+  beatmaker: {
+    fundal: "#FFEFAD",
+    text: "color-mix(in oklab, #FFD731 55%, #000000)",
+  },
+  songwriter: ALBASTRU,
+  instrumentist: { fundal: "#EEF2F7", text: "#46536B" },
+  sound_engineer: VERDE,
+  other: { fundal: "#F8F0FF", text: "#5C4ADE" },
+};
+const CULOARE_ROL_IMPLICITA = { fundal: "#F2F4F7", text: "#475467" };
+
 const luna = new Intl.DateTimeFormat("ro-RO", {
   month: "long",
   year: "numeric",
@@ -278,8 +310,11 @@ export function MiniProfilBBT(props: {
                             padding: "4px 10px",
                             "font-size": "12px",
                             "font-weight": 600,
-                            background: "#F2F2F3",
-                            color: "#0A0A0B",
+                            background: (
+                              CULORI_ROL[rol] ?? CULOARE_ROL_IMPLICITA
+                            ).fundal,
+                            color: (CULORI_ROL[rol] ?? CULOARE_ROL_IMPLICITA)
+                              .text,
                           }}
                         >
                           {ROLURI[rol] ?? rol}

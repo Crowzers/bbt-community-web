@@ -348,9 +348,8 @@ function RandConversatie(props: { canal: Channel; euId: string | undefined }) {
       }}
       style={{ ...RAND, background: necitit() ? S1.placa : "transparent" }}
     >
-      {/* Inelul de nivel, static, PESTE marginile rândului (`bbt/InelNivel.tsx`): rândul nu crește, textul nu se mută.
-          Conturul scânteilor e culoarea listei întunecate, ca steaua să se desprindă de inel. */}
-      <InelOm id={props.canal.recipient?.id} poza={40} peste fundal={S1.lista}>
+      {/* Inelul de nivel, static, PESTE marginile rândului (`bbt/InelNivel.tsx`): rândul nu crește, textul nu se mută. */}
+      <InelOm id={props.canal.recipient?.id} poza={40} peste>
         <AvatarOm om={props.canal.recipient} marime={40} />
       </InelOm>
       <span style={{ flex: 1, "min-width": 0 }}>
@@ -457,7 +456,7 @@ function RandCerere(props: { om: User }) {
   );
   return (
     <div style={RAND}>
-      <InelOm id={props.om.id} poza={40} peste fundal={S1.lista}>
+      <InelOm id={props.om.id} poza={40} peste>
         <AvatarOm om={props.om} marime={40} />
       </InelOm>
       <span

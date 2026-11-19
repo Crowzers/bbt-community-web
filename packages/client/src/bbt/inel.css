@@ -1,18 +1,14 @@
 /*
  * Inelul de nivel din jurul pozei (`InelNivel.tsx`). Design: `website/docs/plans/2026-11-18-inel-nivel-design.md`.
  *
- * Starea de REPAUS e tot ce se vede în liste: inelul, punctatul și scânteile, nemișcate. Tot ce se mișcă (lumina,
- * aura, luminița pe orbită) stă la opacitate 0 și apare DOAR cât rulează animația, pornită din JS cu `data-anim`,
- * o singură dată (~5 s). De-aia aici nu există niciun `infinite`: o buclă s-ar fi citit „e LIVE", ca pe
- * TikTok/Instagram, și ar fi încălcat WCAG 2.2.2 (mișcare peste 5 s lângă alt conținut cere buton de pauză).
+ * Starea de REPAUS e tot ce se vede în liste: inelul, nemișcat. Tot ce se mișcă (lumina, aura, luminița pe orbită)
+ * stă la opacitate 0 și apare DOAR în mini-profil, unde JS-ul pune `data-anim`.
  *
- * ⚠️ Mișcările se termină exact cum au pornit, ca pe site și în aplicație: gradientul face ture ÎNTREGI (`--rot`
- * = 360° × ture), liniuțele punctatului alunecă un număr întreg de pași (`--deplasare` = pași × (liniuță + pauză)).
- * Fără `forwards`: la final totul e înapoi în repaus fără salt vizibil, iar repausul din mini-profil e identic cu
- * cel din liste.
- *
- * Din 19 nov 2026 (varianta B, inelul subțire) punctatul e doar un arc sus și NU se mai rotește: rotirea l-ar fi dus
- * pe jos, peste nume. Alunecă doar liniuțele pe el (`stroke-dashoffset`).
+ * ⚠️ ÎN BUCLĂ din 19 nov 2026 (userul: „animat non stop, acum se oprește la un moment dat”). Designul din 18 nov o
+ * rula o dată, ~5 s: o buclă se poate citi „e LIVE”, iar WCAG 2.2.2 cere pauză la mișcare de peste 5 s. Userul a ales
+ * bucla știind asta; „Reducere mișcare” o oprește în continuare (jos). Gradientul face ture ÎNTREGI (`--rot` =
+ * 360° × ture), deci fiecare ciclu se termină cum a pornit și reluarea nu sare. Tot pe 19 nov au ieșit linia punctată
+ * și scânteile (vezi `InelNivel.tsx`). La fel pe site și în aplicație.
  */
 
 .bbt-inel {
@@ -40,36 +36,40 @@
   pointer-events: none;
 }
 
-.bbt-inel-scanteie {
-  transform-box: fill-box;
-  transform-origin: center;
-}
-
 .bbt-inel-lumina,
 .bbt-inel-aura,
 .bbt-inel-orbita {
   opacity: 0;
 }
 
-/* --- Animația, o dată ------------------------------------------------------------------------------------------- */
+/* --- Animația, în buclă ------------------------------------------------------------------------------------------ */
 
+/* Lumina: câteva ture, apoi se stinge și o ia de la capăt (ciclul ei e `durata × ture`, cam 5 s), ca pe site.
+   `bbt-inel-apare` stă al doilea: el decide opacitatea. */
 .bbt-inel[data-anim] .bbt-inel-lumina {
-  animation: bbt-inel-roteste var(--t-lumina) linear var(--n-lumina);
+  animation:
+    bbt-inel-roteste var(--t-lumina) linear infinite,
+    bbt-inel-apare calc(var(--t-lumina) * var(--n-lumina)) linear infinite;
 }
 .bbt-inel[data-anim] .bbt-inel-gradient {
-  animation: bbt-inel-roteste-cu 5s ease-in-out;
-}
-.bbt-inel[data-anim] .bbt-inel-exterior {
-  animation: bbt-inel-aluneca 5s ease-in-out;
-}
-.bbt-inel[data-anim] .bbt-inel-scanteie {
-  animation: bbt-inel-clipeste 2s ease-in-out 2;
+  animation: bbt-inel-roteste-cu 5s ease-in-out infinite;
 }
 .bbt-inel[data-anim] .bbt-inel-aura {
-  animation: bbt-inel-respira 5s ease-in-out;
+  animation: bbt-inel-respira 5s ease-in-out infinite;
 }
 .bbt-inel[data-anim] .bbt-inel-orbita {
-  animation: bbt-inel-orbita 2.5s linear 2;
+  animation: bbt-inel-orbita 2.5s linear infinite;
+}
+
+@keyframes bbt-inel-apare {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  12%,
+  88% {
+    opacity: 1;
+  }
 }
 
 @keyframes bbt-inel-roteste {
@@ -89,32 +89,6 @@
   }
   to {
     transform: rotate(var(--rot, 0deg));
-  }
-}
-
-/* Offsetul pozitiv mută tiparul spre începutul arcului (ora 9): invers acelor, ca rotirea punctatului de dinainte. */
-@keyframes bbt-inel-aluneca {
-  from {
-    stroke-dashoffset: 0px;
-  }
-  to {
-    stroke-dashoffset: var(--deplasare, 0px);
-  }
-}
-
-/* Steaua are 4 colțuri, deci la 90° arată ca la 0°: se termină rotită, fără salt înapoi. */
-@keyframes bbt-inel-clipeste {
-  0% {
-    transform: scale(1) rotate(0deg);
-  }
-  35% {
-    transform: scale(0.4) rotate(20deg);
-  }
-  70% {
-    transform: scale(1.3) rotate(45deg);
-  }
-  100% {
-    transform: scale(1) rotate(90deg);
   }
 }
 
@@ -155,9 +129,7 @@
 /* Cine cere mișcare redusă vede doar starea de repaus (decizia 4: nu o animație „redusă", niciuna). JS-ul nici nu
    pornește animația; regula de aici e plasa, pentru o schimbare a setării cât e deschis mini-profilul. */
 @media (prefers-reduced-motion: reduce) {
-  .bbt-inel[data-anim] .bbt-inel-strat,
-  .bbt-inel[data-anim] .bbt-inel-exterior,
-  .bbt-inel[data-anim] .bbt-inel-scanteie {
+  .bbt-inel[data-anim] .bbt-inel-strat {
     animation: none !important;
   }
 }
