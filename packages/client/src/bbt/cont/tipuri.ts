@@ -221,8 +221,12 @@ export interface Experienta {
   /** Codul biletului de workshop; taberele n-au bilet. */
   qr: string | null;
   areDiploma: boolean;
-  /** `"producator"` = tabăra în care omul din echipă conduce sesiuni (19 nov 2026), fără comandă și fără plată. */
-  rol?: "producator";
+  /**
+   * `"producator"` = tabăra în care omul din echipă conduce sesiuni (19 nov 2026), fără comandă și fără plată. `"echipa"` = o
+   * tabără pe care omul din echipă doar o vede (22 nov 2026: echipa vede toate taberele); tot fără comandă. Vezi
+   * `faraComanda` din `date.ts`.
+   */
+  rol?: "producator" | "echipa";
 }
 
 export interface Experiente {

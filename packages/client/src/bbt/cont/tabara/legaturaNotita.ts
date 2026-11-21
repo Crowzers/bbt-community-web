@@ -17,8 +17,6 @@ type Ascultatori = {
   laText: () => void;
   laStare: (s: StareNotita) => void;
   laPrezenti: (nume: string[]) => void;
-  /** Cineva a urcat sau a șters un instrumental. */
-  laInstrumentale: () => void;
 };
 
 const LOCAL = Symbol("local");
@@ -228,9 +226,8 @@ export class LegaturaNotita {
       this.anuntaPrezenta();
     } else if (m.t === "awareness" && m.d) {
       applyAwarenessUpdate(prezenta, dinBase64(m.d), this);
-    } else if (m.t === "instrumental") {
-      this.asc.laInstrumentale();
     }
+    // Un `instrumental` venit de la server cade aici fără efect: instrumentalele au ieșit din notiță (22 nov 2026).
   }
 
   private trimite(): Promise<void> {

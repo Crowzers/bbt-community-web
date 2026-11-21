@@ -276,6 +276,9 @@ function Stare(props: { e: Experienta }) {
     // Tabăra produsă n-are comandă: „Plătit” ar fi fals (19 nov 2026).
     if (e.rol === "producator")
       return { text: "Producător", fundal: C.negru, culoare: C.peNegru };
+    // Echipa vede toate taberele (22 nov 2026), și pe cele în care nu conduce sesiuni: tot fără comandă, deci tot fără „Plătit”.
+    if (e.rol === "echipa")
+      return { text: "Echipă", fundal: C.negru, culoare: C.peNegru };
     if (e.plata?.intarziat)
       return { text: "Întârziat", fundal: C.rosu, culoare: C.peNegru };
     if (!e.plata && (!e.progres || e.progres.platit >= e.progres.total))

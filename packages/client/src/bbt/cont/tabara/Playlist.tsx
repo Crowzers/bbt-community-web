@@ -4,21 +4,19 @@ import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { cerereCont } from "../../tokenBbt";
 import { useSesiune } from "../date";
-import {
-  Buton,
-  C,
-  CampAlege,
-  CampText,
-  Card,
-  Eticheta2,
-  StareGoala,
-} from "../ui";
+import { C, Card, StareGoala } from "../ui";
 
 import { tierPentruNumar } from "./continut";
+import { oSinguraPiesa } from "./redareUnica";
 import { deschideStreamCont } from "./streamCont";
 
 /**
- * BBT: playlistul taberei în hub. Copia părții „Playlist" din `website/src/app/my-camp/[id]/MyCampTabs.tsx`.
+ * BBT: fila „Piese” a taberei în hub (până pe 22 nov 2026 „Playlist”). Copia părții „Piese" din
+ * `website/src/app/my-camp/[id]/MyCampTabs.tsx`.
+ *
+ * Butonul „Adaugă piesă” a plecat de aici pe 22 nov 2026 (D2 din `admin/docs/plans/2026-11-22-piesa-sesiunii-artwork-design.md`):
+ * piesa se încarcă din cardul sesiunii ei (`IncarcaPiesaSesiunii.tsx`), cu artwork pătrat obligatoriu. Fără sesiune piesa nu
+ * știa din ce studio vine.
  *
  * Reguli păstrate dinadins:
  * - Votul de Banger e UNIC per tabără: mutat pe altă piesă, schimbă două piese deodată. Serverul
@@ -32,12 +30,17 @@ export interface Piesa {
   id: string;
   title: string;
   url: string;
+  /** Artwork-ul piesei. Piesele de dinainte de 22 nov 2026 n-au, și cad pe imaginea taberei. */
+  coverUrl?: string | null;
+  /** Sesiunea în care s-a lucrat: cardul sesiunii își arată piesele după ea. */
+  sessionId?: string | null;
   duration: number | null;
   isBanger: boolean;
   ascunsa: boolean;
   studio: number | null;
   uploadedBy: { id: string; numeComplet: string };
-  nrVoturi: number;
+  /** `null` cât clasamentul e ascuns: votul e deschis și omul încă n-a votat (21 nov 2026). */
+  nrVoturi: number | null;
   votulMeu: boolean;
   nrLikes: number;
   amDatLike: boolean;
@@ -55,6 +58,9 @@ export interface SesiunePentruUrcare {
 export interface Coleg {
   id: string;
   numeComplet: string;
+  /** Numele de scenă: după el se caută autorii piesei (22 nov 2026). */
+  numeAfisat?: string | null;
+  avatarUrl?: string | null;
   roles: string[];
 }
 
@@ -64,9 +70,10 @@ export function Playlist(props: {
   campId: string;
   dataEnd: string;
   initiale: Piesa[];
-  sesiuni: SesiunePentruUrcare[];
-  colegi: Coleg[];
-  euId: string;
+  /** Coperta de arătat: artwork-ul piesei sau, la piesele vechi, imaginea taberei. */
+  coperta: (p: Piesa) => string | null;
+  /** Duce la fila Sesiuni, de unde se încarcă piesele. */
+  laSesiuni: () => void;
 }) {
   const sesiune = useSesiune();
 
@@ -103,12 +110,36 @@ export function Playlist(props: {
 
   return (
     <div style={{ display: "flex", "flex-direction": "column", gap: "12px" }}>
-      <UrcaPiesa
-        campId={props.campId}
-        sesiuni={props.sesiuni}
-        colegi={props.colegi.filter((c) => c.id !== props.euId)}
-        laUrcat={reincarca}
-      />
+      <p
+        style={{
+          margin: 0,
+          padding: "16px",
+          "border-radius": "24px",
+          background: C.foaie,
+          color: C.text,
+          "font-size": "16px",
+        }}
+      >
+        Piesele se încarcă din sesiunea în care ai lucrat la ele.{" "}
+        <button
+          type="button"
+          onClick={() => props.laSesiuni()}
+          style={{
+            padding: 0,
+            border: 0,
+            background: "transparent",
+            color: C.text,
+            "font-family": "inherit",
+            "font-size": "16px",
+            "font-weight": 600,
+            "text-decoration": "underline",
+            "text-underline-offset": "4px",
+            cursor: "pointer",
+          }}
+        >
+          Mergi la Sesiuni
+        </button>
+      </p>
       <Show
         when={piese().length}
         fallback={
@@ -122,6 +153,7 @@ export function Playlist(props: {
           {(p) => (
             <CardPiesa
               piesa={p}
+              coperta={props.coperta(p)}
               votareInchisa={votareInchisa()}
               laVot={(votulMeu, voturi) =>
                 setPiese((l) =>
@@ -146,6 +178,7 @@ export function Playlist(props: {
 
 function CardPiesa(props: {
   piesa: Piesa;
+  coperta: string | null;
   votareInchisa: boolean;
   laVot: (votulMeu: string | null, voturi: Record<string, number>) => void;
   laLike: (amDatLike: boolean, nrLikes: number) => void;
@@ -210,62 +243,105 @@ function CardPiesa(props: {
         gap: "10px",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          "align-items": "center",
-          gap: "10px",
-          "flex-wrap": "wrap",
-        }}
-      >
-        <p
+      <div style={{ display: "flex", "align-items": "center", gap: "12px" }}>
+        <Show
+          when={props.coperta}
+          fallback={
+            <span
+              style={{
+                width: "56px",
+                height: "56px",
+                "border-radius": "12px",
+                background: C.galben,
+                "flex-shrink": 0,
+              }}
+            />
+          }
+        >
+          {(url) => (
+            <img
+              src={url()}
+              alt=""
+              style={{
+                width: "56px",
+                height: "56px",
+                "border-radius": "12px",
+                "object-fit": "cover",
+                "flex-shrink": 0,
+              }}
+            />
+          )}
+        </Show>
+        <div
           style={{
-            margin: 0,
-            color: C.text,
-            "font-weight": 700,
-            "font-size": "15px",
+            display: "flex",
+            "flex-direction": "column",
+            gap: "4px",
+            "min-width": 0,
+            flex: 1,
           }}
         >
-          {p().title}
-        </p>
-        <Show when={p().isBanger}>
-          <span
+          <div
             style={{
-              padding: "2px 8px",
-              "border-radius": "999px",
-              background: C.camps,
-              color: "#000",
-              "font-size": "14px",
-              "font-weight": 700,
+              display: "flex",
+              "align-items": "center",
+              gap: "10px",
+              "flex-wrap": "wrap",
             }}
           >
-            Banger
-          </span>
-        </Show>
-      </div>
-      <div
-        style={{
-          display: "flex",
-          "flex-wrap": "wrap",
-          gap: "4px 12px",
-          color: C.slab,
-          "font-size": "14px",
-        }}
-      >
-        <Show when={p().studio != null}>
-          <span>Studio {p().studio}</span>
-        </Show>
-        <span>Urcată de {prenume(p().uploadedBy.numeComplet)}</span>
-        <span
-          style={{
-            color: p().nrVoturi > 0 ? C.text : C.slab,
-            "font-weight": p().nrVoturi > 0 ? 600 : 400,
-          }}
-        >
-          {p().nrVoturi > 0
-            ? `${p().nrVoturi} ${p().nrVoturi === 1 ? "vot" : "voturi"}`
-            : "Fără voturi încă"}
-        </span>
+            <p
+              style={{
+                margin: 0,
+                color: C.text,
+                "font-weight": 700,
+                "font-size": "16px",
+              }}
+            >
+              {p().title}
+            </p>
+            <Show when={p().isBanger}>
+              <span
+                style={{
+                  padding: "2px 8px",
+                  "border-radius": "999px",
+                  background: C.camps,
+                  color: "#000",
+                  "font-size": "14px",
+                  "font-weight": 700,
+                }}
+              >
+                Banger
+              </span>
+            </Show>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              "flex-wrap": "wrap",
+              gap: "4px 12px",
+              color: C.slab,
+              "font-size": "14px",
+            }}
+          >
+            <Show when={p().studio != null}>
+              <span>Studio {p().studio}</span>
+            </Show>
+            <span>Urcată de {prenume(p().uploadedBy.numeComplet)}</span>
+            {/* `null` = clasamentul ascuns cât omul n-a votat (21 nov 2026): nu arătăm nici „Fără voturi încă”. */}
+            <Show when={p().nrVoturi !== null}>
+              <span
+                style={{
+                  color: (p().nrVoturi ?? 0) > 0 ? C.text : C.slab,
+                  "font-weight": (p().nrVoturi ?? 0) > 0 ? 600 : 400,
+                }}
+              >
+                {(p().nrVoturi ?? 0) > 0
+                  ? `${p().nrVoturi} ${p().nrVoturi === 1 ? "vot" : "voturi"}`
+                  : "Fără voturi încă"}
+              </span>
+            </Show>
+          </div>
+        </div>
       </div>
       <Show when={membri().length}>
         <div style={{ display: "flex", "flex-wrap": "wrap", gap: "6px 12px" }}>
@@ -290,7 +366,9 @@ function CardPiesa(props: {
         </div>
       </Show>
       {/* `preload="none"`: o listă de zece piese ar fi tras zece MP3-uri la deschiderea filei. */}
+      {/* Înscris în `redareUnica.ts`: pornit aici, tac piesa de pe cardul sesiunii și ascultarea din formular. */}
       <audio
+        ref={(el) => onCleanup(oSinguraPiesa(el))}
         controls
         preload="none"
         src={p().url}
@@ -455,220 +533,5 @@ function InsignaBanger(props: { nr: number }) {
       {t().nume}
       {t().cuContor ? ` ×${props.nr}` : ""}
     </span>
-  );
-}
-
-function UrcaPiesa(props: {
-  campId: string;
-  sesiuni: SesiunePentruUrcare[];
-  colegi: Coleg[];
-  laUrcat: () => void;
-}) {
-  const sesiune = useSesiune();
-  const [deschis, setDeschis] = createSignal(false);
-  const [titlu, setTitlu] = createSignal("");
-  const [fisier, setFisier] = createSignal<File | null>(null);
-  const [sesiuneId, setSesiuneId] = createSignal("");
-  const [colegi, setColegi] = createSignal<string[]>([]);
-  const [lucrez, setLucrez] = createSignal(false);
-  const [eroare, setEroare] = createSignal("");
-
-  /** Durata din metadatele MP3-ului, în browser. Un eșec aici nu oprește urcarea. */
-  const durata = (f: File) =>
-    new Promise<number | null>((rez) => {
-      const a = document.createElement("audio");
-      a.preload = "metadata";
-      a.onloadedmetadata = () => {
-        URL.revokeObjectURL(a.src);
-        rez(Number.isFinite(a.duration) ? Math.round(a.duration) : null);
-      };
-      a.onerror = () => rez(null);
-      a.src = URL.createObjectURL(f);
-    });
-
-  async function urca(e: SubmitEvent) {
-    e.preventDefault();
-    const f = fisier();
-    if (!titlu().trim() || !f) {
-      setEroare("Scrie titlul și alege un fișier MP3.");
-      return;
-    }
-    setLucrez(true);
-    setEroare("");
-    try {
-      const fd = new FormData();
-      fd.append("file", f);
-      fd.append("title", titlu().trim());
-      if (sesiuneId()) fd.append("sessionId", sesiuneId());
-      const d = await durata(f);
-      if (d) fd.append("duration", String(d));
-      fd.append("contributorIds", JSON.stringify(colegi()));
-      await cerereCont(
-        sesiune(),
-        `/api/public/camps/${props.campId}/playlist`,
-        { method: "POST", body: fd },
-      );
-      setTitlu("");
-      setFisier(null);
-      setSesiuneId("");
-      setColegi([]);
-      setDeschis(false);
-      props.laUrcat();
-    } catch (err) {
-      setEroare(
-        err instanceof Error && err.message !== "Cererea n-a mers."
-          ? err.message
-          : "Piesa n-a putut fi urcată.",
-      );
-    } finally {
-      setLucrez(false);
-    }
-  }
-
-  return (
-    <Show
-      when={deschis()}
-      fallback={
-        <div>
-          <Buton mic onClick={() => setDeschis(true)}>
-            <Symbol size={15}>upload</Symbol> Adaugă piesă
-          </Buton>
-        </div>
-      }
-    >
-      <Card style={{ padding: "16px" }}>
-        <form
-          onSubmit={urca}
-          style={{ display: "flex", "flex-direction": "column", gap: "12px" }}
-        >
-          <p style={{ margin: 0, color: C.text, "font-weight": 700 }}>
-            Adaugă piesă în playlist
-          </p>
-          <CampText
-            eticheta="Titlu"
-            valoare={titlu()}
-            laSchimbare={setTitlu}
-            placeholder="Deep House Jam v2"
-          />
-          <label style={{ display: "block" }}>
-            <Eticheta2>Fișier MP3</Eticheta2>
-            <input
-              type="file"
-              accept="audio/mpeg,.mp3"
-              onChange={(e) => {
-                setFisier(e.currentTarget.files?.[0] ?? null);
-                setEroare("");
-              }}
-              style={{
-                color: C.stins,
-                "font-family": "inherit",
-                "font-size": "14px",
-              }}
-            />
-            <Show when={fisier()}>
-              <span
-                style={{
-                  display: "block",
-                  "margin-top": "4px",
-                  color: C.slab,
-                  "font-size": "14px",
-                }}
-              >
-                {fisier()!.name} · {(fisier()!.size / 1024 / 1024).toFixed(1)}{" "}
-                MB
-              </span>
-            </Show>
-          </label>
-          <Show when={props.sesiuni.length}>
-            <CampAlege
-              eticheta="Sesiunea în care a pornit (opțional)"
-              valoare={sesiuneId()}
-              laSchimbare={setSesiuneId}
-              gol="Fără sesiune"
-              optiuni={props.sesiuni.map((s) => ({
-                valoare: s.id,
-                text: `Sesiunea ${s.numar} - Studio ${s.studio.numar}`,
-              }))}
-            />
-          </Show>
-          <Show when={props.colegi.length}>
-            <div>
-              <Eticheta2>Cine a mai contribuit?</Eticheta2>
-              <div
-                style={{
-                  "max-height": "180px",
-                  "overflow-y": "auto",
-                  padding: "6px",
-                  "border-radius": "10px",
-                  border: `1px solid ${C.linie}`,
-                  background: C.foaieTare,
-                }}
-              >
-                <For each={props.colegi}>
-                  {(c) => (
-                    <label
-                      style={{
-                        display: "flex",
-                        "align-items": "center",
-                        gap: "8px",
-                        padding: "6px 8px",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={colegi().includes(c.id)}
-                        onChange={() =>
-                          setColegi((l) =>
-                            l.includes(c.id)
-                              ? l.filter((x) => x !== c.id)
-                              : [...l, c.id],
-                          )
-                        }
-                      />
-                      <span style={{ color: C.text, "font-size": "14px" }}>
-                        {c.numeComplet}
-                      </span>
-                      <Show when={c.roles.length}>
-                        <span style={{ color: C.slab, "font-size": "14px" }}>
-                          {c.roles.join(", ")}
-                        </span>
-                      </Show>
-                    </label>
-                  )}
-                </For>
-              </div>
-            </div>
-          </Show>
-          <Show when={eroare()}>
-            <span style={{ color: C.rosu, "font-size": "14px" }}>
-              {eroare()}
-            </span>
-          </Show>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <Buton mic tip="submit" dezactivat={lucrez()}>
-              {lucrez() ? "Se urcă…" : "Adaugă"}
-            </Buton>
-            <button
-              type="button"
-              onClick={() => setDeschis(false)}
-              style={{
-                height: "42px",
-                padding: "0 16px",
-                "border-radius": "999px",
-                border: `1px solid ${C.linie}`,
-                background: "transparent",
-                color: C.text,
-                "font-family": "inherit",
-                "font-size": "14px",
-                cursor: "pointer",
-              }}
-            >
-              Renunță
-            </button>
-          </div>
-        </form>
-      </Card>
-    </Show>
   );
 }

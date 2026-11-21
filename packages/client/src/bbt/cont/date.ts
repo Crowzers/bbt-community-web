@@ -6,7 +6,7 @@ import { useState } from "@revolt/state";
 import { incarcaRapoarte } from "../raport";
 import { cerereCont } from "../tokenBbt";
 
-import type { Experiente, Notificare, Participant } from "./tipuri";
+import type { Experienta, Experiente, Notificare, Participant } from "./tipuri";
 
 /**
  * BBT: datele contului din hub, dintr-o singură cerere `/me`, împărțită de toate paginile.
@@ -102,6 +102,14 @@ export function useRapoarte() {
     queryFn: () => incarcaRapoarte(sesiune()),
   }));
 }
+
+/**
+ * Tabăra echipei, condusă (`producator`) sau doar văzută (`echipa`, 22 nov 2026): fără comandă, deci fără plăți, contract
+ * sau „Plătit”. Ca `faraComanda` din aplicație (`mobil/src/bbt/cont.ts`).
+ * ⚠️ Ecranele întreabă de aici, nu `=== "producator"`: altfel o tabără doar văzută de echipă ar fi arătat „Plătit” și plata.
+ */
+export const faraComanda = (e: Pick<Experienta, "rol">) =>
+  e.rol === "producator" || e.rol === "echipa";
 
 /** Ziua după ceasul României, oriunde ar fi omul (ca pe site, `timeZone: Europe/Bucharest`). */
 const TZ = "Europe/Bucharest";

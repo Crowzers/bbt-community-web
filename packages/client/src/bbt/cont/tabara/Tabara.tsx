@@ -6,6 +6,7 @@ import {
   Switch,
   createEffect,
   createSignal,
+  onCleanup,
   untrack,
 } from "solid-js";
 
@@ -50,12 +51,19 @@ import {
   parseMeniu,
   parseProgram,
 } from "./continut";
+import { butonMic } from "./DecupajPatrat";
+import {
+  type OmTabara,
+  IncarcaPiesaSesiunii,
+  numeScena,
+} from "./IncarcaPiesaSesiunii";
 import {
   type Coleg,
   type Piesa,
   type SesiunePentruUrcare,
   Playlist,
 } from "./Playlist";
+import { oSinguraPiesa } from "./redareUnica";
 
 /**
  * BBT: pagina unei tabere în hub, `/cont/tabara/:id`. Copia lui `website/src/app/my-camp/[id]/`
@@ -68,6 +76,9 @@ import {
  *
  * ⚠️ Notițele LIVE se scriu pe pagina lor (`NotitaLive.tsx`), peste același document Yjs ca site-ul. Un `textarea` cu PUT
  * aici ar suprascrie starea CRDT a celorlalți; aici se vede doar previzualizarea.
+ *
+ * Din 22 nov 2026 piesa se încarcă din cardul sesiunii (`IncarcaPiesaSesiunii.tsx`), nu din fila „Piese” (fostă „Playlist”):
+ * design `admin/docs/plans/2026-11-22-piesa-sesiunii-artwork-design.md`. Cardul își arată și piesele, cu coperta și play.
  */
 
 interface InfoTabara {
@@ -80,6 +91,9 @@ interface InfoTabara {
     menuZilnic: string | null;
     mentorNume: string | null;
     mentorBio: string | null;
+    /** Afișul și coperta taberei: rezerva pentru piesele fără artwork (cele de dinainte de 22 nov 2026). */
+    afisUrl?: string | null;
+    imgUrl?: string | null;
   };
   room: {
     numar: string;
@@ -98,15 +112,27 @@ interface Sesiune extends SesiunePentruUrcare {
   endTime: string;
   studio: { numar: number; locatie: string; echipamente: string | null };
   formator: { id: string; nume: string } | null;
+  /** Producătorul executiv (22 nov 2026): intră singur printre autorii piesei sesiunii, ca membrii ei. */
+  producator?: OmTabara | null;
+  /**
+   * Sesiunea a început, deci i se poate încărca piesa (D3). Regula o calculează serverul, ca site-ul, hub-ul și aplicația să
+   * n-o copieze. Lipsă = admin mai vechi: atunci butonul rămâne, iar serverul refuză cu motivul lui.
+   */
+  poateIncarca?: boolean;
   note: { content: string; updatedAt: string } | null;
   participants: { participant: Coleg }[];
 }
 
+/** Artwork-ul piesei; piesele de dinainte de 22 nov 2026 n-au, și cad pe afișul sau coperta taberei, ca pe site. */
+const copertaPiesei = (p: Piesa, camp: InfoTabara["camp"]) =>
+  p.coverUrl ?? camp.afisUrl ?? camp.imgUrl ?? null;
+
 // Filele de sub cele trei coloane (23e). „Program" = programul pe zile, meniul și mentorul (fosta filă „Info").
+// „Piese”, nu „Playlist” (userul, 22 nov 2026, D12): piesele se încarcă din sesiuni, fila doar le adună.
 const FILE = [
   { id: "program", text: "Program & masă" },
   { id: "sesiuni", text: "Sesiuni" },
-  { id: "playlist", text: "Playlist" },
+  { id: "piese", text: "Piese" },
   { id: "camera", text: "Camera" },
 ] as const;
 type Fila = (typeof FILE)[number]["id"];
@@ -158,8 +184,11 @@ export function Tabara(props: { id: string }) {
   }));
   // `?fila=camera` și `?la=acte`: scurtăturile de pe cardul din My Camps.
   const adresa = new URLSearchParams(useLocation().search);
+  // `?fila=playlist` vine din linkurile de dinainte de 22 nov 2026, când fila se chema așa.
+  const filaCeruta =
+    adresa.get("fila") === "playlist" ? "piese" : adresa.get("fila");
   const [fila, setFila] = createSignal<Fila>(
-    FILE.find((f) => f.id === adresa.get("fila"))?.id ?? "program",
+    FILE.find((f) => f.id === filaCeruta)?.id ?? "program",
   );
   createEffect(() => {
     if (info.data && adresa.get("la") === "acte") {
@@ -271,10 +300,10 @@ export function Tabara(props: { id: string }) {
               }}
             >
               <div id="bbt-acte" style={{ "scroll-margin-top": "16px" }}>
-              <PlataSiDocumente
-                experienta={experienta()}
-                inscriere={inscriere()}
-              />
+                <PlataSiDocumente
+                  experienta={experienta()}
+                  inscriere={inscriere()}
+                />
               </div>
               <ProgramAzi d={d()} laToate={() => mergiLa("program")} />
               <CameraPeScurt d={d()} laDetalii={() => mergiLa("camera")} />
@@ -333,17 +362,20 @@ export function Tabara(props: { id: string }) {
                     sesiuni={sesiuni.data ?? []}
                     incarc={sesiuni.isLoading}
                     notita={notita.data?.content ?? ""}
+                    piese={playlist.data ?? []}
+                    participanti={d().participanti}
+                    coperta={(p) => copertaPiesei(p, d().camp)}
+                    laIncarcat={() => void playlist.refetch()}
                   />
                 </Match>
-                <Match when={fila() === "playlist"}>
+                <Match when={fila() === "piese"}>
                   <Show when={!playlist.isLoading} fallback={<Incarcare />}>
                     <Playlist
                       campId={props.id}
                       dataEnd={d().camp.dataEnd}
                       initiale={playlist.data ?? []}
-                      sesiuni={sesiuni.data ?? []}
-                      colegi={d().participanti}
-                      euId={d().currentParticipantId}
+                      coperta={(p) => copertaPiesei(p, d().camp)}
+                      laSesiuni={() => setFila("sesiuni")}
                     />
                   </Show>
                 </Match>
@@ -1048,7 +1080,38 @@ function FilaSesiuni(props: {
   sesiuni: Sesiune[];
   incarc: boolean;
   notita: string;
+  piese: Piesa[];
+  participanti: Coleg[];
+  coperta: (p: Piesa) => string | null;
+  laIncarcat: () => void;
 }) {
+  // Un singur formular deschis odată, pe cardul sesiunii lui (D2): piesa se încarcă din sesiunea în care s-a lucrat.
+  const [formular, setFormular] = createSignal<string | null>(null);
+
+  // Piesele de pe cardurile sesiunilor cântă printr-un singur element audio, înscris în `redareUnica.ts`: pornit aici, tac
+  // piesele din fila Piese și ascultarea din formular.
+  const audio = new Audio();
+  audio.preload = "none";
+  const [cantaId, setCantaId] = createSignal<string | null>(null);
+  audio.onplay = () => setCantaId(audio.dataset.piesa ?? null);
+  audio.onpause = () => setCantaId(null);
+  audio.onended = () => setCantaId(null);
+  const scoate = oSinguraPiesa(audio);
+  onCleanup(() => {
+    scoate();
+    audio.pause();
+    audio.removeAttribute("src");
+    audio.load();
+  });
+  const comuta = (p: Piesa) => {
+    if (cantaId() === p.id) return audio.pause();
+    if (audio.dataset.piesa !== p.id) {
+      audio.src = p.url;
+      audio.dataset.piesa = p.id;
+    }
+    void audio.play().catch(() => setCantaId(null));
+  };
+
   return (
     <Show when={!props.incarc} fallback={<Incarcare />}>
       <div style={{ display: "flex", "flex-direction": "column", gap: "12px" }}>
@@ -1063,180 +1126,381 @@ function FilaSesiuni(props: {
         >
           <For each={props.sesiuni}>
             {(s) => (
-              <Card
-                style={{
-                  padding: "16px 18px",
-                  display: "flex",
-                  "flex-direction": "column",
-                  gap: "10px",
+              <CardSesiune
+                s={s}
+                euId={props.euId}
+                euNume={props.euNume}
+                campId={props.id}
+                piese={props.piese.filter((p) => p.sessionId === s.id)}
+                participanti={props.participanti}
+                coperta={props.coperta}
+                cantaId={cantaId()}
+                laPlay={comuta}
+                deschis={formular() === s.id}
+                laDeschide={() => setFormular(s.id)}
+                laInchide={() => setFormular(null)}
+                laIncarcat={() => {
+                  setFormular(null);
+                  props.laIncarcat();
                 }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    "justify-content": "space-between",
-                    gap: "12px",
-                  }}
-                >
-                  <div>
-                    <p style={{ margin: 0, color: C.text, "font-weight": 700 }}>
-                      Sesiunea {s.numar}
-                    </p>
-                    <Show when={s.formator}>
-                      <p
-                        style={{
-                          margin: "2px 0 0",
-                          color: C.slab,
-                          "font-size": "14px",
-                        }}
-                      >
-                        cu {s.formator!.nume}
-                      </p>
-                    </Show>
-                  </div>
-                  <span
-                    style={{
-                      "align-self": "flex-start",
-                      padding: "3px 10px",
-                      "border-radius": "999px",
-                      background: C.fundal,
-                      color: C.stins,
-                      "font-size": "14px",
-                      "font-weight": 600,
-                    }}
-                  >
-                    Studio {s.studio.numar}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    "flex-wrap": "wrap",
-                    gap: "4px 14px",
-                    color: C.stins,
-                    "font-size": "14px",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      "align-items": "center",
-                      gap: "6px",
-                    }}
-                  >
-                    <Symbol size={13}>schedule</Symbol>
-                    {ziScurta(s.startTime)} · {ora(s.startTime)} -{" "}
-                    {ora(s.endTime)}
-                  </span>
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      "align-items": "center",
-                      gap: "6px",
-                    }}
-                  >
-                    <Symbol size={13}>location_on</Symbol>
-                    {s.studio.locatie}
-                  </span>
-                </div>
-                <Show when={s.participants.length}>
-                  <div>
-                    <p
-                      style={{
-                        margin: "0 0 6px",
-                        color: C.slab,
-                        "font-size": "14px",
-                      }}
-                    >
-                      Colegii din studio
-                    </p>
-                    <div
-                      style={{
-                        display: "flex",
-                        "flex-wrap": "wrap",
-                        gap: "6px",
-                      }}
-                    >
-                      <For each={s.participants}>
-                        {({ participant: p }) => (
-                          <span
-                            style={{
-                              padding: "3px 10px",
-                              "border-radius": "999px",
-                              background: C.fundal,
-                              color: C.stins,
-                              "font-size": "14px",
-                            }}
-                          >
-                            {p.numeComplet.split(" ")[0]}
-                          </span>
-                        )}
-                      </For>
-                    </div>
-                  </div>
-                </Show>
-                {/* Notițele live, pe pagina lor din hub (vezi antetul fișierului). */}
-                <a
-                  href={`/cont/notita/${s.id}?${new URLSearchParams({
-                    participant: props.euId,
-                    nume: props.euNume,
-                    studio: String(s.studio.numar),
-                  })}`}
-                  style={{
-                    display: "block",
-                    padding: "10px 12px",
-                    "border-radius": "12px",
-                    border: `1px solid ${C.linie}`,
-                    background: "rgba(255,215,49,0.06)",
-                    "text-decoration": "none",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "flex",
-                      "justify-content": "space-between",
-                      gap: "8px",
-                      color: C.camps,
-                      "font-size": "14px",
-                      "font-weight": 600,
-                    }}
-                  >
-                    Notițele sesiunii · live
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        "align-items": "center",
-                        gap: "4px",
-                        color: C.text,
-                      }}
-                    >
-                      Deschide
-                    </span>
-                  </span>
-                  <Show when={s.note?.content}>
-                    <span
-                      style={{
-                        display: "-webkit-box",
-                        "-webkit-line-clamp": 3,
-                        "-webkit-box-orient": "vertical",
-                        overflow: "hidden",
-                        "margin-top": "6px",
-                        color: C.stins,
-                        "font-size": "14px",
-                        "white-space": "pre-line",
-                      }}
-                    >
-                      {s.note!.content}
-                    </span>
-                  </Show>
-                </a>
-              </Card>
+              />
             )}
           </For>
           <NotitaPrivata id={props.id} initial={props.notita} />
         </Show>
       </div>
     </Show>
+  );
+}
+
+function CardSesiune(props: {
+  s: Sesiune;
+  euId: string;
+  euNume: string;
+  campId: string;
+  piese: Piesa[];
+  participanti: Coleg[];
+  coperta: (p: Piesa) => string | null;
+  cantaId: string | null;
+  laPlay: (p: Piesa) => void;
+  deschis: boolean;
+  laDeschide: () => void;
+  laInchide: () => void;
+  laIncarcat: () => void;
+}) {
+  const s = () => props.s;
+  // „cu X”: producătorul executiv, cu numele de scenă dacă îl are. `formator` e rezerva pentru adminul mai vechi.
+  const cuCine = () =>
+    s().producator ? numeScena(s().producator!) : s().formator?.nume;
+  return (
+    <Card
+      style={{
+        padding: "16px 18px",
+        display: "flex",
+        "flex-direction": "column",
+        gap: "10px",
+        // Lista de căutare a autorilor iese din card; `Card` taie altfel tot ce trece de margine.
+        overflow: props.deschis ? "visible" : "hidden",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          "justify-content": "space-between",
+          gap: "12px",
+        }}
+      >
+        <div>
+          <p style={{ margin: 0, color: C.text, "font-weight": 700 }}>
+            Sesiunea {s().numar}
+          </p>
+          <Show when={cuCine()}>
+            <p
+              style={{
+                margin: "2px 0 0",
+                color: C.slab,
+                "font-size": "14px",
+              }}
+            >
+              cu {cuCine()}
+            </p>
+          </Show>
+        </div>
+        <span
+          style={{
+            "align-self": "flex-start",
+            padding: "3px 10px",
+            "border-radius": "999px",
+            background: C.fundal,
+            color: C.stins,
+            "font-size": "14px",
+            "font-weight": 600,
+          }}
+        >
+          Studio {s().studio.numar}
+        </span>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          "flex-wrap": "wrap",
+          gap: "4px 14px",
+          color: C.stins,
+          "font-size": "14px",
+        }}
+      >
+        <span
+          style={{
+            display: "inline-flex",
+            "align-items": "center",
+            gap: "6px",
+          }}
+        >
+          <Symbol size={14}>schedule</Symbol>
+          {ziScurta(s().startTime)} · {ora(s().startTime)} - {ora(s().endTime)}
+        </span>
+        <span
+          style={{
+            display: "inline-flex",
+            "align-items": "center",
+            gap: "6px",
+          }}
+        >
+          <Symbol size={14}>location_on</Symbol>
+          {s().studio.locatie}
+        </span>
+      </div>
+      <Show when={s().participants.length}>
+        <div>
+          <p
+            style={{
+              margin: "0 0 6px",
+              color: C.slab,
+              "font-size": "14px",
+            }}
+          >
+            Colegii din studio
+          </p>
+          <div
+            style={{
+              display: "flex",
+              "flex-wrap": "wrap",
+              gap: "6px",
+            }}
+          >
+            <For each={s().participants}>
+              {({ participant: p }) => (
+                <span
+                  style={{
+                    padding: "3px 10px",
+                    "border-radius": "999px",
+                    background: C.fundal,
+                    color: C.stins,
+                    "font-size": "14px",
+                  }}
+                >
+                  {/* Numele de scenă, ca pe site și în aplicație: așa se știu oamenii în studio. */}
+                  {p.id === props.euId
+                    ? "Tu"
+                    : p.numeAfisat?.trim() || p.numeComplet.split(" ")[0]}
+                </span>
+              )}
+            </For>
+          </div>
+        </div>
+      </Show>
+
+      {/* Piesele sesiunii, cu coperta și play. */}
+      <For each={props.piese}>
+        {(p) => {
+          const canta = () => props.cantaId === p.id;
+          return (
+            <div
+              style={{
+                display: "flex",
+                "align-items": "center",
+                gap: "12px",
+                padding: "10px",
+                "border-radius": "16px",
+                background: C.fundal,
+              }}
+            >
+              {/* Rozul = acțiunea: play-ul e de apăsat. */}
+              <button
+                type="button"
+                onClick={() => props.laPlay(p)}
+                aria-label={
+                  canta() ? `Pauză, ${p.title}` : `Ascultă ${p.title}`
+                }
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  "border-radius": "50%",
+                  border: 0,
+                  background: C.roz,
+                  color: C.negru,
+                  display: "flex",
+                  "align-items": "center",
+                  "justify-content": "center",
+                  "flex-shrink": 0,
+                  cursor: "pointer",
+                }}
+              >
+                <Show
+                  when={canta()}
+                  fallback={<Symbol size={20}>play_arrow</Symbol>}
+                >
+                  <Symbol size={20}>pause</Symbol>
+                </Show>
+              </button>
+              <Show
+                when={props.coperta(p)}
+                fallback={
+                  <span
+                    style={{
+                      width: "48px",
+                      height: "48px",
+                      "border-radius": "10px",
+                      background: C.galben,
+                      "flex-shrink": 0,
+                    }}
+                  />
+                }
+              >
+                {(url) => (
+                  <img
+                    src={url()}
+                    alt=""
+                    style={{
+                      width: "48px",
+                      height: "48px",
+                      "border-radius": "10px",
+                      "object-fit": "cover",
+                      "flex-shrink": 0,
+                    }}
+                  />
+                )}
+              </Show>
+              <div style={{ "min-width": 0, flex: 1 }}>
+                <p
+                  style={{
+                    margin: 0,
+                    color: C.text,
+                    "font-size": "16px",
+                    "font-weight": 700,
+                    overflow: "hidden",
+                    "text-overflow": "ellipsis",
+                    "white-space": "nowrap",
+                  }}
+                >
+                  {p.title}
+                </p>
+                <p
+                  style={{
+                    margin: 0,
+                    color: C.stins,
+                    "font-size": "14px",
+                    overflow: "hidden",
+                    "text-overflow": "ellipsis",
+                    "white-space": "nowrap",
+                  }}
+                >
+                  {[
+                    p.duration
+                      ? `${Math.floor(p.duration / 60)}:${String(p.duration % 60).padStart(2, "0")}`
+                      : null,
+                    (p.contributori ?? p.echipa ?? [])
+                      .map((c) => c.numeComplet.split(" ")[0])
+                      .join(", ") || "Piesa sesiunii",
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+              </div>
+            </div>
+          );
+        }}
+      </For>
+
+      <Show
+        when={props.deschis}
+        fallback={
+          // Doar după ce începe sesiunea: înainte n-are ce piesă să existe (D3). Regula vine gata de la server.
+          <Show
+            when={s().poateIncarca !== false}
+            fallback={
+              <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
+                Piesa se încarcă după ce începe sesiunea.
+              </p>
+            }
+          >
+            <div>
+              <button
+                type="button"
+                onClick={() => props.laDeschide()}
+                style={butonMic("roz")}
+              >
+                <Symbol size={16}>upload</Symbol>
+                {props.piese.length
+                  ? "Mai încarcă o piesă"
+                  : "Încarcă piesa sesiunii"}
+              </button>
+            </div>
+          </Show>
+        }
+      >
+        <IncarcaPiesaSesiunii
+          campId={props.campId}
+          sesiune={{
+            id: s().id,
+            numar: s().numar,
+            studio: s().studio.numar,
+          }}
+          colegiSesiune={s().participants.map(({ participant }) => participant)}
+          producator={s().producator ?? null}
+          oameniTabara={props.participanti}
+          euId={props.euId}
+          laIncarcat={() => props.laIncarcat()}
+          laInchide={() => props.laInchide()}
+        />
+      </Show>
+
+      {/* Notițele live, pe pagina lor din hub (vezi antetul fișierului). */}
+      <a
+        href={`/cont/notita/${s().id}?${new URLSearchParams({
+          participant: props.euId,
+          nume: props.euNume,
+          studio: String(s().studio.numar),
+        })}`}
+        style={{
+          display: "block",
+          padding: "10px 12px",
+          "border-radius": "12px",
+          border: `1px solid ${C.linie}`,
+          background: "rgba(255,215,49,0.06)",
+          "text-decoration": "none",
+        }}
+      >
+        <span
+          style={{
+            display: "flex",
+            "justify-content": "space-between",
+            gap: "8px",
+            color: C.camps,
+            "font-size": "14px",
+            "font-weight": 600,
+          }}
+        >
+          Notițele sesiunii · live
+          <span
+            style={{
+              display: "inline-flex",
+              "align-items": "center",
+              gap: "4px",
+              color: C.text,
+            }}
+          >
+            Deschide
+          </span>
+        </span>
+        <Show when={s().note?.content}>
+          <span
+            style={{
+              display: "-webkit-box",
+              "-webkit-line-clamp": 3,
+              "-webkit-box-orient": "vertical",
+              overflow: "hidden",
+              "margin-top": "6px",
+              color: C.stins,
+              "font-size": "14px",
+              "white-space": "pre-line",
+            }}
+          >
+            {s().note!.content}
+          </span>
+        </Show>
+      </a>
+    </Card>
   );
 }
 

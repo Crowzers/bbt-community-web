@@ -6,7 +6,15 @@ import { useNavigate } from "@revolt/routing";
 
 import { BBT_SITE_URL } from "../config";
 
-import { lei, ora, useCont, useExperiente, zi, zileRo } from "./date";
+import {
+  faraComanda,
+  lei,
+  ora,
+  useCont,
+  useExperiente,
+  zi,
+  zileRo,
+} from "./date";
 import { GOL_ECHIPA, Gol, ratePlatite } from "./ExperienteTelefon";
 import { ButonPlateste } from "./Plata";
 import type { Experienta } from "./tipuri";
@@ -313,10 +321,11 @@ function CardExperienta(props: { e: Experienta }) {
       ? (inscriere()?.penalizareTransa2 ?? 0)
       : 0;
 
-  // Tabăra produsă (19 nov 2026): fără comandă, deci fără plată de arătat.
-  const producator = () => e().rol === "producator";
+  // Tabăra produsă (19 nov 2026) sau doar văzută de echipă (22 nov 2026): fără comandă, deci fără plată de arătat.
+  const producator = () => faraComanda(e());
   const stare = () => {
     const p = e().plata;
+    if (e().rol === "echipa") return <Stare fel="verde">Echipă</Stare>;
     if (producator()) return <Stare fel="verde">Producător</Stare>;
     if (complet()) return <Stare fel="verde">{faraPlata() ? "Confirmat" : "Plătit"}</Stare>;
     if (p?.actiune === "contract") return <Stare fel="galben">Contract de semnat</Stare>;
@@ -456,7 +465,11 @@ function CardExperienta(props: { e: Experienta }) {
                   when={!faraPlata()}
                   fallback={
                     <b style={{ "font-weight": 700 }}>
-                      {producator() ? "Conduci sesiuni în tabăra asta" : "Nu ai nimic de plătit"}
+                      {e().rol === "echipa"
+                        ? "Ești în echipa taberei"
+                        : producator()
+                          ? "Conduci sesiuni în tabăra asta"
+                          : "Nu ai nimic de plătit"}
                     </b>
                   }
                 >

@@ -6,7 +6,6 @@ import { useSesiune } from "../date";
 import { C } from "../ui";
 
 import { diferenta, mutaEditarea, mutaPozitia } from "./diferentaNotita";
-import { InstrumentaleNotita } from "./InstrumentaleNotita";
 import { LegaturaNotita, type StareNotita } from "./legaturaNotita";
 
 /** Cât ține serverul din notiță (`MAX_LEN` din `admin/lib/notite-live.ts`): ce trece de atât nu s-ar mai salva. */
@@ -35,6 +34,9 @@ function culoarePentru(id: string) {
  * omul putea da de login. Același document Yjs ca site-ul și aplicația (`mobil/src/notita/useNotitaLive.ts`, de unde e
  * copiată și regula de mai jos).
  *
+ * Fără instrumentale (22 nov 2026, cererea userului, la fel pe site și în aplicație): notița e doar textul comun. Lista și
+ * urcarea lor stăteau aici, în `InstrumentaleNotita.tsx`, șters atunci.
+ *
  * ⚠️ Textul venit din rețea nu se pune în câmp cât omul tastează: `randat` ține minte exact ce e în câmp, editarea se
  * calculează față de el și se mută peste documentul de acum (`mutaEditarea`). Altfel textul colegului ar fi părut șters.
  */
@@ -48,7 +50,6 @@ export function NotitaLive() {
   const sesiune = useSesiune();
   const [stare, setStare] = createSignal<StareNotita>("conectare");
   const [prezenti, setPrezenti] = createSignal<string[]>([]);
-  const [semnal, setSemnal] = createSignal(0);
   let camp: HTMLTextAreaElement | undefined;
   let randat = "";
   let ultimaTasta = 0;
@@ -65,7 +66,6 @@ export function NotitaLive() {
       laText: randeaza,
       laStare: setStare,
       laPrezenti: setPrezenti,
-      laInstrumentale: () => setSemnal((n) => n + 1),
     },
   );
 
@@ -147,12 +147,6 @@ export function NotitaLive() {
         <span style={{ flex: 1 }}>{mesaj()}</span>
         <span style={{ "font-weight": 400 }}>Studio {cerere.studio}</span>
       </div>
-      <InstrumentaleNotita
-        sesiune={sesiune}
-        sesiuneId={params.id}
-        euId={cerere.participant ?? ""}
-        semnal={semnal()}
-      />
       <textarea
         ref={camp}
         onInput={laScris}

@@ -12,7 +12,7 @@ import {
   ziScurta,
 } from "../telefon";
 
-import { lei, ora, useExperiente, zileRo } from "./date";
+import { faraComanda, lei, ora, useExperiente, zileRo } from "./date";
 import { QrMare } from "./Experiente";
 import { BaraRate } from "./ExperienteTelefon";
 import { ButonPlateste } from "./Plata";
@@ -252,14 +252,18 @@ export function ExperientaTelefon(props: { id: string }) {
                 <Rand
                   text="Program și sesiuni"
                   laApasare={() => navigate(`/cont/tabara/${e()!.id}`)}
-                  cuLinie
+                  cuLinie={!faraComanda(e()!)}
                 />
               </Show>
-              <Rand
-                text="Plăți și documente"
-                detaliu="Contract · Factură"
-                laApasare={() => navigate("/cont/plati")}
-              />
+              {/* Producătorul n-are comandă la tabăra pe care o conduce (19 nov 2026), nici echipa la cele pe care doar le
+                  vede (22 nov 2026): n-au ce plăti sau semna. Ca în aplicație. */}
+              <Show when={!faraComanda(e()!)}>
+                <Rand
+                  text="Plăți și documente"
+                  detaliu="Contract · Factură"
+                  laApasare={() => navigate("/cont/plati")}
+                />
+              </Show>
             </div>
           </Show>
         </div>
