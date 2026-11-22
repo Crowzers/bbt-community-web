@@ -102,7 +102,9 @@ const STILURI: Record<Exclude<CheieInel, "beginner">, Stil> = {
     tLumina: 1.2,
     tureGradient: 2,
     aura: "#FFD731",
-    orbita: true,
+    // Fără bila care se rotește pe lângă inel, nici la Icon (22 nov 2026, userul: „ți-am zis să ștergi bila aia”). Codul orbitei
+    // rămâne pentru cine o vrea înapoi; acum niciun nivel n-o mai pornește. La fel pe site și în aplicație.
+    orbita: false,
   },
   // Echipa BBT: toată paleta, în afara scării (decizia 8).
   echipa: {
@@ -120,7 +122,9 @@ const STILURI: Record<Exclude<CheieInel, "beginner">, Stil> = {
     tLumina: 2,
     tureGradient: 1,
     aura: "#FFA8CD",
-    orbita: true,
+    // Fără bila care se rotea pe lângă inel (22 nov 2026, userul: „e frumos cercul, dar e un punct care se învârte odată cu el
+    // în exterior și nu are niciun sens”). La fel pe site, în aplicație și în hub.
+    orbita: false,
   },
 };
 

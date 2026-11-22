@@ -12,6 +12,7 @@ import {
   ziScurta,
 } from "../telefon";
 
+import { FereastraCumAjungi } from "./CumAjungi";
 import { faraComanda, lei, ora, useExperiente, zileRo } from "./date";
 import { QrMare } from "./Experiente";
 import { BaraRate } from "./ExperienteTelefon";
@@ -29,6 +30,7 @@ export function ExperientaTelefon(props: { id: string }) {
   const navigate = useNavigate();
   const experiente = useExperiente();
   const [qrMare, setQrMare] = createSignal(false);
+  const [cumAjungi, setCumAjungi] = createSignal(false);
   const e = () => {
     const date = experiente.data;
     return date
@@ -252,8 +254,27 @@ export function ExperientaTelefon(props: { id: string }) {
                 <Rand
                   text="Program și sesiuni"
                   laApasare={() => navigate(`/cont/tabara/${e()!.id}`)}
-                  cuLinie={!faraComanda(e()!)}
+                  cuLinie={!faraComanda(e()!) || !!e()!.navigare}
                 />
+              </Show>
+              {/* „Cum ajungi” (22 nov 2026): doar aici, nu și pe cardul din Experiențe, unde apăsarea deschide deja
+                  detaliul. Ca în aplicație. */}
+              <Show when={e()!.navigare}>
+                {(n) => (
+                  <>
+                    <Rand
+                      text="Cum ajungi"
+                      laApasare={() => setCumAjungi(true)}
+                      cuLinie={!faraComanda(e()!)}
+                    />
+                    <Show when={cumAjungi()}>
+                      <FereastraCumAjungi
+                        navigare={n()}
+                        laInchidere={() => setCumAjungi(false)}
+                      />
+                    </Show>
+                  </>
+                )}
               </Show>
               {/* Producătorul n-are comandă la tabăra pe care o conduce (19 nov 2026), nici echipa la cele pe care doar le
                   vede (22 nov 2026): n-au ce plăti sau semna. Ca în aplicație. */}

@@ -590,7 +590,7 @@ export function CampText(props: {
   randuri?: number;
   /** Pe pagina albă (23f): pastilă gri de 48, nu câmp alb pe cardul gri. */
   peAlb?: boolean;
-  /** Când omul iese din câmp. Doar la câmpul cu `inainte`, singurul care cere o verificare. */
+  /** Când omul iese din câmp. Doar la câmpul cu `inainte` (azi îl folosește adresa profilului, care cere o verificare). */
   laIesire?: () => void;
 }) {
   const stil = (): JSX.CSSProperties =>
@@ -649,10 +649,23 @@ export function CampText(props: {
             gap: "2px",
           }}
         >
-          <span style={{ color: C.slab }}>{props.inainte}</span>
+          {/* Prefixul nu se rupe și nu se strânge: „open.spotify.com/artist/” pe telefon lasă câmpul îngust, dar adresa rămâne
+              întreagă la vedere, iar textul lung alunecă în câmp. */}
+          <span
+            style={{ color: C.slab, "white-space": "nowrap", "flex-shrink": 0 }}
+          >
+            {props.inainte}
+          </span>
+          {/* Câmpul cu prefix ține mereu un nume dintr-o adresă (username-ul profilului, rețelele din profil): fără majusculă
+              pusă de tastatură și fără corectură, care pe iPhone schimba „numele.tau” în alt cuvânt. */}
           <input
             value={props.valoare}
             placeholder={props.placeholder}
+            maxLength={props.maxim}
+            inputMode={props.inputmode}
+            autocapitalize="none"
+            autocorrect="off"
+            spellcheck={false}
             onInput={(e) => props.laSchimbare(e.currentTarget.value)}
             onBlur={() => props.laIesire?.()}
             style={{

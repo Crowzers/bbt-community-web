@@ -6,6 +6,7 @@ import { useNavigate } from "@revolt/routing";
 
 import { BBT_SITE_URL } from "../config";
 
+import { LocatieCumAjungi } from "./CumAjungi";
 import {
   faraComanda,
   lei,
@@ -138,9 +139,12 @@ export function Experiente(props: {
   );
 }
 
-/** „12–19 DEC · SINAIA" sau „AZI · 19:00 · CONTROL CLUB" (23b). */
-function antet(e: Experienta) {
-  const loc = e.locatie ? ` · ${e.locatie}` : "";
+/**
+ * „12–19 DEC · SINAIA" sau „AZI · 19:00 · CONTROL CLUB" (23b). Cu `cuLocatie: false`, doar partea de timp: cardul activ
+ * pune locația separat, apăsabilă pentru „Cum ajungi”.
+ */
+function antet(e: Experienta, cuLocatie = true) {
+  const loc = cuLocatie && e.locatie ? ` · ${e.locatie}` : "";
   if (e.fel === "workshop") {
     return `${e.azi ? "Azi" : zi(e.dataStart)} · ${ora(e.dataStart)}${loc}`;
   }
@@ -393,10 +397,21 @@ function CardExperienta(props: { e: Experienta }) {
           >
             {e().titlu}
           </h2>
+          {/* „Cum ajungi” (22 nov 2026): locația devine apăsabilă doar când are `navigare`, altfel rămâne textul de dinainte. */}
           <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
-            {[antet(e()), inscriere()?.camp.durataText, FEL[e().fel]]
+            {antet(e(), false)}
+            <Show when={e().locatie}>
+              {(loc) => (
+                <>
+                  {" · "}
+                  <LocatieCumAjungi navigare={e().navigare} eticheta={loc()} />
+                </>
+              )}
+            </Show>
+            {[inscriere()?.camp.durataText, FEL[e().fel]]
               .filter(Boolean)
-              .join(" · ")}
+              .map((x) => ` · ${x}`)
+              .join("")}
           </p>
         </div>
         {/* Scurtăturile din 23b, spre locul lor din pagina taberei (23e). */}

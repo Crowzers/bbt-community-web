@@ -142,7 +142,10 @@ export interface Participant {
   mainRole: string | null;
   mainGenre?: string | null;
   musicGenres: string[];
-  /** Rețea → adresă (`instagram`, `spotify`, `soundcloud`…), curățate de admin la salvare. */
+  /**
+   * Rețea → adresa întreagă, făcută de admin din username (`instagram`, `tiktok`, `youtube`, `spotify`; `retele.ts`). Un cont
+   * vechi mai poate avea `soundcloud` sau `website`: nu se mai arată, iar la următoarea salvare a linkurilor cad.
+   */
   socialLinks: Record<string, string> | null;
   phoneVerified: boolean;
   emailVerified: boolean;
@@ -227,6 +230,18 @@ export interface Experienta {
    * `faraComanda` din `date.ts`.
    */
   rol?: "producator" | "echipa";
+  /**
+   * „Cum ajungi” (22 nov 2026): linkurile de navigare spre tabără, gata făcute de admin (`lib/reguli/navigare.ts`), ca site-ul,
+   * hub-ul și aplicația să ducă în același loc. `null` când tabăra n-are adresa pentru GPS, comanda nu e plătită sau e
+   * workshop. Opțional: un admin încă nedeployat nu-l trimite deloc, iar „Cum ajungi” pur și simplu nu apare.
+   */
+  navigare?: LinkuriNavigare | null;
+}
+
+export interface LinkuriNavigare {
+  google: string;
+  waze: string;
+  apple: string;
 }
 
 export interface Experiente {

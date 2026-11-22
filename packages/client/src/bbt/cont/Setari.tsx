@@ -14,6 +14,13 @@ import { comutaSunetele, sunetePornite } from "../sunete";
 import { CHEIE_CONT, useCont, useSesiune } from "./date";
 
 import { ListaNotificari } from "./Notificari";
+import {
+  RETELE,
+  caInCamp,
+  exempluRetea,
+  linkuriDeTrimis,
+  linkuriInCampuri,
+} from "./retele";
 import { DateFacturare, DatePersonale } from "./SetariDate";
 import type { Participant } from "./tipuri";
 import { RandComutator } from "./VoceVideo";
@@ -89,21 +96,6 @@ const coloana = {
 
 /* ── Profil public (23f) ─────────────────────────────────────────────────────────────────── */
 
-/** Rețelele din 23f. Celelalte pe care le știe adminul (YouTube, TikTok, site) rămân cum sunt, nu se șterg la salvare. */
-const RETELE = [
-  {
-    cheie: "spotify",
-    nume: "Spotify",
-    exemplu: "https://open.spotify.com/artist/…",
-  },
-  {
-    cheie: "soundcloud",
-    nume: "SoundCloud",
-    exemplu: "https://soundcloud.com/…",
-  },
-  { cheie: "instagram", nume: "Instagram", exemplu: "https://instagram.com/…" },
-] as const;
-
 /**
  * Numele rolurilor și genurilor („sound_engineer" → „Sound Engineer"). În bază stau slug-urile; lista cu nume e în
  * admin, aceeași pe care o citesc onboardingul site-ului și aplicația de telefon.
@@ -145,9 +137,9 @@ function FormularProfil(props: { p: Participant }) {
   const [numeScena, setNumeScena] = createSignal(p0.numeAfisat ?? "");
   const [username, setUsername] = createSignal(p0.username ?? "");
   const [bio, setBio] = createSignal(p0.bio ?? "");
-  const [retele, setRetele] = createSignal<Record<string, string>>({
-    ...(p0.socialLinks ?? {}),
-  });
+  // Din 22 nov 2026 aceleași patru rețele ca peste tot (`retele.ts`), cu username-ul în câmp. Până atunci pagina avea doar
+  // trei (Spotify, SoundCloud, Instagram), cu adresa întreagă.
+  const [retele, setRetele] = createSignal(linkuriInCampuri(p0.socialLinks));
   const [lucrez, setLucrez] = createSignal(false);
   const [stare, setStare] = createSignal<Stare>(null);
   const usernameNou = () => username().trim().toLowerCase();
@@ -177,9 +169,15 @@ function FormularProfil(props: { p: Participant }) {
           username: usernameNou(),
           bio: bio(),
           // Rețelele golite se trimit ca text gol: adminul le șterge.
-          socialLinks: retele(),
+          socialLinks: linkuriDeTrimis(retele()),
         }),
       });
+      // Ce a păstrat adminul („@nume” → „nume”, linkul lipit → username-ul din el), ca în câmp să rămână ce e pe profil.
+      setRetele((x) =>
+        Object.fromEntries(
+          RETELE.map(({ cheie }) => [cheie, caInCamp(cheie, x[cheie] ?? "")]),
+        ),
+      );
       await qc.invalidateQueries({ queryKey: CHEIE_CONT });
       setStare({ tip: "ok", text: "Salvat." });
     } catch (err) {
@@ -333,17 +331,23 @@ function FormularProfil(props: { p: Participant }) {
               placeholder="Două rânduri despre ce faci și ce cauți."
             />
           </div>
+          {/* Rețelele pe toată lățimea: în coloana de 240, după „open.spotify.com/artist/” câmpul rămânea de câțiva pixeli. */}
           <For each={RETELE}>
             {(r) => (
-              <CampText
-                peAlb
-                eticheta={r.nume}
-                tip="url"
-                inputmode="url"
-                valoare={retele()[r.cheie] ?? ""}
-                laSchimbare={(v) => setRetele((x) => ({ ...x, [r.cheie]: v }))}
-                placeholder={r.exemplu}
-              />
+              <div style={{ "grid-column": "1 / -1" }}>
+                <CampText
+                  peAlb
+                  eticheta={r.nume}
+                  inainte={r.prefix}
+                  inputmode={r.cheie === "spotify" ? "url" : "text"}
+                  maxim={200}
+                  valoare={retele()[r.cheie] ?? ""}
+                  laSchimbare={(v) =>
+                    setRetele((x) => ({ ...x, [r.cheie]: v }))
+                  }
+                  placeholder={exempluRetea(r.cheie)}
+                />
+              </div>
             )}
           </For>
           {/* Enter dintr-un câmp salvează, ca butonul din titlu. */}

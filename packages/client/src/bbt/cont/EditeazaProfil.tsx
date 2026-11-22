@@ -8,6 +8,13 @@ import { useBeforeLeave } from "@revolt/routing";
 import { cerereCont } from "../tokenBbt";
 
 import { CHEIE_CONT, useSesiune } from "./date";
+import {
+  RETELE,
+  caInCamp,
+  exempluRetea,
+  linkuriDeTrimis,
+  linkuriInCampuri,
+} from "./retele";
 import { CuCont, DateCont, SchimbaPoza, ZonaDeRisc, useEtichete } from "./Setari";
 import { JUDETE, LUNI, TARI, VerificareTelefon } from "./SetariDate";
 import type { Participant } from "./tipuri";
@@ -24,24 +31,6 @@ import {
   TitluPagina,
   usernameBun,
 } from "./ui";
-
-/** Rețelele pe care le primește ruta, ca în aplicație și pe profilul public de pe site. */
-const RETELE = [
-  { cheie: "instagram", nume: "Instagram", exemplu: "@numele.tau" },
-  { cheie: "spotify", nume: "Spotify", exemplu: "https://open.spotify.com/..." },
-  { cheie: "youtube", nume: "YouTube", exemplu: "@numele.tau" },
-  { cheie: "soundcloud", nume: "SoundCloud", exemplu: "numele-tau" },
-  { cheie: "tiktok", nume: "TikTok", exemplu: "@numele.tau" },
-  { cheie: "website", nume: "Website", exemplu: "https://..." },
-];
-
-/** Rețelele unde omul scrie numele, nu adresa. */
-const PROFILURI: Record<string, (nume: string) => string> = {
-  instagram: (n) => `https://instagram.com/${n}`,
-  tiktok: (n) => `https://www.tiktok.com/@${n}`,
-  youtube: (n) => `https://www.youtube.com/@${n}`,
-  soundcloud: (n) => `https://soundcloud.com/${n}`,
-};
 
 const FACTURARE = [
   "tipPersoana",
@@ -72,7 +61,7 @@ function formularDin(p: Participant) {
     // Cel principal primul: așa se trimite înapoi, fără un al doilea selector pentru „principal".
     roluri: primulPrincipal(p.roles ?? [], p.mainRole),
     genuri: primulPrincipal(p.musicGenres ?? [], p.mainGenre),
-    linkuri: { ...(p.socialLinks ?? {}) } as Record<string, string>,
+    linkuri: linkuriInCampuri(p.socialLinks),
     prenume: p.prenume ?? "",
     numeFamilie: p.numeFamilie ?? "",
     telefon: p.telefon ?? "",
@@ -94,18 +83,6 @@ function formularDin(p: Participant) {
 }
 
 type Formular = ReturnType<typeof formularDin>;
-
-/**
- * Ruta cere o adresă întreagă, dar nimeni nu scrie „https://" de mână. ⚠️ „@andrei" ajungea `https://@andrei`: ruta îl primea ca
- * adresă validă, iar linkul de pe profil nu ducea nicăieri. La rețelele cu nume de utilizator, numele devine adresa profilului.
- */
-function adresaRetea(cheie: string, text: string) {
-  const t = text.trim();
-  if (!t || /^https?:\/\//i.test(t)) return t;
-  return cheie in PROFILURI && /^@?[\w.-]+$/.test(t)
-    ? PROFILURI[cheie](t.replace(/^@/, ""))
-    : `https://${t}`;
-}
 
 /**
  * BBT: „Editează profilul", copia ecranului `mobil/src/app/editeaza-profil.tsx`: tot contul pe un singur ecran, cu
@@ -220,12 +197,7 @@ function Formular(props: { p: Participant }) {
     setLucrez(true);
     setStare(null);
     try {
-      const linkuri = Object.fromEntries(
-        RETELE.map(({ cheie }) => [
-          cheie,
-          adresaRetea(cheie, x.linkuri[cheie] ?? ""),
-        ]).filter(([, url]) => url),
-      );
+      const linkuri = linkuriDeTrimis(x.linkuri);
       // Doar ce s-a schimbat: ruta verifică username-ul și sincronizează Community la fiecare câmp primit.
       const profil = {
         ...(x.numeAfisat !== b.numeAfisat && { numeAfisat: x.numeAfisat }),
@@ -271,7 +243,9 @@ function Formular(props: { p: Participant }) {
       const nou = {
         ...x,
         username: usernameNou(),
-        linkuri,
+        linkuri: Object.fromEntries(
+          RETELE.map(({ cheie }) => [cheie, caInCamp(cheie, linkuri[cheie])]),
+        ),
         prenume,
         numeFamilie,
       };
@@ -368,13 +342,14 @@ function Formular(props: { p: Participant }) {
                 {(r) => (
                   <CampText
                     eticheta={r.nume}
-                    inputmode="url"
+                    inainte={r.prefix}
+                    inputmode={r.cheie === "spotify" ? "url" : "text"}
                     maxim={200}
                     valoare={f().linkuri[r.cheie] ?? ""}
-                    laSchimbare={(url) =>
-                      schimba({ linkuri: { ...f().linkuri, [r.cheie]: url } })
+                    laSchimbare={(v) =>
+                      schimba({ linkuri: { ...f().linkuri, [r.cheie]: v } })
                     }
-                    placeholder={r.exemplu}
+                    placeholder={exempluRetea(r.cheie)}
                   />
                 )}
               </For>
