@@ -131,6 +131,8 @@ const copertaPiesei = (p: Piesa, camp: InfoTabara["camp"]) =>
 // „Piese”, nu „Playlist” (userul, 22 nov 2026, D12): piesele se încarcă din sesiuni, fila doar le adună.
 const FILE = [
   { id: "program", text: "Program & masă" },
+  // Mentorul în fila lui (userul, 22 nov 2026), ca pe site și în aplicație. Fila apare doar când tabăra are mentor.
+  { id: "mentor", text: "Mentor" },
   { id: "sesiuni", text: "Sesiuni" },
   { id: "piese", text: "Piese" },
   { id: "camera", text: "Camera" },
@@ -319,7 +321,7 @@ export function Tabara(props: { id: string }) {
                 "margin-top": "12px",
               }}
             >
-              <For each={FILE}>
+              <For each={FILE.filter((f) => f.id !== "mentor" || !!d().camp.mentorNume)}>
                 {(f) => (
                   <button
                     type="button"
@@ -349,6 +351,9 @@ export function Tabara(props: { id: string }) {
               <Switch>
                 <Match when={fila() === "program"}>
                   <FilaInfo id={props.id} d={d()} />
+                </Match>
+                <Match when={fila() === "mentor" && d().camp.mentorNume}>
+                  <FilaMentor d={d()} />
                 </Match>
                 <Match when={fila() === "sesiuni"}>
                   <FilaSesiuni
@@ -735,6 +740,37 @@ const linieRand = {
   "border-top": `1px solid ${C.linie}`,
 };
 
+// Mentorul, scos din „Program & masă” în fila lui (22 nov 2026).
+function FilaMentor(props: { d: InfoTabara }) {
+  const c = () => props.d.camp;
+  return (
+    <Bloc titlu="Mentor">
+      <p
+        style={{
+          margin: 0,
+          color: C.text,
+          "font-weight": 700,
+          "font-size": "17px",
+        }}
+      >
+        {c().mentorNume}
+      </p>
+      <Show when={c().mentorBio}>
+        <p
+          style={{
+            margin: "8px 0 0",
+            color: C.stins,
+            "font-size": "14px",
+            "line-height": "1.55",
+          }}
+        >
+          {c().mentorBio}
+        </p>
+      </Show>
+    </Bloc>
+  );
+}
+
 function FilaInfo(props: { id: string; d: InfoTabara }) {
   const c = () => props.d.camp;
   const program = () => parseProgram(c().programGeneral);
@@ -748,32 +784,6 @@ function FilaInfo(props: { id: string; d: InfoTabara }) {
 
   return (
     <div style={{ display: "flex", "flex-direction": "column", gap: "14px" }}>
-      <Show when={c().mentorNume}>
-        <Bloc titlu="Mentor">
-          <p
-            style={{
-              margin: 0,
-              color: C.text,
-              "font-weight": 700,
-              "font-size": "17px",
-            }}
-          >
-            {c().mentorNume}
-          </p>
-          <Show when={c().mentorBio}>
-            <p
-              style={{
-                margin: "8px 0 0",
-                color: C.stins,
-                "font-size": "14px",
-                "line-height": "1.55",
-              }}
-            >
-              {c().mentorBio}
-            </p>
-          </Show>
-        </Bloc>
-      </Show>
       <Show when={c().programGeneral}>
         <Bloc titlu="Program">
           {/* Taberele vechi au text liber, nu JSON: atunci se afișează textul, ca pe site. */}
@@ -853,10 +863,10 @@ function FilaInfo(props: { id: string; d: InfoTabara }) {
         </Bloc>
       </Show>
       <PreferinteMasa id={props.id} initial={props.d.mealPreference} />
-      <Show when={!c().programGeneral && !c().mentorNume}>
+      <Show when={!c().programGeneral}>
         <StareGoala
           titlu="Detaliile vin curând"
-          text="Programul și mentorul taberei apar aici imediat ce sunt gata."
+          text="Programul taberei apare aici imediat ce e gata."
         />
       </Show>
     </div>
