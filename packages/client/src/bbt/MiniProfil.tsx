@@ -89,9 +89,14 @@ const CULORI_ROL: Record<string, { fundal: string; text: string }> = {
     fundal: "#FFEFAD",
     text: "color-mix(in oklab, #FFD731 55%, #000000)",
   },
-  songwriter: ALBASTRU,
+  // 25 nov 2026, userul: „fiecare să fie unic”. Songwriter era albastru ca DJ, Sound Engineer verde ca Producer;
+  // acum mov (`mov-pastila` + `mov`) și roșu (`rosu-deschis` + `rosu`), exact ca pe site.
+  songwriter: { fundal: "#E5E3F5", text: "#5C4ADE" },
   instrumentist: { fundal: "#EEF2F7", text: "#46536B" },
-  sound_engineer: VERDE,
+  sound_engineer: {
+    fundal: "color-mix(in srgb, #CA1A38 10%, #FFFFFF)",
+    text: "#CA1A38",
+  },
   other: { fundal: "#F8F0FF", text: "#5C4ADE" },
 };
 const CULOARE_ROL_IMPLICITA = { fundal: "#F2F4F7", text: "#475467" };
