@@ -155,7 +155,8 @@ const copertaPiesei = (p: Piesa, camp: InfoTabara["camp"]) =>
 // Filele de sub cele trei coloane (23e). „Program" = programul pe zile, meniul și mentorul (fosta filă „Info").
 // „Piese”, nu „Playlist” (userul, 22 nov 2026, D12): piesele se încarcă din sesiuni, fila doar le adună.
 const FILE = [
-  { id: "program", text: "Program & masă" },
+  // „Info” (25 nov 2026, userul), ca pe site: aici stau pregătirea, cum ajungi, ce iei, programul și masa.
+  { id: "program", text: "Info" },
   // Mentorul în fila lui (userul, 22 nov 2026), ca pe site și în aplicație. Fila apare doar când tabăra are mentor.
   { id: "mentor", text: "Mentor" },
   { id: "sesiuni", text: "Sesiuni" },
