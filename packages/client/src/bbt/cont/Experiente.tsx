@@ -226,7 +226,11 @@ function useInscriere(e: () => Experienta) {
 }
 
 /** Afișul de pe card: 56 pe 75, sau numele BBT pe culoarea teritoriului când ediția n-are afiș. */
-export function Afis(props: { url?: string | null; fel: Experienta["fel"]; alb?: boolean }) {
+export function Afis(props: {
+  url?: string | null;
+  fel: Experienta["fel"];
+  alb?: boolean;
+}) {
   return (
     <div
       style={{
@@ -268,7 +272,10 @@ const STARI = {
   rosu: { bg: C.rosuDeschis, text: C.rosu },
 };
 
-export function Stare(props: { fel: keyof typeof STARI; children: JSX.Element }) {
+export function Stare(props: {
+  fel: keyof typeof STARI;
+  children: JSX.Element;
+}) {
   return (
     <span
       style={{
@@ -331,10 +338,13 @@ function CardExperienta(props: { e: Experienta }) {
     const p = e().plata;
     if (e().rol === "echipa") return <Stare fel="verde">Echipă</Stare>;
     if (producator()) return <Stare fel="verde">Producător</Stare>;
-    if (complet()) return <Stare fel="verde">{faraPlata() ? "Confirmat" : "Plătit"}</Stare>;
-    if (p?.actiune === "contract") return <Stare fel="galben">Contract de semnat</Stare>;
+    if (complet())
+      return <Stare fel="verde">{faraPlata() ? "Confirmat" : "Plătit"}</Stare>;
+    if (p?.actiune === "contract")
+      return <Stare fel="galben">Contract de semnat</Stare>;
     if (p?.intarziat) return <Stare fel="rosu">Întârziată</Stare>;
-    if (p?.scadentaLa) return <Stare fel="galben">Scadent {zi(p.scadentaLa)}</Stare>;
+    if (p?.scadentaLa)
+      return <Stare fel="galben">Scadent {zi(p.scadentaLa)}</Stare>;
     return <Stare fel="galben">În așteptare</Stare>;
   };
 
@@ -404,7 +414,12 @@ function CardExperienta(props: { e: Experienta }) {
               {(loc) => (
                 <>
                   {" · "}
-                  <LocatieCumAjungi navigare={e().navigare} eticheta={loc()} />
+                  <LocatieCumAjungi
+                    navigare={e().navigare}
+                    eticheta={loc()}
+                    calendar={e().calendar}
+                    idEveniment={e().id}
+                  />
                 </>
               )}
             </Show>
@@ -500,27 +515,27 @@ function CardExperienta(props: { e: Experienta }) {
                 {stare()}
               </div>
               <Show when={!producator()}>
-              <div
-                role="progressbar"
-                aria-label="Cât ai plătit din total"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={procent()}
-                style={{
-                  height: "6px",
-                  overflow: "hidden",
-                  "border-radius": "3px",
-                  background: C.foaie,
-                }}
-              >
                 <div
+                  role="progressbar"
+                  aria-label="Cât ai plătit din total"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={procent()}
                   style={{
-                    width: `${procent()}%`,
-                    height: "100%",
-                    background: complet() ? C.verdeBara : C.roz,
+                    height: "6px",
+                    overflow: "hidden",
+                    "border-radius": "3px",
+                    background: C.foaie,
                   }}
-                />
-              </div>
+                >
+                  <div
+                    style={{
+                      width: `${procent()}%`,
+                      height: "100%",
+                      background: complet() ? C.verdeBara : C.roz,
+                    }}
+                  />
+                </div>
               </Show>
               {/* Suma de pe buton include deja penalizarea; aici omul vede de unde vine diferența. */}
               <Show when={penalizare() > 0}>
@@ -559,10 +574,18 @@ function CardExperienta(props: { e: Experienta }) {
                 foregroundAlpha={1}
               />
               <div style={{ "min-width": 0 }}>
-                <p style={{ margin: 0, "font-size": "14px", "font-weight": 800 }}>
+                <p
+                  style={{ margin: 0, "font-size": "14px", "font-weight": 800 }}
+                >
                   Acces #{cod()}
                 </p>
-                <p style={{ margin: "2px 0 0", color: C.stins, "font-size": "14px" }}>
+                <p
+                  style={{
+                    margin: "2px 0 0",
+                    color: C.stins,
+                    "font-size": "14px",
+                  }}
+                >
                   Arată codul la intrare.
                 </p>
               </div>

@@ -43,6 +43,9 @@ export interface OmTabara {
   numeComplet: string;
   numeAfisat?: string | null;
   avatarUrl?: string | null;
+  /** Unde duce apăsarea pe om (25 nov 2026, `lib/omCard.ts` din admin): profilul scurt din Community, altfel site-ul. */
+  stoatUserId?: string | null;
+  username?: string | null;
 }
 
 type Artwork =

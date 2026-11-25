@@ -236,6 +236,11 @@ export interface Experienta {
    * workshop. Opțional: un admin încă nedeployat nu-l trimite deloc, iar „Cum ajungi” pur și simplu nu apare.
    */
   navigare?: LinkuriNavigare | null;
+  /**
+   * „Adaugă în calendar” (25 nov 2026): sosirea și plecarea din program (`lib/reguli/calendarTabara.ts` din admin), cu
+   * aceeași poartă ca `navigare`. Lipsă = adminul e mai vechi, iar butonul nu apare.
+   */
+  calendar?: import("./calendarIcs").CalendarTabara | null;
 }
 
 export interface LinkuriNavigare {

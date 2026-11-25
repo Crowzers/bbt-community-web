@@ -6,6 +6,7 @@ import {
   Switch,
   createEffect,
   createSignal,
+  on,
   onCleanup,
   untrack,
 } from "solid-js";
@@ -45,12 +46,10 @@ import {
   StareGoala,
 } from "../ui";
 
-import {
-  type ProgramZi,
-  etichetaZi,
-  parseMeniu,
-  parseProgram,
-} from "./continut";
+import type { CalendarTabara } from "../calendarIcs";
+import { ListaOameni, NumeOameni, useDeschideOmul } from "../CardOm";
+import type { LinkuriNavigare } from "../tipuri";
+import { type ProgramZi, etichetaZi, parseProgram } from "./continut";
 import { butonMic } from "./DecupajPatrat";
 import {
   type OmTabara,
@@ -58,13 +57,19 @@ import {
   numeScena,
 } from "./IncarcaPiesaSesiunii";
 import {
+  type Pregatire,
+  CeIeiCuTine,
+  CumAjungiBloc,
+  PregatireaTa,
+  VotDeschis,
+} from "./InfoTabara";
+import {
   type Coleg,
   type Piesa,
   type SesiunePentruUrcare,
   Playlist,
 } from "./Playlist";
 import { oSinguraPiesa } from "./redareUnica";
-import { useEtichete } from "../Setari";
 
 /**
  * Cum apare un coleg de cameră: numele de scenă, iar cine n-are unul, doar prenumele. Aceeași regulă pe site, în aplicație
@@ -89,6 +94,11 @@ const numeColeg = (o: OmTabara) =>
  * design `admin/docs/plans/2026-11-22-piesa-sesiunii-artwork-design.md`. Cardul își arată și piesele, cu coperta și play.
  */
 
+/** Un coleg de cameră, cum îl trimite adminul pentru cardul de om (25 nov 2026). Câmpurile noi lipsesc la un admin mai vechi. */
+interface ColegCamera extends Coleg {
+  rolPrincipal?: string | null;
+}
+
 interface InfoTabara {
   camp: {
     nume: string;
@@ -96,19 +106,26 @@ interface InfoTabara {
     dataStart: string;
     dataEnd: string;
     programGeneral: string | null;
-    menuZilnic: string | null;
     mentorNume: string | null;
     mentorBio: string | null;
     /** Afișul și coperta taberei: rezerva pentru piesele fără artwork (cele de dinainte de 22 nov 2026). */
     afisUrl?: string | null;
     imgUrl?: string | null;
+    /** Fila de informații (25 nov 2026, varianta A): navigarea, calendarul, ce iei, votul. Lipsesc la un admin mai vechi. */
+    navigare?: LinkuriNavigare | null;
+    calendar?: CalendarTabara | null;
+    ceIeiCuTine?: string[];
+    votBangerDeschis?: boolean;
+    votBangerPanaLa?: string | null;
   };
+  /** „Pregătirea ta” (`lib/reguli/pregatireTabara.ts` din admin). `null` = fără comandă (echipa). */
+  pregatire?: Pregatire | null;
   room: {
     numar: string;
     etaj: number | null;
     cladire: string | null;
     capacitate: number;
-    assignments: { participant: Coleg }[];
+    assignments: { participant: ColegCamera }[];
   } | null;
   mealPreference: { isVegetarian: boolean; alergeni: string | null };
   participanti: Coleg[];
@@ -118,7 +135,7 @@ interface InfoTabara {
 interface Sesiune extends SesiunePentruUrcare {
   startTime: string;
   endTime: string;
-  studio: { numar: number; locatie: string; echipamente: string | null };
+  studio: { numar: number; locatie: string };
   formator: { id: string; nume: string } | null;
   /** Producătorul executiv (22 nov 2026): intră singur printre autorii piesei sesiunii, ca membrii ei. */
   producator?: OmTabara | null;
@@ -329,7 +346,11 @@ export function Tabara(props: { id: string }) {
                 "margin-top": "12px",
               }}
             >
-              <For each={FILE.filter((f) => f.id !== "mentor" || !!d().camp.mentorNume)}>
+              <For
+                each={FILE.filter(
+                  (f) => f.id !== "mentor" || !!d().camp.mentorNume,
+                )}
+              >
                 {(f) => (
                   <button
                     type="button"
@@ -358,7 +379,11 @@ export function Tabara(props: { id: string }) {
             <div style={{ "max-width": "760px" }}>
               <Switch>
                 <Match when={fila() === "program"}>
-                  <FilaInfo id={props.id} d={d()} />
+                  <FilaInfo
+                    id={props.id}
+                    d={d()}
+                    laPiese={() => mergiLa("piese")}
+                  />
                 </Match>
                 <Match when={fila() === "mentor" && d().camp.mentorNume}>
                   <FilaMentor d={d()} />
@@ -652,7 +677,12 @@ function CameraPeScurt(props: { d: InfoTabara; laDetalii: () => void }) {
   const colegi = () =>
     (props.d.room?.assignments ?? [])
       .filter((a) => a.participant.id !== props.d.currentParticipantId)
-      .map((a) => numeColeg(a.participant));
+      .map(({ participant: p }) => ({
+        id: p.id,
+        nume: numeColeg(p),
+        stoatUserId: p.stoatUserId,
+        username: p.username,
+      }));
   return (
     <Card
       style={{
@@ -688,7 +718,8 @@ function CameraPeScurt(props: { d: InfoTabara; laDetalii: () => void }) {
             </Show>
             <Show when={colegi().length}>
               <p style={{ margin: 0, "font-size": "14px" }}>
-                cu {colegi().join(", ")}
+                {/* Numele se apasă și aici, ca în fila camerei (25 nov 2026). */}
+                cu <NumeOameni oameni={colegi()} />
               </p>
             </Show>
             <div style={{ "margin-top": "6px" }}>
@@ -779,19 +810,55 @@ function FilaMentor(props: { d: InfoTabara }) {
   );
 }
 
-function FilaInfo(props: { id: string; d: InfoTabara }) {
+/**
+ * Prima filă, cu blocurile variantei A de pe site (25 nov 2026) deasupra programului: votul după tabără, „Pregătirea ta”
+ * și „Ce să iei cu tine” înainte, „Cum ajungi” până se termină. Colegii stau în cardul „Cazare” și în fila „Camera”.
+ */
+function FilaInfo(props: { id: string; d: InfoTabara; laPiese: () => void }) {
   const c = () => props.d.camp;
   const program = () => parseProgram(c().programGeneral);
-  const meniu = () => parseMeniu(c().menuZilnic);
-  const MESE = [
-    { k: "micDejun", t: "Mic dejun" },
-    { k: "pranz", t: "Prânz" },
-    { k: "cina", t: "Cină" },
-    { k: "vegetarian", t: "Vegetarian" },
-  ] as const;
+  const acum = Date.now();
+  const inainte = () => acum < new Date(c().dataStart).getTime();
+  const dupa = () =>
+    acum >= new Date(c().dataEnd).getTime() + 24 * 60 * 60 * 1000;
+  const [masaGata, setMasaGata] = createSignal(
+    props.d.pregatire?.masa ?? false,
+  );
+  const [deschideMasa, setDeschideMasa] = createSignal(0);
+  let masa: HTMLDivElement | undefined;
 
   return (
     <div style={{ display: "flex", "flex-direction": "column", gap: "14px" }}>
+      <Show when={dupa() && c().votBangerDeschis}>
+        <VotDeschis panaLa={c().votBangerPanaLa} laPiese={props.laPiese} />
+      </Show>
+      <Show when={inainte() && props.d.pregatire}>
+        {(p) => (
+          <PregatireaTa
+            p={{ ...p(), masa: masaGata() }}
+            laPlata={() =>
+              document
+                .getElementById("bbt-acte")
+                ?.scrollIntoView({ behavior: "smooth", block: "start" })
+            }
+            laMasa={() => {
+              setDeschideMasa((n) => n + 1);
+              masa?.scrollIntoView({ behavior: "smooth", block: "center" });
+            }}
+          />
+        )}
+      </Show>
+      <Show when={!dupa() && c().locatie}>
+        <CumAjungiBloc
+          id={props.id}
+          locatie={c().locatie}
+          navigare={c().navigare}
+          calendar={c().calendar}
+        />
+      </Show>
+      <Show when={inainte() && c().ceIeiCuTine?.length}>
+        <CeIeiCuTine lista={c().ceIeiCuTine!} />
+      </Show>
       <Show when={c().programGeneral}>
         <Bloc titlu="Program">
           {/* Taberele vechi au text liber, nu JSON: atunci se afișează textul, ca pe site. */}
@@ -814,63 +881,15 @@ function FilaInfo(props: { id: string; d: InfoTabara }) {
           </Show>
         </Bloc>
       </Show>
-      <Show when={c().menuZilnic}>
-        <Bloc titlu="Meniu zilnic" simbol="restaurant">
-          <Show
-            when={meniu()?.length}
-            fallback={
-              <p
-                style={{
-                  margin: 0,
-                  color: C.stins,
-                  "white-space": "pre-line",
-                  "font-size": "14px",
-                }}
-              >
-                {c().menuZilnic}
-              </p>
-            }
-          >
-            <For each={meniu()!}>
-              {(z) => (
-                <div style={{ "margin-bottom": "12px" }}>
-                  <p
-                    style={{
-                      margin: "0 0 4px",
-                      color: C.text,
-                      "font-weight": 600,
-                      "font-size": "14px",
-                    }}
-                  >
-                    {etichetaZi(c().dataStart, z.ziua)}
-                  </p>
-                  <For each={MESE.filter((m) => z[m.k])}>
-                    {(m) => (
-                      <div style={linieRand}>
-                        <span
-                          style={{
-                            width: "84px",
-                            "flex-shrink": 0,
-                            color: C.slab,
-                            "font-size": "14px",
-                            "font-weight": 600,
-                          }}
-                        >
-                          {m.t}
-                        </span>
-                        <span style={{ color: C.stins, "font-size": "14px" }}>
-                          {z[m.k]}
-                        </span>
-                      </div>
-                    )}
-                  </For>
-                </div>
-              )}
-            </For>
-          </Show>
-        </Bloc>
-      </Show>
-      <PreferinteMasa id={props.id} initial={props.d.mealPreference} />
+      {/* Meniul zilnic a ieșit pe 25 nov 2026 (userul): se schimba după bucătărie. Mesele stau în program. */}
+      <div ref={masa}>
+        <PreferinteMasa
+          id={props.id}
+          initial={props.d.mealPreference}
+          deschide={deschideMasa()}
+          laSalvat={() => setMasaGata(true)}
+        />
+      </div>
       <Show when={!c().programGeneral}>
         <StareGoala
           titlu="Detaliile vin curând"
@@ -955,6 +974,9 @@ function ProgramPeZile(props: { dataStart: string; zile: ProgramZi[] }) {
 function PreferinteMasa(props: {
   id: string;
   initial: { isVegetarian: boolean; alergeni: string | null };
+  /** Crește la „Completează” din „Pregătirea ta” (25 nov 2026): deschide formularul pe loc. */
+  deschide?: number;
+  laSalvat?: () => void;
 }) {
   const sesiune = useSesiune();
 
@@ -974,6 +996,13 @@ function PreferinteMasa(props: {
     setStare(null);
     setEditez(true);
   };
+  createEffect(
+    on(
+      () => props.deschide ?? 0,
+      (n) => n > 0 && porneste(),
+      { defer: true },
+    ),
+  );
 
   async function salveaza(e: SubmitEvent) {
     e.preventDefault();
@@ -988,6 +1017,7 @@ function PreferinteMasa(props: {
       setSalvat(nou);
       setEditez(false);
       setStare({ tip: "ok", text: "Salvat." });
+      props.laSalvat?.();
     } catch {
       setStare({ tip: "err", text: "Nu am putut salva. Încearcă din nou." });
     } finally {
@@ -1190,6 +1220,7 @@ function CardSesiune(props: {
   // „cu X”: producătorul executiv, cu numele de scenă dacă îl are. `formator` e rezerva pentru adminul mai vechi.
   const cuCine = () =>
     s().producator ? numeScena(s().producator!) : s().formator?.nume;
+  const deschideOmul = useDeschideOmul();
   return (
     <Card
       style={{
@@ -1220,7 +1251,22 @@ function CardSesiune(props: {
                 "font-size": "14px",
               }}
             >
-              cu {cuCine()}
+              {/* Producătorul se apasă (25 nov 2026), ca oamenii sesiunii; formatorul vechi n-are profil, rămâne text. */}
+              cu{" "}
+              <Show when={s().producator} fallback={cuCine()}>
+                {(p) => (
+                  <NumeOameni
+                    oameni={[
+                      {
+                        id: p().id,
+                        nume: cuCine() ?? "",
+                        stoatUserId: p().stoatUserId,
+                        username: p().username,
+                      },
+                    ]}
+                  />
+                )}
+              </Show>
             </p>
           </Show>
         </div>
@@ -1287,22 +1333,40 @@ function CardSesiune(props: {
             }}
           >
             <For each={s().participants}>
-              {({ participant: p }) => (
-                <span
-                  style={{
-                    padding: "3px 10px",
-                    "border-radius": "999px",
-                    background: C.fundal,
-                    color: C.stins,
-                    "font-size": "14px",
-                  }}
-                >
-                  {/* Numele de scenă, ca pe site și în aplicație: așa se știu oamenii în studio. */}
-                  {p.id === props.euId
-                    ? "Tu"
-                    : p.numeAfisat?.trim() || p.numeComplet.split(" ")[0]}
-                </span>
-              )}
+              {({ participant: p }) => {
+                // Numele de scenă, ca pe site și în aplicație: așa se știu oamenii în studio. Din 25 nov 2026 pastila se
+                // apasă (profilul scurt din Community, altfel cel de pe site); cine se poate deschide are textul îngroșat.
+                const eu = p.id === props.euId;
+                const sePoate = !eu && !!(p.stoatUserId || p.username);
+                return (
+                  <button
+                    type="button"
+                    disabled={!sePoate}
+                    onClick={() =>
+                      void deschideOmul({
+                        id: p.id,
+                        nume: p.numeComplet,
+                        stoatUserId: p.stoatUserId,
+                        username: p.username,
+                      })
+                    }
+                    style={{
+                      all: "unset",
+                      padding: "3px 10px",
+                      "border-radius": "999px",
+                      background: C.fundal,
+                      color: sePoate ? C.text : C.stins,
+                      "font-size": "14px",
+                      "font-weight": sePoate ? 600 : 400,
+                      cursor: sePoate ? "pointer" : "default",
+                    }}
+                  >
+                    {eu
+                      ? "Tu"
+                      : p.numeAfisat?.trim() || p.numeComplet.split(" ")[0]}
+                  </button>
+                );
+              }}
             </For>
           </div>
         </div>
@@ -1648,14 +1712,6 @@ function FilaCamera(props: { d: InfoTabara }) {
     (props.d.room?.assignments ?? []).filter(
       (a) => a.participant.id !== props.d.currentParticipantId,
     );
-  // Rolurile stau ca slug în bază („sound_engineer”): până pe 25 nov 2026 lista le arăta așa. Numele vin din admin, ca în profil.
-  const etichete = useEtichete();
-  const rol = (slug: string) => {
-    const nume = etichete.data?.roluri[slug];
-    if (nume) return nume;
-    const curat = slug.replace(/_/g, " ").trim();
-    return curat.charAt(0).toUpperCase() + curat.slice(1);
-  };
   return (
     <Show
       when={props.d.room}
@@ -1707,64 +1763,17 @@ function FilaCamera(props: { d: InfoTabara }) {
           </Bloc>
           <Show when={colegi().length}>
             <Bloc titlu="Colegii de cameră">
-              <div
-                style={{
-                  display: "flex",
-                  "flex-direction": "column",
-                  gap: "10px",
-                }}
-              >
-                <For each={colegi()}>
-                  {({ participant: p }) => (
-                    <div
-                      style={{
-                        display: "flex",
-                        "align-items": "center",
-                        gap: "10px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: "34px",
-                          height: "34px",
-                          "border-radius": "10px",
-                          background: C.fundal,
-                          color: C.text,
-                          display: "flex",
-                          "align-items": "center",
-                          "justify-content": "center",
-                          "font-weight": 700,
-                        }}
-                      >
-                        {numeColeg(p)[0]}
-                      </div>
-                      <div>
-                        <p
-                          style={{
-                            margin: 0,
-                            color: C.text,
-                            "font-size": "14px",
-                            "font-weight": 600,
-                          }}
-                        >
-                          {numeColeg(p)}
-                        </p>
-                        <Show when={p.roles.length}>
-                          <p
-                            style={{
-                              margin: 0,
-                              color: C.slab,
-                              "font-size": "14px",
-                            }}
-                          >
-                            {p.roles.map(rol).join(", ")}
-                          </p>
-                        </Show>
-                      </div>
-                    </div>
-                  )}
-                </For>
-              </div>
+              {/* Cardul de om (varianta B, 25 nov 2026): poza, numele, pastila rolului; la apăsare, profilul scurt. */}
+              <ListaOameni
+                oameni={colegi().map(({ participant: p }) => ({
+                  id: p.id,
+                  nume: numeColeg(p),
+                  avatarUrl: p.avatarUrl,
+                  rol: p.rolPrincipal ?? p.roles[0] ?? null,
+                  stoatUserId: p.stoatUserId,
+                  username: p.username,
+                }))}
+              />
             </Bloc>
           </Show>
         </div>

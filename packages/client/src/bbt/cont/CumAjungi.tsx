@@ -2,6 +2,13 @@ import { For, JSX, Show, createSignal, onCleanup, onMount } from "solid-js";
 
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
+import { BBT_SITE_URL } from "../config";
+import {
+  type CalendarTabara,
+  descarcaIcs,
+  fisierIcs,
+  numeFisierIcs,
+} from "./calendarIcs";
 import type { LinkuriNavigare } from "./tipuri";
 import { C, Fereastra } from "./ui";
 
@@ -67,12 +74,28 @@ function ListaNavigare(props: {
 }
 
 /**
+ * „Adaugă în calendar” (25 nov 2026, ca pe site): fișierul `.ics` al taberei, cu alarmă cu o zi înainte. `id` ține
+ * evenimentul unul singur dacă omul apasă de două ori; linkul din eveniment duce la pagina taberei de pe site.
+ */
+export function adaugaInCalendar(calendar: CalendarTabara, id: string) {
+  const ics = fisierIcs(calendar, {
+    uid: `tabara-${id}@beanbagtheory.ro`,
+    url: `${BBT_SITE_URL}/my-camp/${id}`,
+    alarma: `Mâine pleci: ${calendar.titlu}`,
+  });
+  descarcaIcs(ics, numeFisierIcs(calendar.titlu));
+}
+
+/**
  * Pe desktop și tabletă: locația din cardul experienței devine apăsabilă (pin, subliniere punctată, ca pe site) și
  * deschide o listă mică sub ea. Clicul în afară sau Escape o închid.
  */
 export function LocatieCumAjungi(props: {
   navigare?: LinkuriNavigare | null;
   eticheta: string;
+  /** „Adaugă în calendar”, sub hărți (25 nov 2026). */
+  calendar?: CalendarTabara | null;
+  idEveniment?: string;
 }) {
   const [deschis, setDeschis] = createSignal(false);
   let cutie: HTMLSpanElement | undefined;
@@ -91,7 +114,22 @@ export function LocatieCumAjungi(props: {
   });
 
   return (
-    <Show when={props.navigare} fallback={props.eticheta}>
+    <Show
+      when={props.navigare}
+      fallback={
+        // Fără linkuri (comandă neplătită), locația rămâne text, dar tot cu pinul (25 nov 2026, ca pe site).
+        <span
+          style={{
+            display: "inline-flex",
+            "align-items": "center",
+            gap: "3px",
+          }}
+        >
+          <Symbol size={15}>location_on</Symbol>
+          {props.eticheta}
+        </span>
+      }
+    >
       {(n) => (
         // Totul în `span`: locația stă într-un `<p>`, iar un `div` acolo ar fi HTML invalid.
         <span
@@ -145,6 +183,44 @@ export function LocatieCumAjungi(props: {
                 navigare={n()}
                 laAlegere={() => setDeschis(false)}
               />
+              <Show when={props.calendar && props.idEveniment}>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    adaugaInCalendar(props.calendar!, props.idEveniment!);
+                    setDeschis(false);
+                  }}
+                  style={{
+                    display: "flex",
+                    "align-items": "center",
+                    gap: "10px",
+                    width: "100%",
+                    padding: "10px 12px",
+                    "border-radius": "12px",
+                    border: 0,
+                    "border-top": `1px solid ${C.linie}`,
+                    background: "transparent",
+                    color: C.text,
+                    "font-family": "inherit",
+                    "font-size": "16px",
+                    "font-weight": 600,
+                    "text-align": "left",
+                    cursor: "pointer",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = C.foaie)
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "transparent")
+                  }
+                >
+                  <span style={{ display: "flex", color: C.stins }}>
+                    <Symbol size={18}>calendar_add_on</Symbol>
+                  </span>
+                  Adaugă în calendar
+                </button>
+              </Show>
             </span>
           </Show>
         </span>

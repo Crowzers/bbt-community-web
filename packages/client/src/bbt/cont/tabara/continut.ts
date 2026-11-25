@@ -1,6 +1,6 @@
 /**
- * BBT: programul și meniul unei tabere, plus treptele de Banger. Copii, nu importuri: fork-ul e alt
- * repo. ⚠️ `parseProgram`/`parseMeniu`/`etichetaZi` = `website/src/lib/campContent.ts` (care are
+ * BBT: programul unei tabere (meniul zilnic a ieșit pe 25 nov 2026), plus treptele de Banger. Copii, nu importuri: fork-ul e alt
+ * repo. ⚠️ `parseProgram`/`etichetaZi` = `website/src/lib/campContent.ts` (care are
  * deja un geamăn în `admin/lib/campContent.ts`); `tierPentruNumar` = `website/src/lib/bangers.ts`.
  * Orice schimbare de contract acolo se face și aici.
  *
@@ -10,14 +10,6 @@
 export interface ProgramZi {
   ziua: number;
   intrari: { ora: string; titlu: string }[];
-}
-
-export interface MeniuZi {
-  ziua: number;
-  micDejun: string;
-  pranz: string;
-  cina: string;
-  vegetarian: string;
 }
 
 /** `null` = text liber dintr-o tabără veche: se afișează ca atare. */
@@ -45,23 +37,6 @@ export function parseProgram(
       intrari.push({ ora: i.ora, titlu: i.titlu });
     }
     zile.push({ ziua: item.ziua as number, intrari });
-  }
-  return zile.sort((a, b) => a.ziua - b.ziua);
-}
-
-export function parseMeniu(raw: string | null | undefined): MeniuZi[] | null {
-  const data = parseJsonArray(raw);
-  if (!data) return null;
-  const zile: MeniuZi[] = [];
-  for (const item of data) {
-    if (!isRecord(item) || !isZiValid(item.ziua)) return null;
-    zile.push({
-      ziua: item.ziua as number,
-      micDejun: asText(item.micDejun),
-      pranz: asText(item.pranz),
-      cina: asText(item.cina),
-      vegetarian: asText(item.vegetarian),
-    });
   }
   return zile.sort((a, b) => a.ziua - b.ziua);
 }
@@ -119,4 +94,3 @@ const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 const isZiValid = (v: unknown) =>
   typeof v === "number" && Number.isInteger(v) && v >= 1;
-const asText = (v: unknown) => (typeof v === "string" ? v : "");

@@ -61,6 +61,9 @@ export interface Coleg {
   /** Numele de scenă: după el se caută autorii piesei (22 nov 2026). */
   numeAfisat?: string | null;
   avatarUrl?: string | null;
+  /** Unde duce apăsarea pe om (25 nov 2026): profilul scurt din Community, altfel profilul public de pe site. */
+  stoatUserId?: string | null;
+  username?: string | null;
   roles: string[];
 }
 

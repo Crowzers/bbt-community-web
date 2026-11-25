@@ -12,7 +12,7 @@ import {
   ziScurta,
 } from "../telefon";
 
-import { FereastraCumAjungi } from "./CumAjungi";
+import { FereastraCumAjungi, adaugaInCalendar } from "./CumAjungi";
 import { faraComanda, lei, ora, useExperiente, zileRo } from "./date";
 import { QrMare } from "./Experiente";
 import { BaraRate } from "./ExperienteTelefon";
@@ -265,7 +265,7 @@ export function ExperientaTelefon(props: { id: string }) {
                     <Rand
                       text="Cum ajungi"
                       laApasare={() => setCumAjungi(true)}
-                      cuLinie={!faraComanda(e()!)}
+                      cuLinie={!faraComanda(e()!) || !!e()!.calendar}
                     />
                     <Show when={cumAjungi()}>
                       <FereastraCumAjungi
@@ -274,6 +274,16 @@ export function ExperientaTelefon(props: { id: string }) {
                       />
                     </Show>
                   </>
+                )}
+              </Show>
+              {/* „Adaugă în calendar” (25 nov 2026), ca în aplicație: fișierul `.ics` cu alarmă cu o zi înainte. */}
+              <Show when={e()!.calendar}>
+                {(c) => (
+                  <Rand
+                    text="Adaugă în calendar"
+                    laApasare={() => adaugaInCalendar(c(), e()!.id)}
+                    cuLinie={!faraComanda(e()!)}
+                  />
                 )}
               </Show>
               {/* Producătorul n-are comandă la tabăra pe care o conduce (19 nov 2026), nici echipa la cele pe care doar le
