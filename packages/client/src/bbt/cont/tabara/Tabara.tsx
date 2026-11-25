@@ -64,6 +64,14 @@ import {
   Playlist,
 } from "./Playlist";
 import { oSinguraPiesa } from "./redareUnica";
+import { useEtichete } from "../Setari";
+
+/**
+ * Cum apare un coleg de cameră: numele de scenă, iar cine n-are unul, doar prenumele. Aceeași regulă pe site, în aplicație
+ * și aici (25 nov 2026): înainte site-ul scria „Vlad”, iar hub-ul și aplicația „Vlad Stan”.
+ */
+const numeColeg = (o: OmTabara) =>
+  o.numeAfisat?.trim() || o.numeComplet.trim().split(/\s+/)[0] || o.numeComplet;
 
 /**
  * BBT: pagina unei tabere în hub, `/cont/tabara/:id`. Copia lui `website/src/app/my-camp/[id]/`
@@ -644,8 +652,7 @@ function CameraPeScurt(props: { d: InfoTabara; laDetalii: () => void }) {
   const colegi = () =>
     (props.d.room?.assignments ?? [])
       .filter((a) => a.participant.id !== props.d.currentParticipantId)
-      // Cu numele de scenă, ca în restul taberei (25 nov 2026); numele real doar la cine n-are unul.
-      .map((a) => numeScena(a.participant));
+      .map((a) => numeColeg(a.participant));
   return (
     <Card
       style={{
@@ -1641,6 +1648,14 @@ function FilaCamera(props: { d: InfoTabara }) {
     (props.d.room?.assignments ?? []).filter(
       (a) => a.participant.id !== props.d.currentParticipantId,
     );
+  // Rolurile stau ca slug în bază („sound_engineer”): până pe 25 nov 2026 lista le arăta așa. Numele vin din admin, ca în profil.
+  const etichete = useEtichete();
+  const rol = (slug: string) => {
+    const nume = etichete.data?.roluri[slug];
+    if (nume) return nume;
+    const curat = slug.replace(/_/g, " ").trim();
+    return curat.charAt(0).toUpperCase() + curat.slice(1);
+  };
   return (
     <Show
       when={props.d.room}
@@ -1721,7 +1736,7 @@ function FilaCamera(props: { d: InfoTabara }) {
                           "font-weight": 700,
                         }}
                       >
-                        {numeScena(p)[0]}
+                        {numeColeg(p)[0]}
                       </div>
                       <div>
                         <p
@@ -1732,7 +1747,7 @@ function FilaCamera(props: { d: InfoTabara }) {
                             "font-weight": 600,
                           }}
                         >
-                          {numeScena(p)}
+                          {numeColeg(p)}
                         </p>
                         <Show when={p.roles.length}>
                           <p
@@ -1742,7 +1757,7 @@ function FilaCamera(props: { d: InfoTabara }) {
                               "font-size": "14px",
                             }}
                           >
-                            {p.roles.join(", ")}
+                            {p.roles.map(rol).join(", ")}
                           </p>
                         </Show>
                       </div>
