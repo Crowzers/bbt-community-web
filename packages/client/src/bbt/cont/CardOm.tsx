@@ -27,16 +27,18 @@ export interface OmCard {
 /**
  * Culoarea fiecărui rol, aceeași ca pe site (`CULORI_ROL` din `website/src/app/[limba]/u/[username]/stil.ts`) și ca în
  * mini-profil (`MiniProfil.tsx`, care își ține încă propria copie). Foaia e albă, deci valorile de zi.
+ * ⚠️ 25 nov 2026, userul: rolurile în afara verdelui, galbenului și roșului (culori de alertă), fără portocaliu, cu
+ * contrast bun pe alb și pe negru. Treptele `-deschis` / `-inchis` din `website/src/app/tokens.css` (textul ≥6:1).
  */
 const CULORI_ROL: Record<string, { fundal: string; text: string }> = {
-  vocalist: { fundal: "#FFEDE6", text: "#9C2A01" },
-  producer: { fundal: "#99E9C4", text: "#216043" },
-  dj: { fundal: "#DCEEFF", text: "#2C639E" },
-  beatmaker: { fundal: "#FFEFAD", text: "#715E10" },
-  songwriter: { fundal: "#E5E3F5", text: "#5C4ADE" },
-  instrumentist: { fundal: "#EEF2F7", text: "#46536B" },
-  sound_engineer: { fundal: "#FAE8EB", text: "#CA1A38" },
-  other: { fundal: "#F8F0FF", text: "#5C4ADE" },
+  vocalist: { fundal: "#FEE7F5", text: "#942E79" },
+  producer: { fundal: "#D4F6F8", text: "#0C6468" },
+  dj: { fundal: "#E2F1FE", text: "#025C93" },
+  beatmaker: { fundal: "#E9EEFE", text: "#3D4CBF" },
+  songwriter: { fundal: "#EEECFF", text: "#633CC5" },
+  instrumentist: { fundal: "#E8EFF9", text: "#4B596C" },
+  sound_engineer: { fundal: "#FBECDE", text: "#6D543B" },
+  other: { fundal: "#F9E8FE", text: "#87319F" },
 };
 const CULOARE_ROL_IMPLICITA = { fundal: "#F2F4F7", text: "#475467" };
 

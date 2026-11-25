@@ -69,35 +69,19 @@ const ROLURI: Record<string, string> = {
  * paletei ca fundal, treapta închisă ca text. Familiile sunt cele din lista de membri (`admin/lib/stoat/roluri.ts`).
  * 19 nov 2026, userul: „să fim coerenți în culorile pastilelor de roluri”; până atunci pastilele erau gri aici, albe
  * pe site. Foaia e albă (`FUNDAL`), deci valorile de zi, fără variantă de noapte.
+ * ⚠️ 25 nov 2026, userul: „fiecare să fie unic”, apoi rolurile în afara verdelui, galbenului și roșului (culori de
+ * alertă), fără portocaliu, cu contrast bun pe alb și pe negru. Treptele `-deschis` / `-inchis` din
+ * `website/src/app/tokens.css` (textul ≥6:1), aceleași ca în `cont/CardOm.tsx`.
  */
-const VERDE = {
-  fundal: "#99E9C4",
-  text: "color-mix(in oklab, #55DB9C 55%, #000000)",
-};
-const ALBASTRU = {
-  fundal: "#DCEEFF",
-  text: "color-mix(in oklab, #4DA2FF 70%, #000000)",
-};
 const CULORI_ROL: Record<string, { fundal: string; text: string }> = {
-  vocalist: {
-    fundal: "color-mix(in srgb, #FB4903 10%, #FFFFFF)",
-    text: "color-mix(in oklab, #FB4903 70%, #000000)",
-  },
-  producer: VERDE,
-  dj: ALBASTRU,
-  beatmaker: {
-    fundal: "#FFEFAD",
-    text: "color-mix(in oklab, #FFD731 55%, #000000)",
-  },
-  // 25 nov 2026, userul: „fiecare să fie unic”. Songwriter era albastru ca DJ, Sound Engineer verde ca Producer;
-  // acum mov (`mov-pastila` + `mov`) și roșu (`rosu-deschis` + `rosu`), exact ca pe site.
-  songwriter: { fundal: "#E5E3F5", text: "#5C4ADE" },
-  instrumentist: { fundal: "#EEF2F7", text: "#46536B" },
-  sound_engineer: {
-    fundal: "color-mix(in srgb, #CA1A38 10%, #FFFFFF)",
-    text: "#CA1A38",
-  },
-  other: { fundal: "#F8F0FF", text: "#5C4ADE" },
+  vocalist: { fundal: "#FEE7F5", text: "#942E79" },
+  producer: { fundal: "#D4F6F8", text: "#0C6468" },
+  dj: { fundal: "#E2F1FE", text: "#025C93" },
+  beatmaker: { fundal: "#E9EEFE", text: "#3D4CBF" },
+  songwriter: { fundal: "#EEECFF", text: "#633CC5" },
+  instrumentist: { fundal: "#E8EFF9", text: "#4B596C" },
+  sound_engineer: { fundal: "#FBECDE", text: "#6D543B" },
+  other: { fundal: "#F9E8FE", text: "#87319F" },
 };
 const CULOARE_ROL_IMPLICITA = { fundal: "#F2F4F7", text: "#475467" };
 
