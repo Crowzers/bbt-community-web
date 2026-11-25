@@ -644,7 +644,8 @@ function CameraPeScurt(props: { d: InfoTabara; laDetalii: () => void }) {
   const colegi = () =>
     (props.d.room?.assignments ?? [])
       .filter((a) => a.participant.id !== props.d.currentParticipantId)
-      .map((a) => a.participant.numeComplet);
+      // Cu numele de scenă, ca în restul taberei (25 nov 2026); numele real doar la cine n-are unul.
+      .map((a) => numeScena(a.participant));
   return (
     <Card
       style={{
@@ -1635,6 +1636,11 @@ function NotitaPrivata(props: { id: string; initial: string }) {
 }
 
 function FilaCamera(props: { d: InfoTabara }) {
+  // Colegii sunt ceilalți: până pe 25 nov 2026 lista îl punea și pe omul însuși (ca în aplicație).
+  const colegi = () =>
+    (props.d.room?.assignments ?? []).filter(
+      (a) => a.participant.id !== props.d.currentParticipantId,
+    );
   return (
     <Show
       when={props.d.room}
@@ -1684,7 +1690,7 @@ function FilaCamera(props: { d: InfoTabara }) {
               </div>
             </div>
           </Bloc>
-          <Show when={r().assignments.length}>
+          <Show when={colegi().length}>
             <Bloc titlu="Colegii de cameră">
               <div
                 style={{
@@ -1693,7 +1699,7 @@ function FilaCamera(props: { d: InfoTabara }) {
                   gap: "10px",
                 }}
               >
-                <For each={r().assignments}>
+                <For each={colegi()}>
                   {({ participant: p }) => (
                     <div
                       style={{
@@ -1715,7 +1721,7 @@ function FilaCamera(props: { d: InfoTabara }) {
                           "font-weight": 700,
                         }}
                       >
-                        {p.numeComplet[0]}
+                        {numeScena(p)[0]}
                       </div>
                       <div>
                         <p
@@ -1726,7 +1732,7 @@ function FilaCamera(props: { d: InfoTabara }) {
                             "font-weight": 600,
                           }}
                         >
-                          {p.numeComplet}
+                          {numeScena(p)}
                         </p>
                         <Show when={p.roles.length}>
                           <p
