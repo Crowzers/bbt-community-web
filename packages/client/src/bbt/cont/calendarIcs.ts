@@ -4,7 +4,7 @@
  *
  * - Ora e a României: `TZID=Europe/Bucharest`, cu definiția fusului în fișier (Outlook o cere; Apple și Google o au oricum).
  * - Fără oră de sosire sau de plecare în program, evenimentul ține zilele întregi.
- * - Alarma e cu o zi înainte (`-P1D`), cerută de user. ⚠️ Google Calendar ignoră alarmele din fișier la import și pune
+ * - Alarma e cu o zi înainte (`-P1D`), cerută de user; la tabăra fără ore în program, la 9:00 în ziua dinainte (`-PT15H`). ⚠️ Google Calendar ignoră alarmele din fișier la import și pune
  *   notificarea lui obișnuită; pe iPhone și Android, în calendarul telefonului, merge. Notificarea BBT de „mâine pleci”
  *   (cronul `sesiuni-care-urmeaza`) acoperă oricum pe toată lumea.
  *
@@ -106,7 +106,8 @@ export function fisierIcs(
     "BEGIN:VALARM",
     "ACTION:DISPLAY",
     `DESCRIPTION:${text(opt.alarma)}`,
-    "TRIGGER:-P1D",
+    // La tabăra pe zile întregi, -P1D ar suna la miezul nopții: 9:00 în ziua dinainte, ca în aplicație (25 nov 2026).
+    peOre ? "TRIGGER:-P1D" : "TRIGGER:-PT15H",
     "END:VALARM",
     "END:VEVENT",
     "END:VCALENDAR",

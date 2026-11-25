@@ -42,6 +42,9 @@ const TITLU: JSX.CSSProperties = {
 const lei = (n: number) => `${n.toLocaleString("ro-RO")} lei`;
 const zi = (iso: string) =>
   new Date(iso).toLocaleDateString("ro-RO", { day: "numeric", month: "short" });
+/** „28 noiembrie”: data votului cu luna întreagă, ca pe site și în aplicație (revizorul hub-aplicație, 25 nov). */
+const ziCuLuna = (iso: string) =>
+  new Date(iso).toLocaleDateString("ro-RO", { day: "numeric", month: "long" });
 
 function Rand(props: {
   gata: boolean;
@@ -319,8 +322,8 @@ export function VotDeschis(props: {
       <p style={{ ...TITLU, margin: 0 }}>Votează Bangerul taberei</p>
       <Show when={props.panaLa}>
         <p style={{ margin: 0, color: C.text, "font-size": "16px" }}>
-          Votul e deschis până pe {zi(props.panaLa!)}. Alege piesa care ți-a
-          rămas în cap.
+          Votul e deschis până pe {ziCuLuna(props.panaLa!)}. Alege piesa care
+          ți-a rămas în cap.
         </p>
       </Show>
       <div style={{ display: "flex" }}>

@@ -849,7 +849,8 @@ function FilaInfo(props: { id: string; d: InfoTabara; laPiese: () => void }) {
           />
         )}
       </Show>
-      <Show when={!dupa() && c().locatie}>
+      {/* Înainte de tabără „Cum ajungi” stă sus; din prima zi coboară sub program, ca pe site (revizorul hub-aplicație, 25 nov). */}
+      <Show when={inainte() && c().locatie}>
         <CumAjungiBloc
           id={props.id}
           locatie={c().locatie}
@@ -881,6 +882,14 @@ function FilaInfo(props: { id: string; d: InfoTabara; laPiese: () => void }) {
             <ProgramPeZile dataStart={c().dataStart} zile={program()!} />
           </Show>
         </Bloc>
+      </Show>
+      <Show when={!inainte() && !dupa() && c().locatie}>
+        <CumAjungiBloc
+          id={props.id}
+          locatie={c().locatie}
+          navigare={c().navigare}
+          calendar={c().calendar}
+        />
       </Show>
       {/* Meniul zilnic a ieșit pe 25 nov 2026 (userul): se schimba după bucătărie. Mesele stau în program. */}
       <div ref={masa}>
