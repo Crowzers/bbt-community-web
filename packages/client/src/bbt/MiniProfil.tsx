@@ -34,6 +34,12 @@ type ProfilBBT = {
   username: string;
   bio: string | null;
   coverUrl: string | null;
+  /**
+   * Încadrarea copertei aleasă pe site, prin tragere (25 nov 2026): procente, ca `background-position`. Lipsă sau
+   * `null` = mijlocul (copertele vechi, un admin vechi).
+   */
+  coverPozX?: number | null;
+  coverPozY?: number | null;
   roles: string[];
   mainRole: string | null;
   powerScore: number;
@@ -192,7 +198,7 @@ export function MiniProfilBBT(props: {
                   position: "relative",
                   height: "76px",
                   background: p().coverUrl
-                    ? `center / cover no-repeat url("${p().coverUrl}")`
+                    ? `${p().coverPozX ?? 50}% ${p().coverPozY ?? 50}% / cover no-repeat url("${p().coverUrl}")`
                     : ROZ_DESCHIS,
                 }}
               />
