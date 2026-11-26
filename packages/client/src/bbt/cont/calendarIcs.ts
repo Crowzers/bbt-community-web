@@ -8,6 +8,9 @@
  *   notificarea lui obișnuită; pe iPhone și Android, în calendarul telefonului, merge. Notificarea BBT de „mâine pleci”
  *   (cronul `sesiuni-care-urmeaza`) acoperă oricum pe toată lumea.
  *
+ * Pe calculator (26 nov 2026) omul alege între Google Calendar (`linkGoogleCalendar`) și Apple Calendar (fișierul); pe
+ * telefon merge direct fișierul. Meniul e în `AdaugaInCalendar.tsx`.
+ *
  * BBT: copia lui `website/src/lib/calendarIcs.ts` (fork-ul e alt repo). Orice schimbare se face în amândouă.
  */
 
@@ -114,6 +117,28 @@ export function fisierIcs(
   ]
     .map(plie)
     .join("\r\n");
+}
+
+/**
+ * Google Calendar (26 nov 2026, varianta A aleasă de user pe schițe): pe calculator, fișierul ajungea în Descărcări și
+ * cine are Google Calendar în browser trebuia să-l importe de mână. Linkul deschide calendarul cu evenimentul completat;
+ * omul apasă doar „Salvează”. Orele merg fără `Z`, cu `ctz`, deci rămân pe ora României oricare ar fi fusul omului.
+ * Alarma nu trece prin link: Google pune notificarea lui obișnuită (la fel ca la import).
+ */
+export function linkGoogleCalendar(c: CalendarTabara, url?: string): string {
+  const peOre = !!(c.sosire.ora && c.plecare.ora);
+  const capete = peOre
+    ? `${zi(c.sosire.data)}T${oraIcs(c.sosire.ora!)}/${zi(c.plecare.data)}T${oraIcs(c.plecare.ora!)}`
+    : `${zi(c.sosire.data)}/${zi(ziuaUrmatoare(c.plecare.data))}`;
+  const q = new URLSearchParams({
+    action: "TEMPLATE",
+    text: c.titlu,
+    dates: capete,
+    location: c.locatie,
+  });
+  if (peOre) q.set("ctz", "Europe/Bucharest");
+  if (url) q.set("details", url);
+  return `https://calendar.google.com/calendar/render?${q.toString()}`;
 }
 
 /** Descarcă fișierul: pe iPhone și pe Android se deschide direct „Adaugă în calendar”, pe calculator calendarul implicit. */

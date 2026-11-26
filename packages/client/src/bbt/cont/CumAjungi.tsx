@@ -2,13 +2,14 @@ import { For, JSX, Show, createSignal, onCleanup, onMount } from "solid-js";
 
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
-import { BBT_SITE_URL } from "../config";
 import {
-  type CalendarTabara,
-  descarcaIcs,
-  fisierIcs,
-  numeFisierIcs,
-} from "./calendarIcs";
+  ETICHETA_MENIU,
+  OptiuniCalendar,
+  RAND_MENIU,
+  adaugaInCalendar,
+  peTelefon,
+} from "./AdaugaInCalendar";
+import type { CalendarTabara } from "./calendarIcs";
 import type { LinkuriNavigare } from "./tipuri";
 import { C, Fereastra } from "./ui";
 
@@ -73,18 +74,8 @@ function ListaNavigare(props: {
   );
 }
 
-/**
- * „Adaugă în calendar” (25 nov 2026, ca pe site): fișierul `.ics` al taberei, cu alarmă cu o zi înainte. `id` ține
- * evenimentul unul singur dacă omul apasă de două ori; linkul din eveniment duce la pagina taberei de pe site.
- */
-export function adaugaInCalendar(calendar: CalendarTabara, id: string) {
-  const ics = fisierIcs(calendar, {
-    uid: `tabara-${id}@beanbagtheory.ro`,
-    url: `${BBT_SITE_URL}/my-camp/${id}`,
-    alarma: `Mâine pleci: ${calendar.titlu}`,
-  });
-  descarcaIcs(ics, numeFisierIcs(calendar.titlu));
-}
+/** „Adaugă în calendar” (fișierul, meniul de pe calculator, siglele) stă în `AdaugaInCalendar.tsx` din 26 nov 2026. */
+export { adaugaInCalendar };
 
 /**
  * Pe desktop și tabletă: locația din cardul experienței devine apăsabilă (pin, subliniere punctată, ca pe site) și
@@ -184,42 +175,50 @@ export function LocatieCumAjungi(props: {
                 laAlegere={() => setDeschis(false)}
               />
               <Show when={props.calendar && props.idEveniment}>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    adaugaInCalendar(props.calendar!, props.idEveniment!);
-                    setDeschis(false);
-                  }}
-                  style={{
-                    display: "flex",
-                    "align-items": "center",
-                    gap: "10px",
-                    width: "100%",
-                    padding: "10px 12px",
-                    "border-radius": "12px",
-                    border: 0,
-                    "border-top": `1px solid ${C.linie}`,
-                    background: "transparent",
-                    color: C.text,
-                    "font-family": "inherit",
-                    "font-size": "16px",
-                    "font-weight": 600,
-                    "text-align": "left",
-                    cursor: "pointer",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = C.foaie)
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "transparent")
+                <Show
+                  when={!peTelefon()}
+                  fallback={
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        adaugaInCalendar(props.calendar!, props.idEveniment!);
+                        setDeschis(false);
+                      }}
+                      style={{
+                        ...RAND_MENIU,
+                        "border-top": `1px solid ${C.linie}`,
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background = C.foaie)
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "transparent")
+                      }
+                    >
+                      <span style={{ display: "flex", color: C.stins }}>
+                        <Symbol size={18}>calendar_add_on</Symbol>
+                      </span>
+                      Adaugă în calendar
+                    </button>
                   }
                 >
-                  <span style={{ display: "flex", color: C.stins }}>
-                    <Symbol size={18}>calendar_add_on</Symbol>
-                  </span>
-                  Adaugă în calendar
-                </button>
+                  {/* Pe calculator, Google Calendar și Apple Calendar, ca la butonul din fila Info (26 nov 2026). */}
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      display: "block",
+                      margin: "4px 12px",
+                      "border-top": `1px solid ${C.linie}`,
+                    }}
+                  />
+                  <span style={ETICHETA_MENIU}>Adaugă în calendar</span>
+                  <OptiuniCalendar
+                    calendar={props.calendar!}
+                    id={props.idEveniment!}
+                    laAlegere={() => setDeschis(false)}
+                  />
+                </Show>
               </Show>
             </span>
           </Show>

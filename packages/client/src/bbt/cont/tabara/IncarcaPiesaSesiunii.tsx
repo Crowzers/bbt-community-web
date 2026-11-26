@@ -278,78 +278,9 @@ export function IncarcaPiesaSesiunii(props: {
     return a ? (a.tip === "fisier" ? a.previzualizare : a.url) : null;
   };
 
-  // ── Piesa
+  // ── Piesa (zona de tras și ascultat e `ZonaMp3`, comună cu înlocuirea fișierului)
   const [mp3, setMp3] = createSignal<File | null>(null);
-  const [trage, setTrage] = createSignal(false);
-  const [unda, setUnda] = createSignal<number[]>([]);
   const [durata, setDurata] = createSignal(0);
-  const [pozitie, setPozitie] = createSignal(0);
-  const [canta, setCanta] = createSignal(false);
-  let audio: HTMLAudioElement | null = null;
-  let inputMp3: HTMLInputElement | undefined;
-
-  function puneMp3(f: File | undefined) {
-    if (!f) return;
-    if (f.type !== "audio/mpeg" && !f.name.toLowerCase().endsWith(".mp3")) {
-      setEroare("Doar fișiere MP3.");
-      return;
-    }
-    if (f.size > MAX_MP3) {
-      setEroare("Fișierul e prea mare (maxim 15 MB).");
-      return;
-    }
-    setEroare("");
-    audio?.pause();
-    setCanta(false);
-    setPozitie(0);
-    setDurata(0);
-    setUnda([]);
-    setMp3(f);
-    if (!titlu())
-      setTitlu(
-        f.name
-          .replace(/\.mp3$/i, "")
-          .replace(/[-_]+/g, " ")
-          .trim(),
-      );
-    void undaDinFisier(f).then((u) => mp3() === f && setUnda(u));
-  }
-
-  // Ascultarea din panou: fișierul din memorie, nu urcă nicăieri până la „Încarcă piesa”.
-  createEffect(
-    on(mp3, (f) => {
-      if (!f) return;
-      const url = URL.createObjectURL(f);
-      const a = new Audio(url);
-      a.onloadedmetadata = () =>
-        setDurata(Number.isFinite(a.duration) ? a.duration : 0);
-      a.ontimeupdate = () => setPozitie(a.currentTime);
-      a.onended = () => setCanta(false);
-      a.onpause = () => setCanta(false);
-      a.onplay = () => setCanta(true);
-      // Două piese deodată nu se aud: pornită aici, le oprește pe celelalte din pagină; pornită alta, tace asta (D11).
-      const scoate = oSinguraPiesa(a);
-      audio = a;
-      onCleanup(() => {
-        a.pause();
-        scoate();
-        URL.revokeObjectURL(url);
-        if (audio === a) audio = null;
-      });
-    }),
-  );
-
-  function comutaAscultarea() {
-    if (!audio) return;
-    if (!audio.paused) audio.pause();
-    else void audio.play();
-  }
-
-  function sari(e: MouseEvent) {
-    if (!audio || !durata()) return;
-    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    audio.currentTime = ((e.clientX - r.left) / r.width) * durata();
-  }
 
   // ── Autorii
   const toti = createMemo(() => {
@@ -416,7 +347,6 @@ export function IncarcaPiesaSesiunii(props: {
     if (lipsesc().length || !f || !a || trimite()) return;
     setTrimite(true);
     setEroare("");
-    audio?.pause();
     try {
       const fd = new FormData();
       fd.append("file", f);
@@ -831,210 +761,22 @@ export function IncarcaPiesaSesiunii(props: {
       {/* ── Piesa */}
       <div>
         <TitluParte obligatoriu>Piesa</TitluParte>
-        <Show
-          when={mp3()}
-          fallback={
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={() => inputMp3?.click()}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  inputMp3?.click();
-                }
-              }}
-              onDragEnter={(e) => {
-                e.preventDefault();
-                setTrage(true);
-              }}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setTrage(true);
-              }}
-              onDragLeave={() => setTrage(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setTrage(false);
-                puneMp3(e.dataTransfer?.files?.[0]);
-              }}
-              style={{
-                ...(trage()
-                  ? {
-                      ...CUTIE,
-                      border: `2px solid ${C.negru}`,
-                      background: C.rozDeschis,
-                    }
-                  : CUTIE_GOALA),
-                "min-height": "132px",
-                "box-sizing": "border-box",
-                display: "flex",
-                "flex-direction": "column",
-                "align-items": "center",
-                "justify-content": "center",
-                gap: "6px",
-                "text-align": "center",
-                cursor: "pointer",
-              }}
-            >
-              <Show
-                when={!trage()}
-                fallback={
-                  <span style={{ "font-size": "16px", "font-weight": 700 }}>
-                    Las-o aici
-                  </span>
-                }
-              >
-                <Symbol size={28}>upload</Symbol>
-                <span
-                  style={{
-                    color: C.text,
-                    "font-size": "16px",
-                    "font-weight": 700,
-                  }}
-                >
-                  {peTelefon ? "Alege piesa" : "Trage piesa aici"}
-                </span>
-                <span style={{ color: C.stins, "font-size": "14px" }}>
-                  {peTelefon
-                    ? "MP3, maxim 15 MB"
-                    : "sau dă click ca s-o alegi · MP3, maxim 15 MB"}
-                </span>
-              </Show>
-            </div>
-          }
-        >
-          {(f) => (
-            <div
-              style={{
-                ...CUTIE,
-                padding: "14px",
-                display: "flex",
-                "align-items": "center",
-                gap: "14px",
-              }}
-            >
-              {/* Rozul = acțiunea: butonul de ascultare e de apăsat, nu decor. */}
-              <button
-                type="button"
-                onClick={comutaAscultarea}
-                aria-label={
-                  canta() ? "Pauză" : "Ascultă piesa înainte s-o încarci"
-                }
-                style={{
-                  width: "48px",
-                  height: "48px",
-                  "border-radius": "50%",
-                  border: 0,
-                  background: C.roz,
-                  color: C.negru,
-                  display: "flex",
-                  "align-items": "center",
-                  "justify-content": "center",
-                  "flex-shrink": 0,
-                  cursor: "pointer",
-                }}
-              >
-                <Symbol size={24} fill>
-                  {canta() ? "pause" : "play_arrow"}
-                </Symbol>
-              </button>
-              <div style={{ flex: 1, "min-width": 0 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    "justify-content": "space-between",
-                    "align-items": "baseline",
-                    gap: "12px",
-                  }}
-                >
-                  <span
-                    style={{
-                      color: C.text,
-                      "font-size": "16px",
-                      "font-weight": 600,
-                      overflow: "hidden",
-                      "text-overflow": "ellipsis",
-                      "white-space": "nowrap",
-                    }}
-                  >
-                    {f().name}
-                  </span>
-                  <span
-                    style={{
-                      color: C.stins,
-                      "font-size": "14px",
-                      "font-variant-numeric": "tabular-nums",
-                      "white-space": "nowrap",
-                    }}
-                  >
-                    {mmss(pozitie())} / {mmss(durata())} ·{" "}
-                    {(f().size / 1024 / 1024).toLocaleString("ro-RO", {
-                      maximumFractionDigits: 1,
-                    })}{" "}
-                    MB
-                  </span>
-                </div>
-                <div
-                  role="slider"
-                  aria-label="Poziția în piesă"
-                  aria-valuemin={0}
-                  aria-valuemax={Math.round(durata())}
-                  aria-valuenow={Math.round(pozitie())}
-                  tabIndex={0}
-                  onClick={sari}
-                  style={{
-                    display: "flex",
-                    "align-items": "center",
-                    gap: "2px",
-                    height: "32px",
-                    "margin-top": "6px",
-                    cursor: "pointer",
-                  }}
-                >
-                  <For
-                    each={
-                      unda().length
-                        ? unda()
-                        : Array.from({ length: 90 }, () => 0.3)
-                    }
-                  >
-                    {(v, k) => (
-                      <i
-                        style={{
-                          flex: 1,
-                          "min-width": "2px",
-                          "border-radius": "2px",
-                          height: `${Math.max(12, v * 100)}%`,
-                          background:
-                            durata() && k() / 90 < pozitie() / durata()
-                              ? C.negru
-                              : C.slab,
-                        }}
-                      />
-                    )}
-                  </For>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => inputMp3?.click()}
-                style={{ ...butonMic("alb"), "flex-shrink": 0 }}
-              >
-                Schimbă
-              </button>
-            </div>
-          )}
-        </Show>
-        <input
-          ref={inputMp3}
-          type="file"
-          accept="audio/mpeg,.mp3"
-          hidden
-          onChange={(e) => {
-            puneMp3(e.currentTarget.files?.[0]);
-            e.currentTarget.value = "";
+        <ZonaMp3
+          mp3={mp3()}
+          laAlege={(f) => {
+            setMp3(f);
+            if (!titlu())
+              setTitlu(
+                f.name
+                  .replace(/\.mp3$/i, "")
+                  .replace(/[-_]+/g, " ")
+                  .trim(),
+              );
           }}
+          laDurata={setDurata}
+          laEroare={setEroare}
+          peTelefon={peTelefon}
+          opreste={trimite()}
         />
       </div>
 
@@ -1270,6 +1012,435 @@ export function IncarcaPiesaSesiunii(props: {
             Mai lipsește {lipsesc().join(" și ")}.
           </span>
         </Show>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Zona în care se trage MP3-ul și se ascultă înainte de trimitere (D11). Stă în „Încarcă piesa sesiunii” și în „Înlocuiește
+ * fișierul” (26 nov 2026): scoasă de aici ca cele două să nu ajungă două zone care arată la fel și se poartă diferit.
+ * `opreste` pune pauză la trimitere, ca piesa să nu cânte peste încărcare.
+ */
+function ZonaMp3(props: {
+  mp3: File | null;
+  laAlege: (f: File) => void;
+  laDurata: (secunde: number) => void;
+  laEroare: (mesaj: string) => void;
+  peTelefon: boolean;
+  opreste?: boolean;
+}) {
+  const [trage, setTrage] = createSignal(false);
+  const [unda, setUnda] = createSignal<number[]>([]);
+  const [durata, setDurata] = createSignal(0);
+  const [pozitie, setPozitie] = createSignal(0);
+  const [canta, setCanta] = createSignal(false);
+  let audio: HTMLAudioElement | null = null;
+  let inputMp3: HTMLInputElement | undefined;
+
+  function puneMp3(f: File | undefined) {
+    if (!f) return;
+    if (f.type !== "audio/mpeg" && !f.name.toLowerCase().endsWith(".mp3")) {
+      props.laEroare("Doar fișiere MP3.");
+      return;
+    }
+    if (f.size > MAX_MP3) {
+      props.laEroare("Fișierul e prea mare (maxim 15 MB).");
+      return;
+    }
+    props.laEroare("");
+    audio?.pause();
+    setCanta(false);
+    setPozitie(0);
+    setDurata(0);
+    setUnda([]);
+    props.laAlege(f);
+    // Unda vine după decodare: dacă între timp s-a ales alt fișier, nu-i punem unda celui vechi.
+    void undaDinFisier(f).then(
+      (u) => untrack(() => props.mp3) === f && setUnda(u),
+    );
+  }
+
+  // Ascultarea din panou: fișierul din memorie, nu urcă nicăieri până la trimitere.
+  createEffect(
+    on(
+      () => props.mp3,
+      (f) => {
+        if (!f) return;
+        const url = URL.createObjectURL(f);
+        const a = new Audio(url);
+        a.onloadedmetadata = () => {
+          const d = Number.isFinite(a.duration) ? a.duration : 0;
+          setDurata(d);
+          props.laDurata(d);
+        };
+        a.ontimeupdate = () => setPozitie(a.currentTime);
+        a.onended = () => setCanta(false);
+        a.onpause = () => setCanta(false);
+        a.onplay = () => setCanta(true);
+        // Două piese deodată nu se aud: pornită aici, le oprește pe celelalte din pagină; pornită alta, tace asta (D11).
+        const scoate = oSinguraPiesa(a);
+        audio = a;
+        onCleanup(() => {
+          a.pause();
+          scoate();
+          URL.revokeObjectURL(url);
+          if (audio === a) audio = null;
+        });
+      },
+    ),
+  );
+
+  createEffect(
+    on(
+      () => props.opreste,
+      (o) => {
+        if (o) audio?.pause();
+      },
+    ),
+  );
+
+  function comutaAscultarea() {
+    if (!audio) return;
+    if (!audio.paused) audio.pause();
+    else void audio.play();
+  }
+
+  function sari(e: MouseEvent) {
+    if (!audio || !durata()) return;
+    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    audio.currentTime = ((e.clientX - r.left) / r.width) * durata();
+  }
+
+  return (
+    <>
+      <Show
+        when={props.mp3}
+        fallback={
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => inputMp3?.click()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                inputMp3?.click();
+              }
+            }}
+            onDragEnter={(e) => {
+              e.preventDefault();
+              setTrage(true);
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setTrage(true);
+            }}
+            onDragLeave={() => setTrage(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setTrage(false);
+              puneMp3(e.dataTransfer?.files?.[0]);
+            }}
+            style={{
+              ...(trage()
+                ? {
+                    ...CUTIE,
+                    border: `2px solid ${C.negru}`,
+                    background: C.rozDeschis,
+                  }
+                : CUTIE_GOALA),
+              "min-height": "132px",
+              "box-sizing": "border-box",
+              display: "flex",
+              "flex-direction": "column",
+              "align-items": "center",
+              "justify-content": "center",
+              gap: "6px",
+              "text-align": "center",
+              cursor: "pointer",
+            }}
+          >
+            <Show
+              when={!trage()}
+              fallback={
+                <span style={{ "font-size": "16px", "font-weight": 700 }}>
+                  Las-o aici
+                </span>
+              }
+            >
+              <Symbol size={28}>upload</Symbol>
+              <span
+                style={{
+                  color: C.text,
+                  "font-size": "16px",
+                  "font-weight": 700,
+                }}
+              >
+                {props.peTelefon ? "Alege piesa" : "Trage piesa aici"}
+              </span>
+              <span style={{ color: C.stins, "font-size": "14px" }}>
+                {props.peTelefon
+                  ? "MP3, maxim 15 MB"
+                  : "sau dă click ca s-o alegi · MP3, maxim 15 MB"}
+              </span>
+            </Show>
+          </div>
+        }
+      >
+        {(f) => (
+          <div
+            style={{
+              ...CUTIE,
+              padding: "14px",
+              display: "flex",
+              "align-items": "center",
+              gap: "14px",
+            }}
+          >
+            {/* Rozul = acțiunea: butonul de ascultare e de apăsat, nu decor. */}
+            <button
+              type="button"
+              onClick={comutaAscultarea}
+              aria-label={
+                canta() ? "Pauză" : "Ascultă piesa înainte s-o trimiți"
+              }
+              style={{
+                width: "48px",
+                height: "48px",
+                "border-radius": "50%",
+                border: 0,
+                background: C.roz,
+                color: C.negru,
+                display: "flex",
+                "align-items": "center",
+                "justify-content": "center",
+                "flex-shrink": 0,
+                cursor: "pointer",
+              }}
+            >
+              <Symbol size={24} fill>
+                {canta() ? "pause" : "play_arrow"}
+              </Symbol>
+            </button>
+            <div style={{ flex: 1, "min-width": 0 }}>
+              <div
+                style={{
+                  display: "flex",
+                  "justify-content": "space-between",
+                  "align-items": "baseline",
+                  gap: "12px",
+                }}
+              >
+                <span
+                  style={{
+                    color: C.text,
+                    "font-size": "16px",
+                    "font-weight": 600,
+                    overflow: "hidden",
+                    "text-overflow": "ellipsis",
+                    "white-space": "nowrap",
+                  }}
+                >
+                  {f().name}
+                </span>
+                <span
+                  style={{
+                    color: C.stins,
+                    "font-size": "14px",
+                    "font-variant-numeric": "tabular-nums",
+                    "white-space": "nowrap",
+                  }}
+                >
+                  {mmss(pozitie())} / {mmss(durata())} ·{" "}
+                  {(f().size / 1024 / 1024).toLocaleString("ro-RO", {
+                    maximumFractionDigits: 1,
+                  })}{" "}
+                  MB
+                </span>
+              </div>
+              <div
+                role="slider"
+                aria-label="Poziția în piesă"
+                aria-valuemin={0}
+                aria-valuemax={Math.round(durata())}
+                aria-valuenow={Math.round(pozitie())}
+                tabIndex={0}
+                onClick={sari}
+                style={{
+                  display: "flex",
+                  "align-items": "center",
+                  gap: "2px",
+                  height: "32px",
+                  "margin-top": "6px",
+                  cursor: "pointer",
+                }}
+              >
+                <For
+                  each={
+                    unda().length
+                      ? unda()
+                      : Array.from({ length: 90 }, () => 0.3)
+                  }
+                >
+                  {(v, k) => (
+                    <i
+                      style={{
+                        flex: 1,
+                        "min-width": "2px",
+                        "border-radius": "2px",
+                        height: `${Math.max(12, v * 100)}%`,
+                        background:
+                          durata() && k() / 90 < pozitie() / durata()
+                            ? C.negru
+                            : C.slab,
+                      }}
+                    />
+                  )}
+                </For>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => inputMp3?.click()}
+              style={{ ...butonMic("alb"), "flex-shrink": 0 }}
+            >
+              Schimbă
+            </button>
+          </div>
+        )}
+      </Show>
+      <input
+        ref={inputMp3}
+        type="file"
+        accept="audio/mpeg,.mp3"
+        hidden
+        onChange={(e) => {
+          puneMp3(e.currentTarget.files?.[0]);
+          e.currentTarget.value = "";
+        }}
+      />
+    </>
+  );
+}
+
+/**
+ * BBT: „Înlocuiește fișierul” (26 nov 2026), deschis din cardul sesiunii sub piesa cu varianta greșită. Comportamentul e al
+ * site-ului (`my-camp/[id]/InlocuiesteFisierul.tsx`) și al aplicației (`FoaieInlocuiestePiesa`); codul e scris aici de la zero.
+ * Alt MP3 pe ACEEAȘI piesă: titlul, artwork-ul, autorii, like-urile și voturile rămân. Regula (doar autorii, doar până se
+ * termină tabăra) e pe server, iar butonul apare doar când serverul trimite `poateInlocui`.
+ */
+export function InlocuiesteFisierul(props: {
+  piesa: { id: string; title: string };
+  laInlocuit: () => void;
+  laInchide: () => void;
+}) {
+  const sesiune = useSesiune();
+  const peTelefon = window.matchMedia(
+    "(pointer: coarse) and (hover: none)",
+  ).matches;
+  const [mp3, setMp3] = createSignal<File | null>(null);
+  const [durata, setDurata] = createSignal(0);
+  const [eroare, setEroare] = createSignal("");
+  const [trimite, setTrimite] = createSignal(false);
+
+  async function inlocuieste() {
+    const f = mp3();
+    if (!f || trimite()) return;
+    setTrimite(true);
+    setEroare("");
+    try {
+      const fd = new FormData();
+      fd.append("file", f);
+      if (durata()) fd.append("duration", String(Math.round(durata())));
+      await cerereCont(
+        sesiune(),
+        `/api/public/songs/${props.piesa.id}/fisier`,
+        {
+          method: "POST",
+          body: fd,
+        },
+      );
+      props.laInlocuit();
+    } catch (err) {
+      // Serverul trimite motivul în română în `error` (ex. „Tabăra s-a terminat…”); restul e rețeaua.
+      setEroare(
+        err instanceof Error &&
+          err.message &&
+          err.message !== "Cererea n-a mers." &&
+          err.name !== "TypeError"
+          ? err.message
+          : "Fișierul n-a urcat. Încearcă din nou.",
+      );
+    } finally {
+      setTrimite(false);
+    }
+  }
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        "flex-direction": "column",
+        gap: "14px",
+        "margin-top": "6px",
+        "padding-top": "16px",
+        "border-top": `1px solid ${C.linie}`,
+      }}
+    >
+      <div style={{ display: "flex", "flex-direction": "column", gap: "8px" }}>
+        <p
+          style={{
+            margin: 0,
+            color: C.text,
+            "font-size": "20px",
+            "font-weight": 700,
+          }}
+        >
+          Înlocuiește fișierul
+        </p>
+        {/* Titlul piesei ca text, nu pastilă: lângă „Schimbă” ar fi arătat ca încă un buton (regula pastilelor, ca pe site). */}
+        <span style={{ color: C.stins, "font-size": "14px" }}>
+          {props.piesa.title}
+        </span>
+      </div>
+      <p style={{ margin: 0, color: C.text, "font-size": "16px" }}>
+        Ai urcat altă variantă? Pune aici MP3-ul bun. Titlul, artwork-ul,
+        autorii și voturile rămân.
+      </p>
+
+      <ZonaMp3
+        mp3={mp3()}
+        laAlege={setMp3}
+        laDurata={setDurata}
+        laEroare={setEroare}
+        peTelefon={peTelefon}
+        opreste={trimite()}
+      />
+
+      <Show when={eroare()}>
+        <p style={{ margin: 0, color: C.rosu, "font-size": "14px" }}>
+          {eroare()}
+        </p>
+      </Show>
+
+      <div
+        style={{
+          display: "flex",
+          "flex-wrap": "wrap",
+          "align-items": "center",
+          gap: "8px",
+        }}
+      >
+        <Buton
+          piele="roz"
+          onClick={inlocuieste}
+          dezactivat={!mp3() || trimite()}
+        >
+          {trimite() ? "Se încarcă…" : "Înlocuiește piesa"}
+        </Buton>
+        <Buton piele="alb" onClick={() => props.laInchide()}>
+          Anulează
+        </Buton>
       </div>
     </div>
   );

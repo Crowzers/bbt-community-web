@@ -54,6 +54,7 @@ import { butonMic } from "./DecupajPatrat";
 import {
   type OmTabara,
   IncarcaPiesaSesiunii,
+  InlocuiesteFisierul,
   numeScena,
 } from "./IncarcaPiesaSesiunii";
 import {
@@ -898,6 +899,7 @@ function FilaInfo(props: { id: string; d: InfoTabara; laPiese: () => void }) {
           initial={props.d.mealPreference}
           deschide={deschideMasa()}
           laSalvat={() => setMasaGata(true)}
+          completat={masaGata()}
         />
       </div>
       <Show when={!c().programGeneral}>
@@ -981,12 +983,20 @@ function ProgramPeZile(props: { dataStart: string; zile: ProgramZi[] }) {
   );
 }
 
+/**
+ * Restricțiile alimentare. 26 nov 2026 (userul): „Preferințe masă” suna a meniu la alegere, iar cine nu e vegetarian și
+ * n-are alergii nu știa cum bifează pasul din „Pregătirea ta” (se bifează la orice rând salvat, și la cel gol, dar nimic
+ * nu spunea asta). De aici titlul, butonul „N-am restricții” care salvează golul dintr-o apăsare, și „Fără restricții”
+ * după. La fel pe site și în aplicație.
+ */
 function PreferinteMasa(props: {
   id: string;
   initial: { isVegetarian: boolean; alergeni: string | null };
   /** Crește la „Completează” din „Pregătirea ta” (25 nov 2026): deschide formularul pe loc. */
   deschide?: number;
   laSalvat?: () => void;
+  /** Omul a salvat deja (pasul e bifat): golul se citește „Fără restricții”, nu „Nimic completat încă”. */
+  completat?: boolean;
 }) {
   const sesiune = useSesiune();
 
@@ -1014,10 +1024,18 @@ function PreferinteMasa(props: {
     ),
   );
 
+  const gol = () => !salvat().isVegetarian && !salvat().alergeni;
+
   async function salveaza(e: SubmitEvent) {
     e.preventDefault();
+    await trimite({ isVegetarian: veg(), alergeni: alergeni().trim() || null });
+  }
+
+  async function trimite(nou: {
+    isVegetarian: boolean;
+    alergeni: string | null;
+  }) {
     setLucrez(true);
-    const nou = { isVegetarian: veg(), alergeni: alergeni().trim() || null };
     try {
       await cerereCont(
         sesiune(),
@@ -1037,7 +1055,7 @@ function PreferinteMasa(props: {
 
   return (
     <Bloc
-      titlu="Preferințe masă"
+      titlu="Restricții alimentare"
       simbol="restaurant"
       actiune={
         <button
@@ -1063,27 +1081,41 @@ function PreferinteMasa(props: {
           <div
             style={{ display: "flex", "flex-direction": "column", gap: "6px" }}
           >
-            <div
-              style={{
-                display: "flex",
-                "justify-content": "space-between",
-                color: C.stins,
-                "font-size": "14px",
-              }}
+            <Show
+              when={!gol()}
+              fallback={
+                <span
+                  style={{
+                    color: props.completat ? C.stins : C.slab,
+                    "font-size": "14px",
+                  }}
+                >
+                  {props.completat ? "Fără restricții" : "Nimic completat încă"}
+                </span>
+              }
             >
-              <span>Vegetarian</span>
-              <span
+              <div
                 style={{
-                  color: salvat().isVegetarian ? C.verde : C.slab,
-                  "font-weight": 600,
+                  display: "flex",
+                  "justify-content": "space-between",
+                  color: C.stins,
+                  "font-size": "14px",
                 }}
               >
-                {salvat().isVegetarian ? "Da" : "Nu"}
-              </span>
-            </div>
+                <span>Vegetarian</span>
+                <span
+                  style={{
+                    color: salvat().isVegetarian ? C.verde : C.slab,
+                    "font-weight": 600,
+                  }}
+                >
+                  {salvat().isVegetarian ? "Da" : "Nu"}
+                </span>
+              </div>
+            </Show>
             <Show when={salvat().alergeni}>
               <span style={{ color: C.stins, "font-size": "14px" }}>
-                Alergeni: {salvat().alergeni}
+                Restricții: {salvat().alergeni}
               </span>
             </Show>
             <MesajSalvare stare={stare()} />
@@ -1112,16 +1144,31 @@ function PreferinteMasa(props: {
             Mâncare vegetariană
           </label>
           <CampText
-            eticheta="Alergeni sau restricții"
+            eticheta="Alergii sau alte restricții"
             valoare={alergeni()}
             laSchimbare={setAlergeni}
             placeholder="gluten, lactate, nuci"
           />
           <div
-            style={{ display: "flex", "align-items": "center", gap: "12px" }}
+            style={{
+              display: "flex",
+              "align-items": "center",
+              "flex-wrap": "wrap",
+              gap: "12px",
+            }}
           >
             <Buton mic tip="submit" dezactivat={lucrez()}>
               {lucrez() ? "Se salvează…" : "Salvează"}
+            </Buton>
+            <Buton
+              mic
+              piele="alb"
+              dezactivat={lucrez()}
+              onClick={() =>
+                void trimite({ isVegetarian: false, alergeni: null })
+              }
+            >
+              N-am restricții
             </Buton>
             <MesajSalvare stare={stare()} />
           </div>
@@ -1231,6 +1278,9 @@ function CardSesiune(props: {
   const cuCine = () =>
     s().producator ? numeScena(s().producator!) : s().formator?.nume;
   const deschideOmul = useDeschideOmul();
+  // Piesa al cărei fișier se înlocuiește (26 nov 2026). Un singur panou deodată, ca la urcare.
+  const [deInlocuit, setDeInlocuit] = createSignal<string | null>(null);
+  const piesaDeInlocuit = () => props.piese.find((p) => p.id === deInlocuit());
   return (
     <Card
       style={{
@@ -1239,7 +1289,7 @@ function CardSesiune(props: {
         "flex-direction": "column",
         gap: "10px",
         // Lista de căutare a autorilor iese din card; `Card` taie altfel tot ce trece de margine.
-        overflow: props.deschis ? "visible" : "hidden",
+        overflow: props.deschis || deInlocuit() ? "visible" : "hidden",
       }}
     >
       <div
@@ -1489,52 +1539,81 @@ function CardSesiune(props: {
                     .join(" · ")}
                 </p>
               </div>
+              {/* Varianta greșită se repară pe piesă, nu cu o piesă nouă lângă ea (26 nov 2026). Doar autorii, doar în tabără. */}
+              <Show
+                when={p.poateInlocui && !props.deschis && deInlocuit() !== p.id}
+              >
+                <button
+                  type="button"
+                  onClick={() => setDeInlocuit(p.id)}
+                  style={{ ...butonMic("alb"), "flex-shrink": 0 }}
+                >
+                  Înlocuiește
+                </button>
+              </Show>
             </div>
           );
         }}
       </For>
 
-      <Show
-        when={props.deschis}
-        fallback={
-          // Doar după ce începe sesiunea: înainte n-are ce piesă să existe (D3). Regula vine gata de la server.
-          <Show
-            when={s().poateIncarca !== false}
-            fallback={
-              <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
-                Piesa se încarcă după ce începe sesiunea.
-              </p>
-            }
-          >
-            <div>
-              <button
-                type="button"
-                onClick={() => props.laDeschide()}
-                style={butonMic("roz")}
-              >
-                <Symbol size={16}>upload</Symbol>
-                {props.piese.length
-                  ? "Mai încarcă o piesă"
-                  : "Încarcă piesa sesiunii"}
-              </button>
-            </div>
-          </Show>
-        }
-      >
-        <IncarcaPiesaSesiunii
-          campId={props.campId}
-          sesiune={{
-            id: s().id,
-            numar: s().numar,
-            studio: s().studio.numar,
-          }}
-          colegiSesiune={s().participants.map(({ participant }) => participant)}
-          producator={s().producator ?? null}
-          oameniTabara={props.participanti}
-          euId={props.euId}
-          laIncarcat={() => props.laIncarcat()}
-          laInchide={() => props.laInchide()}
-        />
+      <Show when={!props.deschis && piesaDeInlocuit()}>
+        {(piesa) => (
+          <InlocuiesteFisierul
+            piesa={piesa()}
+            laInlocuit={() => {
+              setDeInlocuit(null);
+              props.laIncarcat();
+            }}
+            laInchide={() => setDeInlocuit(null)}
+          />
+        )}
+      </Show>
+
+      <Show when={props.deschis || !deInlocuit()}>
+        <Show
+          when={props.deschis}
+          fallback={
+            // Doar după ce începe sesiunea: înainte n-are ce piesă să existe (D3). Regula vine gata de la server.
+            <Show
+              when={s().poateIncarca !== false}
+              fallback={
+                <p style={{ margin: 0, color: C.stins, "font-size": "14px" }}>
+                  Piesa se încarcă după ce începe sesiunea.
+                </p>
+              }
+            >
+              <div>
+                <button
+                  type="button"
+                  onClick={() => props.laDeschide()}
+                  style={butonMic("roz")}
+                >
+                  <Symbol size={16}>upload</Symbol>
+                  {props.piese.length
+                    ? "Mai încarcă o piesă"
+                    : "Încarcă piesa sesiunii"}
+                </button>
+              </div>
+            </Show>
+          }
+        >
+          <IncarcaPiesaSesiunii
+            campId={props.campId}
+            sesiune={{
+              id: s().id,
+              numar: s().numar,
+              studio: s().studio.numar,
+            }}
+            colegiSesiune={s().participants.map(
+              ({ participant }) => participant,
+            )}
+            producator={s().producator ?? null}
+            oameniTabara={props.participanti}
+            euId={props.euId}
+            laIncarcat={() => props.laIncarcat()}
+            laInchide={() => props.laInchide()}
+          />
+        </Show>
       </Show>
 
       {/* Notițele live, pe pagina lor din hub (vezi antetul fișierului). */}

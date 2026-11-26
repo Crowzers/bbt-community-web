@@ -45,6 +45,8 @@ export interface Piesa {
   nrLikes: number;
   amDatLike: boolean;
   esteEchipaMea: boolean;
+  /** Autorii pot pune alt MP3 pe piesă până se termină tabăra (26 nov 2026). Regula e în admin; lipsă = admin vechi = nu. */
+  poateInlocui?: boolean;
   contributori?: { id: string; numeComplet: string; nrBangere: number }[];
   echipa?: { id: string; numeComplet: string; nrBangere: number }[];
 }

@@ -4,8 +4,8 @@ import { useNavigate } from "@revolt/routing";
 import { Symbol } from "@revolt/ui/components/utils/Symbol";
 
 import { BBT_SITE_URL } from "../../config";
+import { ButonCalendar } from "../AdaugaInCalendar";
 import type { CalendarTabara, Moment } from "../calendarIcs";
-import { adaugaInCalendar } from "../CumAjungi";
 import type { LinkuriNavigare } from "../tipuri";
 import { Buton, C, Card } from "../ui";
 
@@ -28,6 +28,8 @@ export interface Pregatire {
     scadentaLa: string | null;
     actiune: string;
   } | null;
+  /** Rata rămasă cade după tabără: rândul plății nu se arată. Lipsă = admin mai vechi. */
+  plataDupaTabara?: boolean;
   masa: boolean;
   profil: boolean;
 }
@@ -146,27 +148,30 @@ export function PregatireaTa(props: {
           />
         )}
       </Show>
-      <Rand
-        gata={!plata()}
-        text={
-          plata()
-            ? plata()!.actiune === "integral"
-              ? `Plata · ${lei(plata()!.suma)}`
-              : `Rata ${plata()!.numarTransa} · ${lei(plata()!.suma)}`
-            : "Plata e făcută"
-        }
-        detaliu={
-          plata()?.scadentaLa ? `până pe ${zi(plata()!.scadentaLa!)}` : null
-        }
-        buton={
-          <Buton piele="roz" mic onClick={() => props.laPlata()}>
-            Plătește
-          </Buton>
-        }
-      />
+      {/* Rata 2 cu scadența după tabără nu e pregătire (26 nov 2026, userul): rândul lipsește, rata stă în Plăți. */}
+      <Show when={!props.p.plataDupaTabara}>
+        <Rand
+          gata={!plata()}
+          text={
+            plata()
+              ? plata()!.actiune === "integral"
+                ? `Plata · ${lei(plata()!.suma)}`
+                : `Rata ${plata()!.numarTransa} · ${lei(plata()!.suma)}`
+              : "Plata e făcută"
+          }
+          detaliu={
+            plata()?.scadentaLa ? `până pe ${zi(plata()!.scadentaLa!)}` : null
+          }
+          buton={
+            <Buton piele="roz" mic onClick={() => props.laPlata()}>
+              Plătește
+            </Buton>
+          }
+        />
+      </Show>
       <Rand
         gata={props.p.masa}
-        text="Preferințe masă"
+        text="Restricții alimentare"
         buton={
           <Buton piele="negru" mic onClick={() => props.laMasa()}>
             Completează
@@ -223,8 +228,9 @@ export function CumAjungiBloc(props: {
   navigare?: LinkuriNavigare | null;
   calendar?: CalendarTabara | null;
 }) {
+  // `overflow: visible`: meniul de calendar (pe calculator) iese sub card; `Card` are `overflow: hidden`.
   return (
-    <Card style={{ padding: "18px" }}>
+    <Card style={{ padding: "18px", overflow: "visible" }}>
       <p style={TITLU}>Cum ajungi</p>
       <Linie simbol="location_on">{props.locatie}</Linie>
       <Show when={props.calendar}>
@@ -252,17 +258,7 @@ export function CumAjungiBloc(props: {
         )}
       </Show>
       <Show when={props.calendar}>
-        {(k) => (
-          <div style={{ "margin-top": "8px", display: "flex" }}>
-            <Buton
-              lat
-              piele="alb"
-              onClick={() => adaugaInCalendar(k(), props.id)}
-            >
-              Adaugă în calendar
-            </Buton>
-          </div>
-        )}
+        {(k) => <ButonCalendar calendar={k()} id={props.id} />}
       </Show>
     </Card>
   );
