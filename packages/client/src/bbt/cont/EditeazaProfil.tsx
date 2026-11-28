@@ -93,7 +93,7 @@ type Formular = ReturnType<typeof formularDin>;
  * Trei lucruri făcute dinadins altfel decât pe site:
  * - Pleacă doar ce s-a schimbat. Pe site ziua din `dataNasterii` se pierde la fiecare salvare (formularul are doar lună și
  *   an, deci scrie ziua 1), iar un cont vechi, fără prenume, nu poate salva deloc.
- * - Un număr nou se verifică mereu prin SMS, chiar dacă cel vechi era verificat.
+ * - Un număr nou se verifică mereu prin cod (WhatsApp sau SMS), chiar dacă cel vechi era verificat.
  * - Numărul nu trece prin „Salvează": îl scrie în cont verificarea.
  *
  * Pe desktop și tabletă, două coloane (varianta B, aleasă de user pe 1 nov 2026): ce văd ceilalți și ce ține doar de tine și de

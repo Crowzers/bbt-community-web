@@ -133,7 +133,7 @@ export function DatePersonale(props: { p: Participant }) {
   const pune = (camp: keyof ReturnType<typeof f>, v: string) =>
     setF((x) => ({ ...x, [camp]: v }));
 
-  // Telefonul: verificat prin SMS ÎNAINTE de salvare, ca pe site. Un număr schimbat pierde
+  // Telefonul: verificat prin cod (WhatsApp sau SMS) ÎNAINTE de salvare, ca pe site. Un număr schimbat pierde
   // „Artist verificat" până trece din nou prin cod.
   const [telVerificat, setTelVerificat] = createSignal(p0.phoneVerified);
   const telOriginal = p0.telefon ?? "";
@@ -152,7 +152,7 @@ export function DatePersonale(props: { p: Participant }) {
     if (cereVerificare() && !telVerificat()) {
       setStare({
         tip: "err",
-        text: "Verifică întâi numărul de telefon prin SMS.",
+        text: "Verifică întâi numărul de telefon.",
       });
       return;
     }
@@ -349,13 +349,30 @@ export function DatePersonale(props: { p: Participant }) {
   );
 }
 
-/** Codul prin SMS. Aceleași rute ca pe site: `auth/phone/send-otp` și `verify-otp`. */
+type CanalCod = "whatsapp" | "sms";
+
+/**
+ * Cât așteptăm după WhatsApp până oferim SMS-ul: WhatsApp-ul vine în câteva secunde, iar dacă după 20 n-a venit, numărul
+ * probabil n-are WhatsApp. SMS-ul poate întârzia până la un minut la operator. Aceleași valori ca pe site și în aplicație.
+ */
+const SECUNDE_WHATSAPP = 20;
+const SECUNDE_SMS = 60;
+
+/**
+ * Codul de verificare. Aceleași rute ca pe site: `auth/phone/send-otp` și `verify-otp`.
+ *
+ * Primul cod pleacă pe WhatsApp, orice retrimitere pe SMS, ca pe site și în aplicație (28 nov 2026: un SMS „livrat" de
+ * Vodafone nu s-a văzut pe telefon). Verify ține același cod pe ambele canale 10 minute, deci SMS-ul cerut după WhatsApp
+ * aduce codul deja trimis. Adminul răspunde cu canalul pe care a plecat DE FAPT (`sms` cât `TWILIO_VERIFY_WHATSAPP` e
+ * oprit): ecranul se ia după răspuns, altfel omul ar aștepta pe WhatsApp un cod venit prin SMS.
+ */
 export function VerificareTelefon(props: {
   telefon: string;
   laVerificat: () => void;
 }) {
   const sesiune = useSesiune();
   const [pas, setPas] = createSignal<"start" | "cod">("start");
+  const [canal, setCanal] = createSignal<CanalCod>("whatsapp");
   const [cod, setCod] = createSignal("");
   const [lucrez, setLucrez] = createSignal(false);
   const [eroare, setEroare] = createSignal("");
@@ -363,16 +380,22 @@ export function VerificareTelefon(props: {
   let ceas: ReturnType<typeof setInterval> | undefined;
   onCleanup(() => clearInterval(ceas));
 
-  async function trimite() {
+  async function trimite(cerut: CanalCod) {
     setLucrez(true);
     setEroare("");
     try {
-      await cerereCont(sesiune(), "/api/public/auth/phone/send-otp", {
-        method: "POST",
-        body: JSON.stringify({ telefon: props.telefon }),
-      });
+      const r = await cerereCont<{ canal?: unknown }>(
+        sesiune(),
+        "/api/public/auth/phone/send-otp",
+        {
+          method: "POST",
+          body: JSON.stringify({ telefon: props.telefon, canal: cerut }),
+        },
+      );
+      const trimisPe: CanalCod = r?.canal === "whatsapp" ? "whatsapp" : "sms";
+      setCanal(trimisPe);
       setPas("cod");
-      setSecunde(60);
+      setSecunde(trimisPe === "whatsapp" ? SECUNDE_WHATSAPP : SECUNDE_SMS);
       clearInterval(ceas);
       ceas = setInterval(() => {
         setSecunde((s) => {
@@ -381,7 +404,7 @@ export function VerificareTelefon(props: {
         });
       }, 1000);
     } catch (e) {
-      setEroare(e instanceof Error ? e.message : "SMS-ul n-a putut fi trimis.");
+      setEroare(e instanceof Error ? e.message : "Codul n-a putut fi trimis.");
     } finally {
       setLucrez(false);
     }
@@ -429,17 +452,21 @@ export function VerificareTelefon(props: {
           >
             <span style={{ color: C.stins, "font-size": "14px" }}>
               Verifică numărul <b style={{ color: C.text }}>{props.telefon}</b>{" "}
-              prin SMS ca să poți salva.
+              ca să poți salva. Îți trimitem un cod pe WhatsApp sau prin SMS.
             </span>
-            <Buton piele="alb" mic onClick={trimite}>
-              {lucrez() ? "Se trimite…" : "Trimite SMS"}
+            <Buton piele="alb" mic onClick={() => void trimite("whatsapp")}>
+              {lucrez() ? "Se trimite…" : "Trimite codul"}
             </Buton>
           </div>
         }
       >
+        {/* ⚠️ „Pe WhatsApp" nu e o certitudine: un număr fără WhatsApp nu dă eroare pe loc (adminul tot
+            răspunde `whatsapp`), livrarea pică după câteva secunde. De-aia propoziția a doua trimite spre SMS. */}
         <span style={{ color: C.stins, "font-size": "14px" }}>
-          Scrie codul de 6 cifre trimis pe{" "}
+          Scrie codul de 6 cifre primit{" "}
+          {canal() === "whatsapp" ? "pe WhatsApp" : "prin SMS"} la{" "}
           <b style={{ color: C.text }}>{props.telefon}</b>.
+          {canal() === "whatsapp" ? " Dacă n-ai WhatsApp, cere-l prin SMS." : ""}
         </span>
         <div style={{ display: "flex", gap: "8px" }}>
           <div style={{ "flex-grow": 1 }}>
@@ -465,7 +492,7 @@ export function VerificareTelefon(props: {
           disabled={secunde() > 0 || lucrez()}
           onClick={() => {
             setCod("");
-            void trimite();
+            void trimite("sms");
           }}
           style={{
             "align-self": "flex-start",
@@ -477,7 +504,11 @@ export function VerificareTelefon(props: {
             cursor: secunde() > 0 ? "default" : "pointer",
           }}
         >
-          {secunde() > 0 ? `Retrimite (${secunde()}s)` : "Retrimite codul"}
+          {secunde() > 0
+            ? `Retrimite (${secunde()}s)`
+            : canal() === "whatsapp"
+              ? "Trimite prin SMS"
+              : "Retrimite codul"}
         </button>
       </Show>
       <Show when={eroare()}>
